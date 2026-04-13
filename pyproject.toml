@@ -1,0 +1,24 @@
+[project]
+name = "bry-nfet-sx"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "cryptography>=46.0.7",
+    "fastapi[standard]>=0.135.3",
+    "httpx>=0.28.1",
+    "mypy>=1.20.1",
+    "pydantic>=2.13.0",
+    "pydantic-settings>=2.13.1",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "rich>=15.0.0",
+    "ruff>=0.15.10",
+    "streamlit>=1.56.0",
+    "typer>=0.24.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"
