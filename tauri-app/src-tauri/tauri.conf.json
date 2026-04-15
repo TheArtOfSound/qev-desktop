@@ -37,10 +37,11 @@
 
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"],
+    "targets": "all",
     "icon": [
       "icons/icon.png",
-      "icons/icon.icns"
+      "icons/icon.icns",
+      "icons/icon.ico"
     ],
     "copyright": "Copyright © 2026 Qira LLC",
     "category": "Utility",
