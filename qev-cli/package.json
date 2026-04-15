@@ -1,0 +1,60 @@
+{
+  "name": "@imagineqira/qev-cli",
+  "version": "0.28.1",
+  "description": "Command-line vault for offline encrypted message envelopes. Same XChaCha20-Poly1305 + Argon2id crypto as the QEV desktop and web apps. Cross-platform, zero network access, lock a file with a phrase and share it through any channel.",
+  "keywords": [
+    "encryption",
+    "vault",
+    "cli",
+    "xchacha20",
+    "poly1305",
+    "argon2id",
+    "libsodium",
+    "qev",
+    "envelope",
+    "offline"
+  ],
+  "homepage": "https://secure.imagineqira.com/downloads",
+  "bugs": {
+    "url": "mailto:bryanleonard@imagineqira.com"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Bryan Leonard",
+    "email": "bryanleonard@imagineqira.com",
+    "url": "https://secure.imagineqira.com"
+  },
+  "bin": {
+    "qev": "./bin/qev.js"
+  },
+  "main": "./lib/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./lib/index.js",
+    "./vault": "./lib/vault.js",
+    "./canonical": "./lib/canonical.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "test:watch": "node --test --watch test/",
+    "selftest": "./bin/qev.js self-test",
+    "start": "./bin/qev.js"
+  },
+  "dependencies": {
+    "libsodium-wrappers-sumo": "^0.7.13"
+  },
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -32,5 +32,9 @@ dist/vault-local/
 .mypy_cache/
 .ruff_cache/
 
+# Node / npm (qev-cli and any other Node packages under this tree)
+**/node_modules/
+qev-cli/node_modules/
+
 # macOS noise
 .DS_Store
