@@ -44,10 +44,8 @@ jobs:
             target: aarch64-apple-darwin
             bundle: app,dmg
             label: macos-arm64
-          - platform: macos-13   # Intel runner for x86_64 Mac
-            target: x86_64-apple-darwin
-            bundle: app,dmg
-            label: macos-x64
+          # macos-13 (Intel) runners are being retired by GitHub;
+          # re-add once we actually need an Intel Mac installer.
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             bundle: msi,nsis
@@ -94,16 +92,11 @@ jobs:
       - name: Build QEV
         run: cargo tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
         env:
-          # macOS signing (set in repo secrets; empty = unsigned ad-hoc)
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # Windows signing
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # macOS: "-" = ad-hoc sign, no cert import. Once we have a
+          # real Apple Developer ID, set APPLE_SIGNING_IDENTITY +
+          # APPLE_CERTIFICATE + APPLE_CERTIFICATE_PASSWORD in repo
+          # secrets and this single line becomes a conditional.
+          APPLE_SIGNING_IDENTITY: "-"
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
