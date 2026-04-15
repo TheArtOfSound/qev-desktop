@@ -8,3 +8,29 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Secrets — site-integrity signing key. The PUBLIC key lives at
+# landing/site-signer.ed25519.pub and SHOULD be committed; the PRIVATE
+# key must NEVER be committed.
+data/site-signer.ed25519.key
+data/*.ed25519.key
+
+# Tauri (QEV) build artifacts — everything under target/ is derived
+# from the source and should not be committed. Cargo.lock IS
+# committed because QEV is an application (not a library) and
+# reproducible builds depend on it.
+tauri-app/src-tauri/target/
+tauri-app/src-tauri/gen/
+
+# Native QEV.app build artifacts on macOS
+dist/QEV.app/Contents/MacOS/launcher
+dist/QEV-Installers/
+dist/vault-local/
+
+# Test result and cache directories
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# macOS noise
+.DS_Store

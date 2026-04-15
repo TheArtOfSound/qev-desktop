@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<!--
+  QEV — native app UI (Tauri build).
+
+  This file is DIFFERENT from landing/vault/index.html on the live
+  site. It exists ONLY inside the Tauri QEV.app bundle and is
+  deliberately stripped of:
+
+      - The nav bar (there is nowhere to navigate to)
+      - The private-preview access gate (the native app is
+        distributed via a paid installer, not via an email gate)
+      - The hero / marketing / "who this is for" / threat model /
+        "how it works" / "verify this page" / CTA sections
+      - Every external <a href> — so clicking anywhere in the app
+        cannot pop out to an external browser
+      - The 8 numbered knob rows, replaced with a cleaner form layout
+      - Tooltips with the "what is this?" buttons
+
+  It reuses ./chat.js and ./sodium.js BYTE-FOR-BYTE from the live
+  site. The file names stay as chat.js/sodium.js because the website
+  directory was renamed from /chat to /vault in April 2026 but the
+  internal filenames inside the bundle stayed stable. All
+  cryptographic behavior is identical to the web version.
+
+  Every DOM id that chat.js expects is present in this file, which
+  is why the form wiring, nonce regeneration, strength meter, mode
+  chooser, and lock-strength presets all work without any changes
+  to chat.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV &mdash; Qira Encryption Vault</title>
+
+  <!-- Inline CSP. Runs under THREE hosts:
+         1. Swift WKWebView (dist/QEV.app) — file:// scheme
+         2. Tauri WebView (tauri-app) — tauri:// and ipc:// schemes
+         3. Plain browser (dev/local HTTP)
+       connect-src needs to allow Tauri's IPC channel. On macOS Tauri
+       invoke() uses ipc:, on Windows it uses http://ipc.localhost.
+       Both are allowed. No fetch() to any public host is permitted. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' blob: data:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost; form-action 'none'; base-uri 'none'; frame-ancestors 'none'">
+
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    /* App-specific layout. Scoped to .app-* classes. The site's CSS
+       variables (--bg, --text, --accent, etc.) are inherited from
+       styles.css which is loaded above. */
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      padding: 22px 32px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .app-header h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .app-header .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .app-load-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      margin-top: 10px;
+    }
+    .app-load-badge::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+    .app-load-badge.ready { color: var(--green-text); border-color: rgba(13,122,79,0.3); }
+    .app-load-badge.ready::before { background: var(--green); }
+    .app-load-badge.err { color: #b91c1c; border-color: #b91c1c; }
+    .app-load-badge.err::before { background: #b91c1c; }
+
+    .app-tabs {
+      display: flex;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .app-tab {
+      padding: 14px 22px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .app-tab:hover { color: var(--text-secondary); }
+    .app-tab.app-tab-active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    .app-panel-wrap {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .app-panel {
+      padding: 32px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .app-panel.app-panel-hidden { display: none; }
+
+    .app-field { margin-bottom: 22px; }
+    .app-field label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 7px;
+    }
+    .app-field textarea,
+    .app-field input[type="password"],
+    .app-field input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    .app-field textarea {
+      min-height: 120px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88rem;
+      resize: vertical;
+    }
+    .app-field input:focus,
+    .app-field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+
+    .app-pw-row { display: flex; gap: 8px; }
+    .app-pw-row input { flex: 1; min-width: 0; }
+    .app-btn-small {
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .app-btn-small:hover { border-color: var(--text-dim); color: var(--text); }
+
+    .app-gen-btn {
+      margin-bottom: 10px;
+      padding: 10px 16px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .app-gen-btn:hover {
+      background: rgba(26, 86, 219, 0.1);
+      border-color: var(--accent);
+    }
+
+    .app-mode-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .app-mode-btn {
+      flex: 1;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-align: center;
+      transition: all 0.12s;
+    }
+    .app-mode-btn:hover { border-color: var(--text-dim); color: var(--text-secondary); }
+    .app-mode-btn.vault-mode-active {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+
+    .app-presets {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .app-preset {
+      padding: 12px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+      transition: all 0.12s;
+    }
+    .app-preset:hover { border-color: var(--text-dim); }
+    .app-preset.vault-preset-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    .app-preset .name {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .app-preset .hint {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .app-big-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.12s;
+    }
+    .app-big-btn:hover { background: #2d3340; }
+    .app-big-btn:disabled { background: var(--text-dim); cursor: not-allowed; }
+
+    .app-pw-strength-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .app-pw-strength-bar {
+      flex: 1;
+      height: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .app-pw-strength-fill {
+      height: 100%;
+      width: 0%;
+      background: #dc2626;
+      transition: width 0.18s, background 0.18s;
+    }
+    .app-pw-strength-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      min-width: 72px;
+      text-align: right;
+    }
+    .app-pw-hint {
+      font-size: 0.76rem;
+      line-height: 1.45;
+      margin-top: 6px;
+      min-height: 1em;
+    }
+    .app-pw-hint.vault-pw-hint-weak { color: #b91c1c; }
+    .app-pw-hint.vault-pw-hint-ok { color: var(--text-dim); }
+
+    .app-status {
+      font-size: 0.82rem;
+      padding: 10px 12px;
+      border-radius: 4px;
+      margin-top: 12px;
+    }
+    .app-status:empty { display: none; }
+    .app-status-info { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+    .app-status-ok { background: var(--green-bg); color: var(--green-text); border: 1px solid rgba(13,122,79,0.2); }
+    .app-status-err { background: rgba(220,38,38,0.06); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
+
+    .app-result {
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+      border-radius: 8px;
+    }
+    .app-result.vault-hidden { display: none; }
+    .app-result h3 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin: 0 0 6px;
+    }
+    .app-result p { font-size: 0.84rem; color: var(--text-secondary); }
+    .app-result-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .app-result-envelope {
+      margin-top: 12px;
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .app-result-envelope strong { color: var(--text); display: block; }
+    .app-result pre {
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      overflow-x: auto;
+      max-height: 200px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 12px;
+    }
+    .app-result-warn {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 4px;
+      background: var(--amber-bg);
+      color: var(--amber-text);
+      font-size: 0.78rem;
+      border: 1px solid rgba(154,103,0,0.25);
+    }
+
+    .app-dropzone {
+      padding: 18px;
+      border: 2px dashed var(--border);
+      border-radius: 6px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .app-dropzone.vault-dropzone-hover {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+    .app-dropzone-btn {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 7px 14px;
+      background: var(--text);
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .app-dropzone input[type="file"] { display: none; }
+
+    .app-decrypt-warning {
+      font-size: 0.78rem;
+      color: var(--amber-text);
+      background: var(--amber-bg);
+      border: 1px solid rgba(154,103,0,0.25);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+
+    .app-footer {
+      padding: 14px 32px;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Hidden elements that chat.js wires to but that we do not display
+       in the app UI (nonce/salt knobs, mode headline, mode helper).
+       They must exist in the DOM so chat.js can set their values
+       without errors; they take no visual space. */
+    .app-hidden-wiring { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>QEV <span style="font-size: 0.7rem; font-weight: 500; color: var(--text-dim); letter-spacing: 0;">&mdash; Qira Encryption Vault</span></h1>
+  <div class="subtitle">Encrypt a message. Remember the phrase. Send the file anywhere.</div>
+  <div id="vault-load-status" class="app-load-badge">Starting up...</div>
+</div>
+
+<div class="app-tabs" role="tablist">
+  <button type="button" class="app-tab app-tab-active" data-app-tab="lock">Lock a message</button>
+  <button type="button" class="app-tab" data-app-tab="open">Open a vault</button>
+</div>
+
+<div class="app-panel-wrap">
+
+  <!-- ======================= LOCK PANEL ======================= -->
+  <div id="app-panel-lock" class="app-panel">
+    <form id="vault-encrypt-form" autocomplete="off">
+
+      <div class="app-field">
+        <label for="vault-encrypt-message">Your message</label>
+        <textarea id="vault-encrypt-message"
+                  placeholder="Type anything you want to keep safe. Up to 256 KiB."
+                  required></textarea>
+      </div>
+
+      <div class="app-field">
+        <label>Who is this for?</label>
+        <div class="app-mode-row">
+          <button type="button" id="vault-mode-self" class="app-mode-btn vault-mode-active">Just for me</button>
+          <button type="button" id="vault-mode-share" class="app-mode-btn">Share with someone</button>
+        </div>
+        <!-- chat.js's setMode() writes to these. We keep them as
+             hidden sinks so the JS doesn't trip over null refs. -->
+        <div id="vault-mode-headline" class="app-hidden-wiring"></div>
+        <div id="vault-mode-helper" class="app-hidden-wiring"></div>
+      </div>
+
+      <div class="app-field">
+        <label for="vault-encrypt-password">Secret phrase</label>
+        <button type="button" id="vault-pw-generate" class="app-btn-small app-gen-btn">
+          Pick 4 random words for me
+        </button>
+        <div class="app-pw-row">
+          <input type="password"
+                 id="vault-encrypt-password"
+                 autocomplete="new-password"
+                 spellcheck="false"
+                 autocapitalize="off"
+                 required
+                 placeholder="4+ random words, or use the generator above">
+          <button type="button"
+                  class="app-btn-small"
+                  data-vault-reveal-target="vault-encrypt-password">Show</button>
+        </div>
+        <div id="vault-pw-strength" class="app-pw-strength-wrap">
+          <div class="app-pw-strength-bar">
+            <div class="app-pw-strength-fill vault-pw-strength-fill"></div>
+          </div>
+          <div class="app-pw-strength-label vault-pw-strength-label">(empty)</div>
+        </div>
+        <div id="vault-pw-hint" class="app-pw-hint"></div>
+      </div>
+
+      <div class="app-field">
+        <label>Lock strength</label>
+        <div class="app-presets">
+          <button type="button" id="vault-lock-preset-quick" class="app-preset">
+            <span class="name">Quick</span>
+            <span class="hint">about 1 second</span>
+          </button>
+          <button type="button" id="vault-lock-preset-strong" class="app-preset vault-preset-active">
+            <span class="name">Strong</span>
+            <span class="hint">about 4 seconds</span>
+          </button>
+          <button type="button" id="vault-lock-preset-vault" class="app-preset">
+            <span class="name">Vault</span>
+            <span class="hint">about 7 seconds</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" id="vault-encrypt-submit" class="app-big-btn" disabled>Lock it</button>
+      <div id="vault-encrypt-status" class="app-status"></div>
+    </form>
+
+    <div id="vault-encrypt-result" class="app-result vault-hidden">
+      <h3>Locked. Save the file and remember your phrase.</h3>
+      <p>To open this box later you need <strong>two things</strong>: the box file (save it below) and the secret phrase you typed (only in your head).</p>
+      <div class="app-result-actions">
+        <button type="button" id="vault-download-btn" class="app-btn-small">Save vault file</button>
+        <button type="button" id="vault-recovery-btn" class="app-btn-small">Save recovery sheet</button>
+        <button type="button" id="vault-copy-btn" class="app-btn-small">Copy as text</button>
+      </div>
+      <div class="app-result-envelope">
+        <strong>Box name (envelope ID):</strong>
+        <span id="vault-encrypt-result-envelope-id">(computing...)</span>
+      </div>
+      <pre id="vault-encrypt-result-json"></pre>
+      <div class="app-result-warn">
+        <strong>If you are sharing this:</strong> send the box file and the secret phrase through <em>different</em> channels. Email the file, text the phrase. Never both in the same place.
+      </div>
+    </div>
+
+    <!-- chat.js wires these at init time. They must exist in the DOM
+         but we don't display them in the app — nonce/salt regenerate
+         silently in the background. -->
+    <div class="app-hidden-wiring">
+      <span id="vault-knob-nonce-value"></span>
+      <button type="button" id="vault-regen-nonce"></button>
+      <span id="vault-knob-salt-value"></span>
+      <button type="button" id="vault-regen-salt"></button>
+    </div>
+  </div>
+
+  <!-- ======================= OPEN PANEL ======================= -->
+  <div id="app-panel-open" class="app-panel app-panel-hidden">
+    <form id="vault-decrypt-form" autocomplete="off">
+
+      <div class="app-field">
+        <label for="vault-decrypt-input">Step 1 &mdash; the vault file</label>
+        <div id="vault-decrypt-dropzone" class="app-dropzone">
+          Drop the <code>.vault.json</code> file or recovery sheet here
+          <br>
+          <label for="vault-decrypt-file" class="app-dropzone-btn">or choose a file</label>
+          <input type="file"
+                 id="vault-decrypt-file"
+                 accept=".json,.vault,.txt,text/plain,application/json">
+        </div>
+        <textarea id="vault-decrypt-input"
+                  placeholder="...or paste the vault JSON / recovery sheet text here"
+                  required></textarea>
+      </div>
+
+      <div class="app-decrypt-warning">
+        <strong>Step 2 &mdash; the phrase.</strong> Type it below. Don't paste it from the same place as the vault.
+      </div>
+
+      <div class="app-field">
+        <label for="vault-decrypt-password">The secret phrase</label>
+        <div class="app-pw-row">
+          <input type="password"
+                 id="vault-decrypt-password"
+                 autocomplete="off"
+                 spellcheck="false"
+                 autocapitalize="off"
+                 required>
+          <button type="button"
+                  class="app-btn-small"
+                  data-vault-reveal-target="vault-decrypt-password">Show</button>
+        </div>
+      </div>
+
+      <button type="submit" id="vault-decrypt-submit" class="app-big-btn" disabled>Open it</button>
+      <div id="vault-decrypt-status" class="app-status"></div>
+    </form>
+
+    <div id="vault-decrypt-result" class="app-result vault-hidden">
+      <h3>Decrypted message</h3>
+      <pre id="vault-decrypt-result-text"></pre>
+      <div id="vault-decrypt-result-meta" style="font-size: 0.74rem; color: var(--text-dim); margin-top: 8px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="app-footer">
+  QEV v0.28.1 &nbsp;&middot;&nbsp; XChaCha20-Poly1305 + Argon2id &nbsp;&middot;&nbsp; &copy; 2026 Qira LLC
+</div>
+
+<!-- Load order matters:
+     1. app.js — native-app glue (tab switcher, download bridge,
+                 clipboard bridge, URL.createObjectURL interceptor).
+                 Must load FIRST so the interceptor is in place
+                 before chat.js creates any Blob URLs.
+     2. sodium.js — libsodium.
+     3. chat.js — vault logic. Uses URL.createObjectURL (now hooked).
+     Inline <script> blocks are forbidden by the CSP (script-src
+     'self'), so every line of JavaScript must come from an
+     external file in this same directory. -->
+<script src="./app.js"></script>
+<script src="./sodium.js"></script>
+<script src="./chat.js"></script>
+
+</body>
+</html>

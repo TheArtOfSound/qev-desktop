@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "QEV",
+  "version": "0.28.1",
+  "identifier": "com.imagineqira.qev",
+
+  "build": {
+    "frontendDist": "../ui",
+    "devUrl": null,
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+
+  "app": {
+    "windows": [
+      {
+        "title": "QEV",
+        "label": "main",
+        "width": 1100,
+        "height": 820,
+        "minWidth": 520,
+        "minHeight": 560,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "visible": true,
+        "decorations": true,
+        "transparent": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' blob: data:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+    }
+  },
+
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.icns"
+    ],
+    "copyright": "Copyright © 2026 Qira LLC",
+    "category": "Utility",
+    "shortDescription": "Offline encrypted envelope vault.",
+    "longDescription": "QEV — Qira Encryption Vault. Offline encrypted message envelopes using XChaCha20-Poly1305 and Argon2id. Encrypt a message, save the vault file, share the password through a separate channel. No accounts, no servers, no plaintext ever leaves your computer.",
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null,
+      "exceptionDomain": ""
+    }
+  },
+
+  "plugins": {}
+}
