@@ -80,7 +80,7 @@ fn default_identity_path() -> PathBuf {
 }
 
 fn default_store_type() -> String {
-    "in-memory".to_string()
+    "sqlite".to_string()
 }
 
 fn default_max_per_recipient() -> usize {

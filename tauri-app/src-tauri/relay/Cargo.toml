@@ -54,6 +54,10 @@ time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
 # TOML config loader for the server binary.
 toml = "0.8"
 
+# SQLite for persistent envelope store. Single-file DB at
+# /var/lib/qev-relay/envelopes.db.
+rusqlite = { version = "0.32", features = ["bundled"] }
+
 # Tracing for server logs.
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }

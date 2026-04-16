@@ -82,6 +82,7 @@ pub mod config;
 pub mod error;
 pub mod message;
 pub mod service;
+pub mod sqlite_store;
 pub mod store;
 
 pub use crate::client::RelayClient;
@@ -89,4 +90,5 @@ pub use crate::config::{Config, ServerConfig};
 pub use crate::error::{Error, Result};
 pub use crate::message::{RelayMessage, WireEnvelope};
 pub use crate::service::RelayService;
+pub use crate::sqlite_store::SqliteStore;
 pub use crate::store::{Envelope, EnvelopeStore, InMemoryStore};

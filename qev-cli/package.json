@@ -1,5 +1,5 @@
 {
-  "name": "@imagineqira/qev-cli",
+  "name": "@bryan237l/qev-cli",
   "version": "0.28.1",
   "description": "Command-line vault for offline encrypted message envelopes. Same XChaCha20-Poly1305 + Argon2id crypto as the QEV desktop and web apps. Cross-platform, zero network access, lock a file with a phrase and share it through any channel.",
   "keywords": [
@@ -52,7 +52,6 @@
   "dependencies": {
     "libsodium-wrappers-sumo": "^0.7.13"
   },
-  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }

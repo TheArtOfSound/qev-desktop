@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | QEV — Qira Encryption Vault</title>
+  <meta name="description" content="QEV privacy policy. We don't collect data. We can't read your vaults. There is no account, no server-side storage of your content, and no tracking.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
+    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
+    <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
+      <a href="/downloads">Download</a>
+      <a href="/vault">Vault</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<div style="max-width:680px;margin:0 auto;padding:60px 24px;">
+  <h1 style="font-size:1.8rem;margin:0 0 24px;">Privacy Policy</h1>
+  <p style="color:var(--text-dim);margin-bottom:32px;">Last updated: April 16, 2026</p>
+
+  <h2>The short version</h2>
+  <p>QEV does not collect, store, transmit, or process your personal data. We cannot read your vaults. There is no account, no analytics, no tracking, no cookies, and no server-side storage of your content.</p>
+
+  <h2>What QEV does</h2>
+  <p>QEV encrypts messages on your device using a phrase you choose. The encrypted output (a <code>.vault.json</code> file) never leaves your device unless you explicitly send it somewhere. The phrase never leaves your head (or your keyboard, briefly).</p>
+
+  <h2>What we collect</h2>
+  <p><strong>Nothing.</strong></p>
+  <ul>
+    <li>No account creation — there are no usernames, passwords, or email addresses.</li>
+    <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, no server-side log analysis of page views.</li>
+    <li>No cookies — the site sets zero cookies. The access-gate code is stored in <code>localStorage</code> on your browser only.</li>
+    <li>No telemetry — the desktop, Android, and CLI apps make zero network calls after installation. The web vault at <code>/vault</code> runs under <code>Content-Security-Policy: connect-src 'none'</code>, which means the browser itself refuses to let the page call anywhere.</li>
+    <li>No crash reporting — if the app crashes, the crash stays on your machine. We never see it.</li>
+  </ul>
+
+  <h2>The relay server</h2>
+  <p>QEV's Phase 3 relay at <code>secure.imagineqira.com:7892</code> is a store-and-forward courier. When you send a vault to a paired peer via the relay, the server sees:</p>
+  <ul>
+    <li>The <strong>recipient's static public key</strong> (used as a routing address)</li>
+    <li>The <strong>sender's static public key</strong> (learned during the Noise XK handshake)</li>
+    <li>The <strong>opaque encrypted envelope</strong> (ciphertext — we cannot read it)</li>
+    <li>A <strong>timestamp</strong> and the envelope's <strong>size</strong></li>
+  </ul>
+  <p>The server does <strong>NOT</strong> see: your name, device label, IP address (beyond what TCP requires), message content, vault phrase, or any metadata inside the envelope.</p>
+  <p>Envelopes are deleted from the relay after the recipient fetches them (or after 30 days if never fetched).</p>
+
+  <h2>Third parties</h2>
+  <p>QEV has no third-party dependencies that process your data:</p>
+  <ul>
+    <li>No ad networks</li>
+    <li>No analytics providers</li>
+    <li>No CDN (all assets served directly from our server)</li>
+    <li>No payment processor (the software is free)</li>
+  </ul>
+  <p>The npm package (<code>@bryan237l/qev-cli</code>) is distributed via npmjs.com. npm's own privacy policy applies to the download transaction, but the CLI itself makes zero network calls.</p>
+
+  <h2>Open source</h2>
+  <p>The source code is available at <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">github.com/TheArtOfSound/qev-desktop</a>. You can audit every claim on this page by reading the code.</p>
+
+  <h2>Children</h2>
+  <p>QEV is not directed at children under 13. We do not knowingly collect data from anyone, including children.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy ever changes, the update will be committed to the repository with a clear diff. The <code>Last updated</code> date at the top of this page will reflect the change.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">bryanleonard@imagineqira.com</a></p>
+</div>
+
+<footer style="text-align:center;padding:32px 24px;font-size:0.76rem;color:var(--text-dim);border-top:1px solid var(--border);">
+  QEV v0.28.1 &middot; &copy; 2026 Qira LLC &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
+</footer>
+</body>
+</html>

@@ -21,7 +21,7 @@
 
 use qev_relay::{
     config::{Config, ServerIdentityFile},
-    EnvelopeStore, InMemoryStore, RelayService,
+    EnvelopeStore, InMemoryStore, RelayService, SqliteStore,
 };
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -58,19 +58,54 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "loaded server identity"
     );
 
-    // ---- Store ----
-    let store = Arc::new(InMemoryStore::new(cfg.store.max_per_recipient));
+    // ---- Shutdown channel ----
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    tokio::spawn(async move {
+        if tokio::signal::ctrl_c().await.is_ok() {
+            tracing::info!("Ctrl-C received, initiating shutdown");
+            let _ = shutdown_tx.send(());
+        }
+    });
 
-    // ---- Eviction task ----
-    // A background task that periodically drops envelopes older
-    // than the configured retention window. Runs every hour; on a
-    // beta-scale server this has no observable cost.
+    // ---- Store ----
+    // Default to SQLite for persistence across restarts. Fall back
+    // to in-memory if the config explicitly says "in-memory".
+    if cfg.store.r#type == "in-memory" {
+        tracing::info!("using in-memory envelope store (no persistence)");
+        let store = Arc::new(InMemoryStore::new(cfg.store.max_per_recipient));
+        run_server(kp, store, cfg, shutdown_rx).await?;
+    } else {
+        let db_path = cfg
+            .server
+            .identity_path
+            .parent()
+            .unwrap_or(std::path::Path::new("/var/lib/qev-relay"))
+            .join("envelopes.db");
+        tracing::info!(path = %db_path.display(), "using SQLite envelope store");
+        let store = Arc::new(
+            SqliteStore::open(&db_path, cfg.store.max_per_recipient)
+                .expect("failed to open SQLite store"),
+        );
+        run_server(kp, store, cfg, shutdown_rx).await?;
+    }
+
+    tracing::info!("qev-relay-server exiting cleanly");
+    Ok(())
+}
+
+async fn run_server<S: EnvelopeStore + 'static>(
+    kp: qev_pairing::StaticKeypair,
+    store: Arc<S>,
+    cfg: Config,
+    shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    // Eviction task
     {
         let store = Arc::clone(&store);
         let retention_ms = (cfg.store.retention_hours as u64) * 60 * 60 * 1000;
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600));
-            interval.tick().await; // skip the immediate first tick
+            interval.tick().await;
             loop {
                 interval.tick().await;
                 let now = now_ms();
@@ -83,25 +118,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    // ---- Service ----
     let service = Arc::new(RelayService::new(kp, store));
-
-    // ---- Shutdown channel ----
-    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
-
-    // Wire Ctrl-C → shutdown.
-    tokio::spawn(async move {
-        if tokio::signal::ctrl_c().await.is_ok() {
-            tracing::info!("Ctrl-C received, initiating shutdown");
-            let _ = shutdown_tx.send(());
-        }
-    });
-
-    // ---- Accept loop ----
     let listen = cfg.server.listen;
     tracing::info!(%listen, "starting accept loop");
     service.serve(listen, shutdown_rx).await?;
-    tracing::info!("qev-relay-server exiting cleanly");
     Ok(())
 }
 
