@@ -38,6 +38,11 @@ use qev_pairing::{
     safety_number,
     ChannelExt, Initiator, QevMessage, Responder, StaticKeypair,
 };
+
+// Phase 3: federated relay for offline delivery.
+use qev_relay::RelayClient;
+
+mod relay_defaults;
 use std::net::SocketAddr;
 use std::path::PathBuf as StdPathBuf;
 use std::sync::Mutex;
@@ -763,6 +768,190 @@ async fn accept_one_pairing(
     })
 }
 
+// ------------ Phase 3: relay commands ------------
+
+/// Relay-send a vault to a paired peer through the default
+/// relay at `secure.imagineqira.com:7892`. The vault bytes are
+/// delivered to the peer's static public key inbox on the relay;
+/// the peer picks them up on their next `relay_fetch_inbox` call.
+///
+/// This is an offline-delivery alternative to the direct P2P
+/// `pairing_send_vault` for when the peer isn't on the same LAN.
+#[tauri::command]
+async fn relay_send_to_peer(
+    state: tauri::State<'_, PeerStoreState>,
+    peer_id: String,
+    vault_bytes: Vec<u8>,
+    filename: String,
+    note: Option<String>,
+) -> Result<String, String> {
+    // Look up peer for their static_pk
+    let (peer_pk, _peer_addrs) = {
+        let snap = state.snapshot()?;
+        let peer = snap
+            .find(&peer_id)
+            .ok_or_else(|| format!("unknown peer: {peer_id}"))?
+            .clone();
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine;
+        let pk_bytes = URL_SAFE_NO_PAD
+            .decode(peer.static_pk.as_bytes())
+            .map_err(|e| format!("bad peer static_pk: {e}"))?;
+        if pk_bytes.len() != 32 {
+            return Err(format!("peer static_pk wrong length: {}", pk_bytes.len()));
+        }
+        let mut pk = [0u8; 32];
+        pk.copy_from_slice(&pk_bytes);
+        (pk, peer.last_addrs)
+    };
+
+    // Load own identity for the relay handshake
+    let own = state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+
+    // Build the relay client against the hardcoded default relay
+    let server_pk = relay_defaults::relay_server_public_key_bytes()?;
+    let relay_addr: SocketAddr = format!(
+        "{}:{}",
+        relay_defaults::RELAY_HOST,
+        relay_defaults::RELAY_PORT
+    )
+    .parse()
+    .map_err(|e| format!("bad relay addr: {e}"))?;
+
+    let client = RelayClient::new(relay_addr, server_pk, own);
+
+    // Build the envelope: wrap the vault transfer as the opaque
+    // bytes the relay stores. For v1 the "envelope" is just the
+    // raw vault JSON bytes plus a small JSON wrapper with filename
+    // and note. The relay doesn't care what's inside — it's opaque.
+    let vault_b64 = {
+        use base64::Engine;
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&vault_bytes)
+    };
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
+    let envelope_payload = serde_json::to_vec(&serde_json::json!({
+        "type": "vault-transfer",
+        "filename": filename,
+        "note": note,
+        "vault_bytes_b64": vault_b64,
+        "timestamp": ts,
+    }))
+    .map_err(|e| format!("envelope encode: {e}"))?;
+
+    let id = client
+        .deliver(&peer_pk, envelope_payload)
+        .await
+        .map_err(|e| format!("relay deliver: {e}"))?;
+
+    let id_hex = id.iter().fold(String::with_capacity(32), |mut s, b| {
+        s.push_str(&format!("{b:02x}"));
+        s
+    });
+
+    Ok(id_hex)
+}
+
+/// Fetch pending envelopes from the default relay addressed to
+/// this device's own static public key. Returns a list of
+/// envelope payloads; the UI should display them and let the
+/// user enter the phrase to decrypt each one.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RelayEnvelope {
+    /// Hex envelope ID from the relay.
+    pub id: String,
+    /// Hex of the sender's static public key.
+    pub from_hex: String,
+    /// Raw envelope bytes (opaque JSON payload from the sender).
+    pub payload: String,
+    /// Unix ms timestamp when the relay received the envelope.
+    pub created_at: u64,
+}
+
+#[tauri::command]
+async fn relay_fetch_inbox(
+    state: tauri::State<'_, PeerStoreState>,
+) -> Result<Vec<RelayEnvelope>, String> {
+    let own = state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+
+    let server_pk = relay_defaults::relay_server_public_key_bytes()?;
+    let relay_addr: SocketAddr = format!(
+        "{}:{}",
+        relay_defaults::RELAY_HOST,
+        relay_defaults::RELAY_PORT
+    )
+    .parse()
+    .map_err(|e| format!("bad relay addr: {e}"))?;
+
+    let client = RelayClient::new(relay_addr, server_pk, own);
+    let fetch = client.fetch(50).await.map_err(|e| format!("relay fetch: {e}"))?;
+
+    let mut out = Vec::with_capacity(fetch.envelopes.len());
+    for env in fetch.envelopes {
+        let id_hex = env.id.iter().fold(String::with_capacity(32), |mut s, b| {
+            s.push_str(&format!("{b:02x}"));
+            s
+        });
+        let from_hex = env.from.iter().fold(String::with_capacity(64), |mut s, b| {
+            s.push_str(&format!("{b:02x}"));
+            s
+        });
+        out.push(RelayEnvelope {
+            id: id_hex,
+            from_hex,
+            payload: String::from_utf8_lossy(&env.bytes).into_owned(),
+            created_at: env.created_at,
+        });
+    }
+    Ok(out)
+}
+
+/// Tell the relay to delete envelopes by their hex IDs. Call
+/// this after the client has successfully received and decoded
+/// the envelopes so the relay doesn't hold them forever.
+#[tauri::command]
+async fn relay_ack_envelopes(
+    state: tauri::State<'_, PeerStoreState>,
+    ids_hex: Vec<String>,
+) -> Result<u32, String> {
+    let own = state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+
+    let server_pk = relay_defaults::relay_server_public_key_bytes()?;
+    let relay_addr: SocketAddr = format!(
+        "{}:{}",
+        relay_defaults::RELAY_HOST,
+        relay_defaults::RELAY_PORT
+    )
+    .parse()
+    .map_err(|e| format!("bad relay addr: {e}"))?;
+
+    let client = RelayClient::new(relay_addr, server_pk, own);
+
+    let mut ids = Vec::with_capacity(ids_hex.len());
+    for hex in &ids_hex {
+        if hex.len() != 32 {
+            return Err(format!("envelope id hex wrong length: {}", hex.len()));
+        }
+        let mut id = [0u8; 16];
+        for i in 0..16 {
+            id[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16)
+                .map_err(|e| format!("hex id byte {i}: {e}"))?;
+        }
+        ids.push(id);
+    }
+
+    let deleted = client.ack(&ids).await.map_err(|e| format!("relay ack: {e}"))?;
+    Ok(deleted)
+}
+
 fn hex_to_32(hex: &str) -> std::result::Result<[u8; 32], String> {
     if hex.len() != 64 {
         return Err(format!("public_hex wrong length: {} (expected 64)", hex.len()));
@@ -797,6 +986,9 @@ pub fn run() {
             pairing_peers_list,
             pairing_verify_peer,
             pairing_unpair,
+            relay_send_to_peer,
+            relay_fetch_inbox,
+            relay_ack_envelopes,
         ])
         .setup(|app| {
             #[cfg(desktop)]

@@ -15,6 +15,13 @@ wheels/
 data/site-signer.ed25519.key
 data/*.ed25519.key
 
+# QEV relay server identity. Contains the X25519 private static
+# key — NEVER commit. The PUBLIC key IS committed (hardcoded in
+# tauri-app/src-tauri/src/relay_defaults.rs) so clients can pin
+# the server without a trust-on-first-use dance.
+data/qev-relay-server-static.json
+data/qev-relay-*.json
+
 # Tauri (QEV) build artifacts — everything under target/ is derived
 # from the source and should not be committed. Cargo.lock IS
 # committed because QEV is an application (not a library) and

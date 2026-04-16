@@ -700,6 +700,40 @@
       gap: 10px;
     }
 
+    /* ───── Relay inbox ───── */
+    .pair-inbox-list {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pair-inbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .pair-inbox-from {
+      flex: 1;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .pair-inbox-from code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.72rem;
+      background: var(--surface);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .pair-inbox-time {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
     /* ───────── Mobile layout (Android/iOS phones, <= 600 px wide) ─────────
 
        The desktop layout assumes ~900 px of width for the two-column form.
@@ -1118,6 +1152,19 @@
       </button>
       <div id="pair-scan-result" class="pair-result-box app-hidden"></div>
       <div id="pair-scan-status" class="app-status"></div>
+    </div>
+
+    <hr class="pair-divider">
+
+    <div class="pair-section">
+      <h3>Relay inbox</h3>
+      <p class="pair-hint">
+        Check for vaults sent to you via the QEV relay when the sender
+        wasn't on the same network. The relay only stores opaque
+        ciphertext — your phrase never leaves your device.
+      </p>
+      <button type="button" id="pair-relay-inbox-btn" class="app-btn-small">Check relay inbox</button>
+      <div id="pair-relay-inbox-list" class="pair-inbox-list"></div>
     </div>
   </div>
 

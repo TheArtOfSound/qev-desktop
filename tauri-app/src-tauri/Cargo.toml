@@ -42,6 +42,12 @@ tokio = { version = "1", features = ["sync", "rt-multi-thread", "net", "io-util"
 # pairing-invite CBOR/QR format.
 qev-pairing = { path = "./pairing" }
 
+# Phase 3: federated relay for offline delivery. Reuses the same
+# Noise XK stack for authentication + transport. The client half
+# of the crate is what tauri-app links against; the server binary
+# is a separate target under the same crate.
+qev-relay = { path = "./relay" }
+
 # Used by the pairing command layer for base64url
 # encode/decode of stored peer keys and for ISO 8601 timestamps
 # on peer records. Duplicated here (qev-pairing already pulls them

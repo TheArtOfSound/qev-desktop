@@ -1,0 +1,29 @@
+[Unit]
+Description=QEV Relay — store-and-forward for offline vault delivery
+Documentation=https://secure.imagineqira.com/downloads
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/qev-relay-server
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+# Use the env vars to override config without a TOML file
+# (the binary defaults are fine for a single-instance relay).
+Environment=QEV_RELAY_LISTEN=0.0.0.0:7892
+Environment=QEV_RELAY_IDENTITY=/var/lib/qev-relay/server-static.json
+Environment=RUST_LOG=info
+
+# Sandboxing — limit the server's capabilities to the minimum.
+# It only needs network + the identity file.
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/qev-relay
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

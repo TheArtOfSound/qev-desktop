@@ -394,6 +394,73 @@
     }
   }
 
+  // --- RELAY INBOX --------------------------------------------
+  //
+  // A 'Check relay inbox' button on the Pair tab. Calls
+  // relay_fetch_inbox() and displays any waiting envelopes.
+
+  const inboxBtn = document.getElementById("pair-relay-inbox-btn");
+  const inboxList = document.getElementById("pair-relay-inbox-list");
+
+  if (inboxBtn) {
+    inboxBtn.addEventListener("click", async () => {
+      inboxBtn.disabled = true;
+      inboxBtn.textContent = "Checking...";
+      try {
+        const envelopes = await invoke("relay_fetch_inbox");
+        renderInbox(envelopes || []);
+      } catch (err) {
+        if (inboxList) {
+          inboxList.innerHTML = `<div class="pair-hint" style="color:var(--text-dim)">Relay unreachable: ${escapeHtml(String(err))}</div>`;
+        }
+      } finally {
+        inboxBtn.disabled = false;
+        inboxBtn.textContent = "Check relay inbox";
+      }
+    });
+  }
+
+  function renderInbox(envelopes) {
+    if (!inboxList) return;
+    if (envelopes.length === 0) {
+      inboxList.innerHTML = '<div class="pair-hint">No pending envelopes.</div>';
+      return;
+    }
+    inboxList.innerHTML = envelopes.map((env) => `
+      <div class="pair-inbox-row">
+        <div class="pair-inbox-from">From: <code>${escapeHtml(env.from_hex.slice(0, 16))}...</code></div>
+        <div class="pair-inbox-time">${new Date(env.created_at).toLocaleString()}</div>
+        <button class="app-btn-small" onclick="document.getElementById('vault-decrypt-input').value = atob('${btoa(env.payload)}'); document.querySelector('[data-app-tab=\\'open\\']').click();">
+          Open in Decrypt tab
+        </button>
+      </div>
+    `).join("");
+    // Auto-ack the fetched envelopes (mark them as delivered
+    // so the relay can delete). This is best-effort; a failure
+    // just means the relay holds them until the next fetch.
+    const ackIds = envelopes.map((e) => e.id);
+    invoke("relay_ack_envelopes", { idsHex: ackIds }).catch(() => {});
+  }
+
+  // --- RELAY SEND OPTION IN PEER PICKER -----------------------
+  //
+  // When the peer picker modal lists peers, add a "Via relay"
+  // secondary option next to each peer row. Clicking it calls
+  // relay_send_to_peer instead of pairing_send_vault.
+
+  // Monkey-patch the openSendModal function to add relay buttons.
+  const _origOpenSendModal = window._qev_openSendModal;
+  // (We can't easily monkey-patch because it's closure-scoped.
+  // Instead, we'll modify the sendToPeer function to detect a
+  // data attribute indicating "use relay" and dispatch accordingly.
+  // This is done inside the sendToPeer function above: it always
+  // tries direct first, then falls back to relay.)
+
+  // For now, the 'Send to paired peer' button tries direct P2P.
+  // If the user can't reach the peer on the LAN, the UI shows
+  // an error with a "Try via relay?" hint. Phase 3.x.4 adds a
+  // proper fallback.
+
   // --- utils --------------------------------------------------
 
   function setStatus(el, text, kind) {
