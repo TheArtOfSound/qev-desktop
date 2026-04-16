@@ -1,0 +1,62 @@
+[package]
+name = "qev-relay"
+version = "0.30.0"
+description = "QEV Phase 3 — federated relay for offline vault delivery. Store-and-forward server + client library, both speaking Noise XK over raw TCP."
+authors = ["Bryan Leonard <bryanleonard@imagineqira.com>"]
+license = "Proprietary"
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "qev_relay"
+crate-type = ["rlib"]
+
+[[bin]]
+name = "qev-relay-server"
+path = "src/main.rs"
+
+[dependencies]
+# Reuse the entire Phase 2 Noise XK + identity + invite + transport
+# stack. The relay doesn't invent a new crypto layer — it just adds
+# a new RPC message type inside the same Noise channel.
+qev-pairing = { path = "../pairing" }
+
+# RNG for envelope IDs. getrandom-backed OsRng.
+rand_core = { version = "0.6", features = ["std", "getrandom"] }
+
+# base64url encoding for the server identity file format.
+# qev-pairing pulls this in transitively but we declare it
+# explicitly to avoid relying on implementation-detail re-exports.
+base64 = "0.22"
+
+# Pretty JSON for the server identity file. Same reasoning as
+# base64 — transitive via qev-pairing but kept explicit here.
+serde_json = "1"
+
+# CBOR for the RelayMessage enum (same reasoning as in qev-pairing:
+# smaller than JSON on the wire, schema-versioned via the enum
+# discriminator).
+ciborium = "0.2"
+
+# Serde for the RelayMessage and Envelope types.
+serde = { version = "1", features = ["derive"] }
+serde_bytes = "0.11"
+
+# async runtime + networking.
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util", "sync", "macros", "time", "signal"] }
+
+# Error type.
+thiserror = "1"
+
+# ISO 8601 timestamps on envelope records.
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+
+# TOML config loader for the server binary.
+toml = "0.8"
+
+# Tracing for server logs.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "sync", "test-util"] }
