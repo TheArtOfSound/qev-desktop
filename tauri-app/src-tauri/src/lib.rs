@@ -952,6 +952,43 @@ async fn relay_ack_envelopes(
     Ok(deleted)
 }
 
+// ------------ Phase 4: per-message seal commands ------------
+
+/// Seal a vault JSON string with an additional phrase. Returns
+/// a JSON string that looks like `{"schema":"QEV-SEAL-V1",...}`.
+/// The recipient needs BOTH the seal phrase AND the vault phrase
+/// to read the message — two-factor protection.
+#[tauri::command]
+async fn seal_vault_cmd(
+    inner_vault_json: String,
+    seal_phrase: String,
+) -> Result<String, String> {
+    qev_pairing::seal_vault(&inner_vault_json, &seal_phrase)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Unseal a sealed vault JSON string using the seal phrase.
+/// Returns the inner vault JSON (still phrase-locked with the
+/// original vault phrase).
+#[tauri::command]
+async fn unseal_vault_cmd(
+    sealed_json: String,
+    seal_phrase: String,
+) -> Result<String, String> {
+    qev_pairing::unseal_vault(&sealed_json, &seal_phrase)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Check if a JSON string looks like a sealed vault. The UI
+/// calls this to decide whether to show the "Enter seal phrase"
+/// prompt before the normal vault-phrase prompt.
+#[tauri::command]
+async fn is_sealed_cmd(json_str: String) -> Result<bool, String> {
+    Ok(qev_pairing::is_sealed(&json_str))
+}
+
 fn hex_to_32(hex: &str) -> std::result::Result<[u8; 32], String> {
     if hex.len() != 64 {
         return Err(format!("public_hex wrong length: {} (expected 64)", hex.len()));
@@ -989,6 +1026,9 @@ pub fn run() {
             relay_send_to_peer,
             relay_fetch_inbox,
             relay_ack_envelopes,
+            seal_vault_cmd,
+            unseal_vault_cmd,
+            is_sealed_cmd,
         ])
         .setup(|app| {
             #[cfg(desktop)]

@@ -41,6 +41,12 @@ digest = "0.10"
 # string into the vault UI and vice versa without format confusion.
 base64 = "0.22"
 
+# Phase 4: the per-message seal uses XChaCha20-Poly1305 directly
+# (not through snow's Noise wrapper). This crate is already a
+# transitive dep of snow but we declare it explicitly for the seal
+# module's standalone AEAD calls.
+chacha20poly1305 = "0.10"
+
 # Serde for the PairingInvite and QevMessage types — used by CBOR
 # and by the Tauri IPC layer above.
 serde = { version = "1", features = ["derive"] }
