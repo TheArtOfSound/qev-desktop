@@ -104,9 +104,11 @@ pub mod handshake;
 pub mod identity;
 pub mod invite;
 pub mod safety;
+pub mod transport;
 
 pub use crate::error::{Error, Result};
 pub use crate::handshake::{Channel, Initiator, Responder};
 pub use crate::identity::StaticKeypair;
 pub use crate::invite::PairingInvite;
 pub use crate::safety::safety_number;
+pub use crate::transport::{ChannelExt, QevMessage};
