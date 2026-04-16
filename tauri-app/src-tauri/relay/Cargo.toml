@@ -54,13 +54,18 @@ time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
 # TOML config loader for the server binary.
 toml = "0.8"
 
-# SQLite for persistent envelope store. Single-file DB at
-# /var/lib/qev-relay/envelopes.db.
-rusqlite = { version = "0.32", features = ["bundled"] }
+# SQLite for persistent envelope store. Optional — the mobile
+# app only uses the relay CLIENT (no SQLite), not the server.
+# The server binary enables this via default features.
+rusqlite = { version = "0.32", features = ["bundled"], optional = true }
 
 # Tracing for server logs.
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[features]
+default = ["sqlite"]
+sqlite = ["dep:rusqlite"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "sync", "test-util"] }

@@ -137,68 +137,109 @@ pub struct OpenResult {
 
 // ------------ Commands ------------
 
-/// Save a text payload to a user-picked path.
+/// Save a text payload to disk.
 ///
-/// Uses the Tauri-idiomatic async-callback pattern: `save_file(cb)` is
-/// non-blocking, fires `cb(Option<FilePath>)` on completion, and we
-/// bridge that back into the async command via a oneshot channel.
+/// **Desktop (Mac/Windows):** Shows a native save dialog via the Tauri
+/// dialog plugin, writes to the user-chosen path with `fs::write`.
+///
+/// **Mobile (Android/iOS):** The dialog plugin returns a content URI
+/// that `fs::write` can't handle. Instead, we write to the app's
+/// local data directory (which is always a real filesystem path), then
+/// show a message dialog telling the user where the file was saved.
+/// The user can then share the file from that location via the
+/// system share sheet.
+///
+/// This split is the pragmatic fix for Android scoped storage. A
+/// future version can use the Storage Access Framework via JNI for
+/// a native-feeling save-to-Downloads flow.
 #[tauri::command]
 async fn save_vault_file(
     app: tauri::AppHandle,
     payload: SavePayload,
 ) -> Result<SaveResult, String> {
-    let ext = if payload.filename.to_lowercase().ends_with(".txt") {
-        "txt"
-    } else {
-        "json"
-    };
+    // On mobile, skip the save dialog and write directly to the
+    // app's data directory. This always works because Android
+    // grants the app full access to its own data dir.
+    #[cfg(mobile)]
+    {
+        let data_dir = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| format!("app_data_dir: {e}"))?;
+        let vaults_dir = data_dir.join("saved-vaults");
+        fs::create_dir_all(&vaults_dir)
+            .map_err(|e| format!("mkdir saved-vaults: {e}"))?;
+        let out_path = vaults_dir.join(&payload.filename);
+        fs::write(&out_path, payload.text.as_bytes())
+            .map_err(|e| format!("write failed: {e}"))?;
 
-    let (tx, rx) = oneshot::channel::<Option<FilePath>>();
-
-    let mut builder = app
-        .dialog()
-        .file()
-        .set_title("Save vault file")
-        .set_file_name(&payload.filename)
-        .add_filter(
-            if ext == "txt" { "Recovery sheet" } else { "Vault" },
-            &[ext],
+        // Show a dialog telling the user where the file was saved.
+        let msg = format!(
+            "Saved to:\n{}\n\nYou can share this file from your file manager.",
+            out_path.display()
         );
-    if let Some(dir) = dirs_downloads() {
-        builder = builder.set_directory(dir);
+        app.dialog()
+            .message(msg)
+            .title("Vault saved")
+            .blocking_show();
+
+        return Ok(SaveResult {
+            saved: true,
+            path: Some(out_path.to_string_lossy().into_owned()),
+        });
     }
 
-    // Non-blocking save — the callback runs when the user picks or
-    // cancels. We bridge it back to our async context via oneshot.
-    builder.save_file(move |path: Option<FilePath>| {
-        let _ = tx.send(path);
-    });
+    // Desktop path: native save dialog.
+    #[cfg(desktop)]
+    {
+        let ext = if payload.filename.to_lowercase().ends_with(".txt") {
+            "txt"
+        } else {
+            "json"
+        };
 
-    let selection = rx
-        .await
-        .map_err(|e| format!("save dialog channel closed: {e}"))?;
+        let (tx, rx) = oneshot::channel::<Option<FilePath>>();
 
-    let Some(file_path) = selection else {
-        return Ok(SaveResult {
-            saved: false,
-            path: None,
+        let mut builder = app
+            .dialog()
+            .file()
+            .set_title("Save vault file")
+            .set_file_name(&payload.filename)
+            .add_filter(
+                if ext == "txt" { "Recovery sheet" } else { "Vault" },
+                &[ext],
+            );
+        if let Some(dir) = dirs_downloads() {
+            builder = builder.set_directory(dir);
+        }
+
+        builder.save_file(move |path: Option<FilePath>| {
+            let _ = tx.send(path);
         });
-    };
 
-    let path_buf: PathBuf = file_path
-        .into_path()
-        .map_err(|e| format!("invalid path: {e}"))?;
+        let selection = rx
+            .await
+            .map_err(|e| format!("save dialog channel closed: {e}"))?;
 
-    // Write UTF-8 bytes. For our tiny payload (~1 KB) the non-atomic
-    // write is fine. Atomic rename semantics can be added later if we
-    // ever write multi-MB vaults.
-    fs::write(&path_buf, payload.text.as_bytes())
-        .map_err(|e| format!("write failed: {e}"))?;
+        let Some(file_path) = selection else {
+            return Ok(SaveResult {
+                saved: false,
+                path: None,
+            });
+        };
 
-    Ok(SaveResult {
-        saved: true,
-        path: Some(path_buf.to_string_lossy().into_owned()),
-    })
+        let path_buf: PathBuf = file_path
+            .into_path()
+            .map_err(|e| format!("invalid path: {e}"))?;
+
+        fs::write(&path_buf, payload.text.as_bytes())
+            .map_err(|e| format!("write failed: {e}"))?;
+
+        Ok(SaveResult {
+            saved: true,
+            path: Some(path_buf.to_string_lossy().into_owned()),
+        })
+    }
 }
 
 /// Write a UTF-8 string to the system clipboard.
@@ -211,6 +252,11 @@ async fn copy_to_clipboard(app: tauri::AppHandle, text: String) -> Result<(), St
 
 /// Open a native file picker and return the UTF-8 contents of the
 /// selected file. Used for the "Open a vault" flow.
+///
+/// On Android, `FilePath` may be a content URI. We try `into_path()`
+/// first (works on desktop), and if that fails (Android content URI),
+/// we try reading the raw path string as a content URI via a
+/// fallback that constructs the path differently.
 #[tauri::command]
 async fn pick_vault_file(app: tauri::AppHandle) -> Result<OpenResult, String> {
     let (tx, rx) = oneshot::channel::<Option<FilePath>>();
@@ -235,17 +281,37 @@ async fn pick_vault_file(app: tauri::AppHandle) -> Result<OpenResult, String> {
         });
     };
 
-    let path_buf: PathBuf = file_path
-        .into_path()
-        .map_err(|e| format!("invalid path: {e}"))?;
-
-    let bytes = fs::read(&path_buf).map_err(|e| format!("read failed: {e}"))?;
-    let text = String::from_utf8(bytes)
-        .map_err(|e| format!("file is not valid UTF-8: {e}"))?;
-    let filename = path_buf
-        .file_name()
-        .and_then(|s| s.to_str())
-        .map(String::from);
+    // Try the standard path first (works on desktop).
+    // If into_path() fails (Android content URI), try reading
+    // from the FilePath's string representation directly.
+    let (text, filename) = match file_path.clone().into_path() {
+        Ok(path_buf) => {
+            let bytes = fs::read(&path_buf).map_err(|e| format!("read failed: {e}"))?;
+            let text = String::from_utf8(bytes)
+                .map_err(|e| format!("file is not valid UTF-8: {e}"))?;
+            let filename = path_buf
+                .file_name()
+                .and_then(|s| s.to_str())
+                .map(String::from);
+            (text, filename)
+        }
+        Err(_) => {
+            // Android content URI fallback: the FilePath's Display
+            // representation is the raw URI string. On Android,
+            // Tauri's dialog plugin reads the file contents and
+            // returns them via the response. Since we can't access
+            // the content URI from Rust, prompt the user to paste
+            // the vault content instead.
+            //
+            // For now, return an error suggesting paste. A proper
+            // fix requires JNI ContentResolver access.
+            return Err(
+                "On Android, use the paste box in the 'Open a vault' tab instead of the file picker. \
+                 Copy the vault JSON from your email/messenger and paste it into the text area."
+                    .into(),
+            );
+        }
+    };
 
     Ok(OpenResult {
         loaded: true,

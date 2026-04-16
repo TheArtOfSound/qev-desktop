@@ -46,7 +46,9 @@ qev-pairing = { path = "./pairing" }
 # Noise XK stack for authentication + transport. The client half
 # of the crate is what tauri-app links against; the server binary
 # is a separate target under the same crate.
-qev-relay = { path = "./relay" }
+# default-features = false skips SQLite so Android builds don't
+# need the NDK C compiler. The mobile app only uses RelayClient.
+qev-relay = { path = "./relay", default-features = false }
 
 # Used by the pairing command layer for base64url
 # encode/decode of stored peer keys and for ISO 8601 timestamps

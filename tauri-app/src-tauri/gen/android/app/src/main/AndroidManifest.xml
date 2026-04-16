@@ -14,6 +14,17 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!--
+        CAMERA is needed for the QR-based device pairing scanner.
+        The WebView's getUserMedia() call requires this permission
+        at the Android level. If the user denies it, the paste-box
+        fallback in the Pair tab still works — they can type or
+        paste the invite text manually.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <!--
         READ_EXTERNAL_STORAGE is only requested for Android 9 and below,
         where the Storage Access Framework returns file paths that
         require this permission. Android 10+ uses scoped storage and

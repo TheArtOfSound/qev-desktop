@@ -82,6 +82,7 @@ pub mod config;
 pub mod error;
 pub mod message;
 pub mod service;
+#[cfg(feature = "sqlite")]
 pub mod sqlite_store;
 pub mod store;
 pub mod ws_bridge;
@@ -91,5 +92,6 @@ pub use crate::config::{Config, ServerConfig};
 pub use crate::error::{Error, Result};
 pub use crate::message::{RelayMessage, WireEnvelope};
 pub use crate::service::RelayService;
+#[cfg(feature = "sqlite")]
 pub use crate::sqlite_store::SqliteStore;
 pub use crate::store::{Envelope, EnvelopeStore, InMemoryStore};
