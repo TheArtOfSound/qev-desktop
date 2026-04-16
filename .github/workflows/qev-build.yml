@@ -154,11 +154,9 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platform-tools
-            platforms;android-36
-            build-tools;36.0.0
-            ndk;27.2.12479018
+          # NOTE: setup-android@v3 doesn't split multi-line strings
+          # reliably; pass packages as a single space-separated string.
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.2.12479018"
 
       - name: Export Android env vars
         run: |
