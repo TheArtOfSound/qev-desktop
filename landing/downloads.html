@@ -318,13 +318,9 @@
       desktop app for everyday private communication.
     </p>
 
-    <!--
-      Buy button → Gumroad hosted checkout. Gumroad processes the
-      payment via Stripe underneath and delivers the DMG/MSI by email
-      + direct download link after successful payment. To rotate the
-      product URL (e.g. after re-upload or slug change), edit both
-      occurrences of "bryanleonard6.gumroad.com/l/qev" below.
-    -->
+    <!-- Primary download button. Links directly to the Mac DMG
+         hosted at /assets/. Windows and Android have separate
+         buttons on the OS cards below. -->
     <a href="/assets/QEV_0.28.1_aarch64.dmg" class="dl-buy" id="qev-buy-button">
       <span class="dl-buy-price">Download QEV for Mac</span>
       <span class="dl-buy-sub">Free &middot; No account &middot; No payment</span>
@@ -574,9 +570,10 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
-    QEV &mdash; Qira Encryption Vault is a desktop product of Qira LLC.<br>
-    &copy; 2026 Qira LLC. All rights reserved.
+    QEV v0.29.0 &middot; Free &amp; open source &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC<br>
+    <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">Source on GitHub</a>
+    &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
+    &middot; <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">Contact</a>
   </div>
 </footer>
 
