@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    QEV excludes itself from cloud backup and device-to-device
+    transfer. On a QEV app, there is nothing the user needs backed
+    up — all vaults live as files in the user's regular filesystem,
+    which the user is responsible for managing. The app itself has
+    no meaningful state beyond installed/not-installed, so restoring
+    an "app backup" would do nothing except potentially leak cached
+    intermediate state (e.g. clipboard contents) that should never
+    persist across installs.
+
+    This file is paired with android:allowBackup="false" and
+    android:fullBackupContent="false" in AndroidManifest.xml for
+    Android 11 and earlier, plus this more modern Android 12+ rules
+    file that excludes everything explicitly.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

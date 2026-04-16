@@ -25,7 +25,7 @@
     "url": "https://secure.imagineqira.com"
   },
   "bin": {
-    "qev": "./bin/qev.js"
+    "qev": "bin/qev.js"
   },
   "main": "./lib/index.js",
   "type": "module",

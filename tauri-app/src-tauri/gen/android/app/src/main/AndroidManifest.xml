@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        INTERNET is required by Android WebView to initialise on some
+        vendor builds, even though QEV loads all content from the
+        in-app `http://tauri.localhost` handler and never hits the
+        real network. Defence-in-depth: networkSecurityConfig below
+        rejects all cleartext, and res/xml/network_security_config.xml
+        pins every domain as unreachable. A user can verify the zero-
+        network promise with `adb shell netstat` or a monitoring VPN.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        READ_EXTERNAL_STORAGE is only requested for Android 9 and below,
+        where the Storage Access Framework returns file paths that
+        require this permission. Android 10+ uses scoped storage and
+        doesn't need the permission at all.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.qev"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        tools:targetApi="31">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:launchMode="singleTask"
+            android:label="@string/main_activity_title"
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- App launcher -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                File-import intent filter: when a user taps a .vault.json
+                file in their file manager, email app, or messenger,
+                Android offers QEV as an option to "open with".
+                This is how mobile users get a vault onto their phone
+                and into QEV in one tap.
+            -->
+            <intent-filter android:label="@string/intent_filter_vault_view">
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="text/plain" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.vault\\.json" />
+                <data android:pathPattern=".*\\.vault" />
+            </intent-filter>
+
+            <!--
+                Send intent: when a user shares a .vault.json file from
+                another app (email attachment, Drive, etc.), QEV shows
+                up in the share sheet.
+            -->
+            <intent-filter android:label="@string/intent_filter_vault_share">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

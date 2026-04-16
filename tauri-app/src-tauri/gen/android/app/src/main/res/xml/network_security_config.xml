@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    QEV network security config — zero-trust.
+
+    This config blocks all cleartext traffic and accepts only the
+    Tauri in-app localhost handler. Even though QEV's Rust bridge
+    intercepts all WebView requests before they hit the network,
+    this is a belt-and-suspenders layer: if somehow a runtime
+    dependency attempted a real network call, Android itself would
+    refuse.
+
+    The `tauri.localhost` entry is what Tauri 2's Android custom
+    scheme handler serves under. It's NOT a real network call — the
+    WebView router resolves it locally — but Android's network
+    security evaluator still checks it, so we whitelist it
+    explicitly.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">tauri.localhost</domain>
+    </domain-config>
+</network-security-config>

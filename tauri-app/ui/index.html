@@ -30,7 +30,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- viewport-fit=cover: respect notches / rounded corners / home-indicator
+       regions on Android (edge-to-edge via enableEdgeToEdge in MainActivity)
+       and iOS when we add it. interactive-widget=resizes-content: when the
+       on-screen keyboard appears, the page resizes instead of shifting up,
+       which keeps the decrypt-result pane anchored during phrase entry. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="color-scheme" content="dark light">
   <title>QEV &mdash; Qira Encryption Vault</title>
 
   <!-- Inline CSP. Runs under THREE hosts:
@@ -430,6 +437,168 @@
        They must exist in the DOM so chat.js can set their values
        without errors; they take no visual space. */
     .app-hidden-wiring { display: none; }
+
+    /* ───────── Mobile layout (Android/iOS phones, <= 600 px wide) ─────────
+
+       The desktop layout assumes ~900 px of width for the two-column form.
+       On a phone we collapse to a single column, increase tap target
+       sizes to 48×48 px (Android Material Design guideline), respect the
+       status-bar / notch safe areas via env(safe-area-inset-*), and let
+       the main content scroll independently so the header stays pinned.
+
+       The decrypt-result card is what most mobile users land on after
+       tapping a .vault.json file, so that's the primary path we
+       optimise for: fast rendering, thumb-friendly phrase field, big
+       "Open it!" button. Encryption is secondary on mobile (most users
+       will encrypt on desktop and decrypt on phone). */
+    @media (max-width: 600px) {
+      body {
+        /* The content area scrolls; the header + footer stay where
+           they are. interactive-widget=resizes-content on the
+           viewport meta shrinks the scroll area when the keyboard
+           opens instead of sliding the whole page up and hiding
+           the header. */
+        min-height: 100svh;
+      }
+      .app-header {
+        padding: calc(env(safe-area-inset-top, 0) + 16px) 18px 12px;
+      }
+      .app-header h1 { font-size: 1.35rem; }
+      .app-header .subtitle { font-size: 0.8rem; }
+
+      /* The two main content areas: panel-wrap (body) and footer.
+         panel-wrap needs safe-area padding and tighter gutters. */
+      .app-panel-wrap {
+        padding: 14px 16px calc(env(safe-area-inset-bottom, 0) + 14px);
+      }
+      .app-panel {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      /* Tab bar (Encrypt / Decrypt) — bigger thumb targets, full width. */
+      .app-tabs {
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .app-tab {
+        flex: 1;
+        min-height: 48px;
+        font-size: 0.95rem;
+        padding: 12px 8px;
+      }
+
+      /* Form fields: 48 px minimum tap target, 16 px font-size to
+         prevent iOS zoom-on-focus. Every input inside a .app-field
+         wrapper (the canonical form-row container) gets the
+         upgrade. */
+      .app-field input[type="text"],
+      .app-field input[type="password"],
+      .app-field textarea,
+      .app-field select {
+        min-height: 48px;
+        font-size: 16px;
+        padding: 12px 14px;
+        border-radius: 10px;
+      }
+      .app-field textarea {
+        min-height: 140px;
+        line-height: 1.4;
+      }
+
+      /* Password reveal eye toggle sits in the app-pw-row with the
+         input. Give the reveal control a 48×48 hit area. */
+      .app-pw-row { gap: 6px; }
+      .app-pw-row > button,
+      .app-pw-row .app-btn-small {
+        min-width: 48px;
+        min-height: 48px;
+      }
+
+      /* Primary action buttons: "Lock it", "Open it!" — full-width,
+         52 px tall, prominent. */
+      .app-big-btn {
+        width: 100%;
+        min-height: 52px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 14px 18px;
+      }
+
+      /* Secondary buttons: still touch-friendly. */
+      .app-btn-small {
+        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+      }
+
+      /* Decrypt / encrypt result envelope: scrollable pre box with
+         readable text. */
+      .app-result-envelope {
+        font-size: 15px;
+        line-height: 1.45;
+        padding: 14px;
+        border-radius: 10px;
+        max-height: 52vh;
+        overflow-y: auto;
+        word-break: break-word;
+      }
+      .app-result-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .app-result-actions > * { flex: 1 1 auto; min-height: 44px; }
+
+      /* Lock strength preset row — fit three in a row on most
+         phones; wraps to single column under 360 px. */
+      .app-presets {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .app-preset {
+        flex: 1 1 calc(33% - 6px);
+        min-height: 44px;
+        padding: 10px 8px;
+        font-size: 0.85rem;
+      }
+
+      /* Mode chooser ("Just for myself" / "Share with someone") */
+      .app-mode-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .app-mode-btn {
+        width: 100%;
+        min-height: 56px;
+        padding: 14px 16px;
+      }
+
+      /* Dropzone card — phones usually don't drag-drop, but keep it
+         functional as a big "tap to browse" button. */
+      .app-dropzone {
+        padding: 18px 16px;
+        min-height: 110px;
+      }
+      .app-dropzone-btn {
+        min-height: 48px;
+        padding: 12px 16px;
+      }
+
+      /* Footer: respect home-indicator safe area. */
+      .app-footer {
+        padding: 10px 16px calc(env(safe-area-inset-bottom, 0) + 10px);
+        font-size: 0.68rem;
+      }
+    }
+
+    /* Very narrow phones (< 360 px): tighter padding, stack presets
+       vertically so labels don't clip. */
+    @media (max-width: 360px) {
+      .app-preset { flex: 1 1 100%; }
+      .app-header { padding-inline: 14px; }
+      .app-panel-wrap { padding-inline: 14px; }
+    }
   </style>
 </head>
 <body>

@@ -7,6 +7,24 @@ license = "Proprietary"
 edition = "2021"
 rust-version = "1.77"
 
+# The crate is BOTH a library and a binary. The library is linked into
+# the Android Gradle project as a cdylib/staticlib (Tauri v2 mobile
+# entry point); the binary is what Mac/Windows desktop builds produce.
+#
+#   crate-type = ["staticlib", "cdylib", "rlib"]
+#     staticlib — for iOS (when we add it later)
+#     cdylib    — for Android JNI linking
+#     rlib      — so the desktop binary in main.rs can call qev::run()
+[lib]
+# Library name must match the package name so the Tauri Android
+# Gradle project finds libqev.so. Cargo allows lib+bin sharing a
+# name; the lib is referenced as `use qev::run;` from main.rs.
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "qev-bin"
+path = "src/main.rs"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

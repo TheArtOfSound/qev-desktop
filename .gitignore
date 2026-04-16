@@ -20,7 +20,19 @@ data/*.ed25519.key
 # committed because QEV is an application (not a library) and
 # reproducible builds depend on it.
 tauri-app/src-tauri/target/
-tauri-app/src-tauri/gen/
+
+# Tauri gen/android contains both source (the manifest and custom
+# resources we actually edit) and generated build outputs. Track the
+# sources, ignore the build outputs.
+tauri-app/src-tauri/gen/android/app/build/
+tauri-app/src-tauri/gen/android/build/
+tauri-app/src-tauri/gen/android/.gradle/
+tauri-app/src-tauri/gen/android/buildSrc/build/
+tauri-app/src-tauri/gen/android/app/src/main/java/com/imagineqira/qev/generated/
+
+# Tauri schemas directory is generated from tauri.conf.json on every
+# init — don't track it.
+tauri-app/src-tauri/gen/schemas/
 
 # Native QEV.app build artifacts on macOS
 dist/QEV.app/Contents/MacOS/launcher

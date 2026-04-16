@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download QEV | Qira Encryption Vault</title>
+  <meta name="description" content="QEV — Qira Encryption Vault. Offline encrypted envelopes for Mac and Windows. One-time purchase, no accounts, no servers. $19.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/downloads">
+  <meta property="og:type" content="product">
+  <meta property="og:url" content="https://secure.imagineqira.com/downloads">
+  <meta property="og:title" content="Download QEV — Offline Encryption Vault for Mac and Windows">
+  <meta property="og:description" content="One-time purchase. No accounts. No servers. Encrypt a message, send the file anywhere, remember the phrase. $19.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QEV — Offline Encryption Vault">
+  <meta name="twitter:description" content="One-time $19. Mac + Windows. Offline forever.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "QEV — Qira Encryption Vault",
+    "operatingSystem": "macOS 11+, Windows 10+",
+    "applicationCategory": "SecurityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "19.00",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "description": "Offline encrypted envelope vault. Encrypt a message, remember the phrase, share the file anywhere. No accounts, no servers, no plaintext ever leaves your computer.",
+    "softwareVersion": "0.28.1",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Qira LLC"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+  <style>
+    /* Downloads-page-specific polish. Scoped to .dl-* to not collide
+       with the shared site styles. */
+    .dl-hero {
+      padding: 96px 0 48px;
+      text-align: center;
+    }
+    .dl-hero .price-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent-border);
+      margin-bottom: 24px;
+    }
+    .dl-hero h1 {
+      font-size: clamp(2rem, 4.5vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .dl-hero .sub {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .dl-buy {
+      display: inline-block;
+      padding: 18px 48px;
+      border-radius: 10px;
+      background: var(--text);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.12s;
+      letter-spacing: 0.01em;
+    }
+    .dl-buy:hover { background: #2d3340; transform: translateY(-1px); }
+    .dl-buy-price { font-weight: 800; }
+    .dl-buy-sub {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    .dl-trust-row {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+    .dl-trust-item { display: flex; align-items: center; gap: 6px; }
+    .dl-trust-item::before {
+      content: "✓";
+      color: var(--green-text);
+      font-weight: 700;
+    }
+
+    .dl-os-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      max-width: 860px;
+      margin: 32px auto 0;
+    }
+    @media (max-width: 620px) {
+      .dl-os-row { grid-template-columns: 1fr; }
+    }
+    .dl-beta-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-bg, rgba(120, 160, 255, 0.12));
+      border: 1px solid var(--accent-border, rgba(120, 160, 255, 0.3));
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    .dl-os-card code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.72rem;
+      padding: 1px 5px;
+      background: var(--surface);
+      border-radius: 3px;
+    }
+    .dl-os-card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      text-align: left;
+      transition: border-color 0.12s;
+    }
+    .dl-os-card:hover { border-color: var(--accent-border); }
+    .dl-os-card h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .dl-os-card p {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin: 0;
+    }
+    .dl-os-card .size {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      padding: 3px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+    }
+
+    .dl-vs-table {
+      width: 100%;
+      border-collapse: collapse;
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 0.9rem;
+    }
+    .dl-vs-table th {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .dl-vs-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    .dl-vs-table tr.highlight td {
+      background: var(--accent-bg);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .dl-usecase-card {
+      padding: 24px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .dl-usecase-card:hover {
+      border-color: var(--accent-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .dl-usecase-card .emoji {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .dl-usecase-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .dl-usecase-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .dl-try-first {
+      background: var(--surface);
+      padding: 56px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .dl-try-first h2 {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .dl-try-first p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<header class="dl-hero">
+  <div class="wrap">
+    <div class="price-tag">One-time purchase &middot; $19</div>
+    <h1>QEV &mdash; Qira Encryption Vault</h1>
+    <p class="sub">
+      Encrypt a message. Remember the phrase. Send the file anywhere.
+      No accounts. No servers. No recurring fees. The offline
+      desktop app for everyday private communication.
+    </p>
+
+    <!--
+      Buy button → Gumroad hosted checkout. Gumroad processes the
+      payment via Stripe underneath and delivers the DMG/MSI by email
+      + direct download link after successful payment. To rotate the
+      product URL (e.g. after re-upload or slug change), edit both
+      occurrences of "bryanleonard6.gumroad.com/l/qev" below.
+    -->
+    <a href="https://bryanleonard6.gumroad.com/l/qev" class="dl-buy" id="qev-buy-button">
+      <span class="dl-buy-price">Buy QEV &middot; $19</span>
+      <span class="dl-buy-sub">One-time payment &middot; Lifetime license</span>
+    </a>
+
+    <div class="dl-trust-row">
+      <div class="dl-trust-item">No subscription</div>
+      <div class="dl-trust-item">No account required</div>
+      <div class="dl-trust-item">30-day refund</div>
+      <div class="dl-trust-item">Secure checkout via Gumroad</div>
+    </div>
+
+    <div class="dl-os-row">
+      <div class="dl-os-card">
+        <h4>macOS</h4>
+        <p>Apple Silicon &amp; Intel &middot; macOS 11 Big Sur or newer</p>
+        <span class="size">~10 MB DMG</span>
+      </div>
+      <div class="dl-os-card">
+        <h4>Windows</h4>
+        <p>x64 &middot; Windows 10 / 11 &middot; WebView2 (auto-installed)</p>
+        <span class="size">~12 MB MSI</span>
+      </div>
+      <div class="dl-os-card">
+        <h4>Android <span class="dl-beta-tag">beta</span></h4>
+        <p>arm64 &middot; Android 7.0+ &middot; sideload from secure.imagineqira.com/assets/QEV_0.28.1_android.apk</p>
+        <span class="size">~11 MB APK</span>
+      </div>
+      <div class="dl-os-card">
+        <h4>Linux / CLI <span class="dl-beta-tag">beta</span></h4>
+        <p>Node 18.17+ &middot; <code>npm i -g @imagineqira/qev-cli</code> &middot; same vault format</p>
+        <span class="size">~17 KB tarball</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== TRY FIRST ===================== -->
+<div class="dl-try-first">
+  <div class="wrap">
+    <h2>Prefer to try it in the browser first?</h2>
+    <p>
+      The browser version at <strong>secure.imagineqira.com/vault</strong>
+      uses the same crypto and the same vault format as the desktop
+      app. It's currently in <strong>private preview</strong> &mdash;
+      email <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Web%20Vault%20Access%20Request">bryanleonard@imagineqira.com</a>
+      for an access code. If you'd rather skip the email step, buy
+      the native app above and use it offline forever.
+    </p>
+    <a href="/vault" class="btn btn-outline">Open the Web Vault</a>
+  </div>
+</div>
+
+<!-- ======================= USE CASES ======================= -->
+<section>
+  <div class="wrap">
+    <div class="label">Who it's for</div>
+    <div class="heading">Real-world moments QEV is built for</div>
+    <div class="desc">Not research labs. Not datacenters. The everyday cases where you need one secret to reach one person, once, and nothing else.</div>
+
+    <div class="g3">
+      <div class="dl-usecase-card">
+        <span class="emoji">🔑</span>
+        <h3>Hand over a starter password to a new employee</h3>
+        <p>HR creates accounts. You need to deliver the temporary password without posting it in a Slack channel that's audited forever. Lock it in QEV, text them the phrase, email them the file. They open it on day one, read the password, delete the file.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">📄</span>
+        <h3>Send a settlement PDF password to a client</h3>
+        <p>The PDF goes through the firm's portal. The password needs to reach the client separately, and email isn't appropriate. Lock the password in QEV, download the box file, hand it off however you want. Tell the client the phrase over a phone call. Done.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">👨‍👩‍👧</span>
+        <h3>Share the Wi-Fi password with grandma</h3>
+        <p>She's not going to install 1Password. She's not going to make a LastPass account. She needs to open a file on her laptop, read the Wi-Fi password, and throw the file away. Lock it in QEV, AirDrop it to her, tell her the phrase on the phone.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">🏥</span>
+        <h3>Share a medical detail with family</h3>
+        <p>A diagnosis, a prescription, something private that shouldn't sit in an email thread forever. Lock it in QEV, share the file on a family chat, tell the person the phrase in person. Delete the file after they read it.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">📓</span>
+        <h3>Store a private note for yourself</h3>
+        <p>A journal entry. An account recovery code. A reminder you don't want a cloud backup to see. QEV writes an encrypted box file to your disk; only you know the phrase. The file survives backups and sync without exposing the contents.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">🎁</span>
+        <h3>Pass a gift surprise to a partner's phone</h3>
+        <p>You want to send a reservation or gift detail that shouldn't sit readable in their phone's lock screen notifications. Lock it in QEV, text them the file, whisper them the phrase. They open it when they're ready.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COMPARISON ======================= -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Why QEV</div>
+    <div class="heading">Where it fits in the encryption-tool landscape</div>
+    <div class="desc">Three boxes checked that no other tool in this price range checks together: one-time purchase, offline forever, cross-device portable files.</div>
+
+    <table class="dl-vs-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>QEV</th>
+          <th>Bitwarden Premium</th>
+          <th>1Password</th>
+          <th>Signal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td>Cost</td>
+          <td><strong>$19 once</strong></td>
+          <td>$19.80/year</td>
+          <td>$35.88/year</td>
+          <td>Free</td>
+        </tr>
+        <tr>
+          <td>5-year total cost</td>
+          <td><strong>$19</strong></td>
+          <td>$99</td>
+          <td>$180</td>
+          <td>$0</td>
+        </tr>
+        <tr>
+          <td>Account required</td>
+          <td><strong>No</strong></td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Yes (phone number)</td>
+        </tr>
+        <tr>
+          <td>Works offline forever</td>
+          <td><strong>Yes</strong></td>
+          <td>No (server sync)</td>
+          <td>No (server sync)</td>
+          <td>No (needs network)</td>
+        </tr>
+        <tr>
+          <td>Message survives service shutdown</td>
+          <td><strong>Yes</strong></td>
+          <td>Depends on export</td>
+          <td>Depends on export</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Recipient needs the app</td>
+          <td>No (free web version works)</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Category</td>
+          <td>Encrypted envelope</td>
+          <td>Password manager</td>
+          <td>Password manager</td>
+          <td>Messenger</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="text-align: center; margin-top: 32px; font-size: 0.86rem; color: var(--text-dim); max-width: 680px; margin-left: auto; margin-right: auto;">
+      QEV isn't trying to replace any of these. If you need a password database,
+      get Bitwarden. If you need an end-to-end messenger, get Signal. QEV covers
+      the <em>one</em> case those tools don't: encrypt one secret, once, send the
+      file anywhere, no account, no server, no subscription.
+    </p>
+  </div>
+</section>
+
+<!-- ====================== HOW IT WORKS ====================== -->
+<section>
+  <div class="wrap">
+    <div class="label">How it works</div>
+    <div class="heading">Thirty seconds, start to finish</div>
+    <div class="desc">Zero learning curve. If you can save a file, you can use QEV.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">Step 01</div>
+        <h4>Type the message</h4>
+        <p>Anything you want to keep private. Up to 256 KiB of text. Passwords, notes, recovery codes, a letter.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 02</div>
+        <h4>Pick a secret phrase</h4>
+        <p>Four random words. The app has a generator if you don't have one in mind. You remember this phrase — it is never stored anywhere.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 03</div>
+        <h4>Click Lock it</h4>
+        <p>QEV produces an encrypted vault file. Save it wherever you want. The file is safe to send through email, chat, USB, SMS, anything.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 04</div>
+        <h4>Share the phrase separately</h4>
+        <p>If you're sending to someone else, tell them the phrase through a different channel (phone call, in person, text). They open the file in QEV and see the message.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= TRUST SECTION ======================= -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Verifiable trust</div>
+    <div class="heading">You don't have to trust us. Check the code.</div>
+    <div class="desc">QEV uses only well-reviewed standard primitives and the site ships its own integrity proof.</div>
+    <div class="g3">
+      <div class="card">
+        <h3>Standard crypto only</h3>
+        <p>XChaCha20-Poly1305 for encryption. Argon2id for phrase stretching. Both are RFC-standard algorithms implemented by the libsodium library Signal uses. QEV invents no new cryptography.</p>
+      </div>
+      <div class="card">
+        <h3>Site integrity is signed</h3>
+        <p>Every file on this site is SHA-256 hashed and the manifest is signed with ed25519. The <a href="/site-signer.ed25519.pub">public key</a> is published. Anyone can verify the signature against the manifest independently.</p>
+        <a href="/verify" class="btn btn-sm btn-outline" style="margin-top: 12px;">How to verify</a>
+      </div>
+      <div class="card">
+        <h3>No telemetry, no network</h3>
+        <p>The app makes zero network requests after launch. You can verify this yourself with DevTools or a packet sniffer. It has no analytics, no crash reporting, no update-check pings — nothing leaves your machine unless you explicitly export a file.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FINAL CTA ==================== -->
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Ready?</h2>
+    <p>$19 one-time. Mac and Windows. Lifetime license. Refund in 30 days if it's not what you expected.</p>
+    <div class="cta-actions">
+      <a href="https://bryanleonard6.gumroad.com/l/qev" class="btn btn-primary" id="qev-buy-button-2">Buy QEV &middot; $19</a>
+      <a href="/vault" class="btn btn-outline">Open the Web Vault</a>
+      <a href="/contact" class="btn btn-outline">Questions?</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    QEV &mdash; Qira Encryption Vault is a desktop product of Qira LLC.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>
