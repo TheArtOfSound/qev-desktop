@@ -22,11 +22,64 @@ use crate::store::{Envelope, EnvelopeStore};
 use crate::{ENVELOPE_ID_BYTES, MAX_ENVELOPE_BYTES};
 
 use qev_pairing::{Responder, StaticKeypair};
+use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Instant;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpListener;
+use tokio::sync::Mutex;
 use tracing::{error, info, warn};
+
+/// Per-client rate limiter using a sliding-window counter.
+/// Tokens refill at `max_per_minute / 60` per second.
+struct RateLimiter {
+    buckets: Mutex<HashMap<[u8; 32], RateBucket>>,
+    max_per_minute: u32,
+}
+
+struct RateBucket {
+    tokens: f64,
+    last: Instant,
+}
+
+impl RateLimiter {
+    fn new(max_per_minute: u32) -> Self {
+        Self {
+            buckets: Mutex::new(HashMap::new()),
+            max_per_minute,
+        }
+    }
+
+    /// Consume one token for the given pk. Returns Ok(()) if
+    /// allowed, Err with a message if rate-limited.
+    async fn check(&self, pk: &[u8; 32]) -> std::result::Result<(), String> {
+        let mut map = self.buckets.lock().await;
+        let now = Instant::now();
+        let refill_rate = self.max_per_minute as f64 / 60.0;
+        let max = self.max_per_minute as f64;
+
+        let bucket = map.entry(*pk).or_insert(RateBucket {
+            tokens: max,
+            last: now,
+        });
+
+        // Refill tokens based on elapsed time.
+        let elapsed = now.duration_since(bucket.last).as_secs_f64();
+        bucket.tokens = (bucket.tokens + elapsed * refill_rate).min(max);
+        bucket.last = now;
+
+        if bucket.tokens >= 1.0 {
+            bucket.tokens -= 1.0;
+            Ok(())
+        } else {
+            Err(format!(
+                "rate limited: max {} per minute",
+                self.max_per_minute
+            ))
+        }
+    }
+}
 
 /// How many envelopes to return in a single fetch batch when the
 /// client asks for "default." Also the max a client can ask for
@@ -44,15 +97,34 @@ where
     /// Shared store. Wrapped in `Arc` so the accept loop can
     /// clone it into every spawned task.
     pub store: Arc<S>,
+    /// Per-sender delivery rate limiter.
+    deliver_limiter: RateLimiter,
+    /// Per-recipient fetch rate limiter.
+    fetch_limiter: RateLimiter,
 }
 
 impl<S> RelayService<S>
 where
     S: EnvelopeStore + 'static,
 {
-    /// Construct a new service.
+    /// Construct a new service with default rate limits.
     pub fn new(keypair: StaticKeypair, store: Arc<S>) -> Self {
-        Self { keypair, store }
+        Self::with_limits(keypair, store, 30, 60)
+    }
+
+    /// Construct with custom rate limits (requests per minute).
+    pub fn with_limits(
+        keypair: StaticKeypair,
+        store: Arc<S>,
+        deliver_per_min: u32,
+        fetch_per_min: u32,
+    ) -> Self {
+        Self {
+            keypair,
+            store,
+            deliver_limiter: RateLimiter::new(deliver_per_min),
+            fetch_limiter: RateLimiter::new(fetch_per_min),
+        }
     }
 
     /// Bind a TCP listener and run the accept loop until
@@ -145,6 +217,11 @@ where
     ) -> Result<RelayMessage> {
         match request {
             RelayMessage::Deliver { to, envelope } => {
+                // Rate limit: per-sender delivery cap.
+                self.deliver_limiter
+                    .check(requester_pk)
+                    .await
+                    .map_err(Error::RateLimited)?;
                 let to_pk = check_pk_bytes("to", &to)?;
                 if envelope.len() > MAX_ENVELOPE_BYTES {
                     return Err(Error::TooLarge {
@@ -165,6 +242,11 @@ where
             }
 
             RelayMessage::Fetch { limit } => {
+                // Rate limit: per-recipient fetch cap.
+                self.fetch_limiter
+                    .check(requester_pk)
+                    .await
+                    .map_err(Error::RateLimited)?;
                 let take = if limit == 0 || limit > DEFAULT_FETCH_LIMIT {
                     DEFAULT_FETCH_LIMIT as usize
                 } else {

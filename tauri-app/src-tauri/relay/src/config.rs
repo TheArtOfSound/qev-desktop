@@ -261,7 +261,7 @@ mod tests {
     fn default_config_has_sane_values() {
         let c = Config::default();
         assert_eq!(c.server.listen.port(), DEFAULT_PORT);
-        assert_eq!(c.store.r#type, "in-memory");
+        assert_eq!(c.store.r#type, "sqlite");
         assert_eq!(c.store.max_per_recipient, 100);
         assert_eq!(c.store.retention_hours, 24 * 30);
         assert_eq!(c.limits.deliver_per_minute, 30);
@@ -285,7 +285,7 @@ mod tests {
         let c: Config = toml::from_str(s).unwrap();
         assert_eq!(c.server.listen.port(), 9999);
         // Store defaults preserved.
-        assert_eq!(c.store.r#type, "in-memory");
+        assert_eq!(c.store.r#type, "sqlite");
     }
 
     #[test]

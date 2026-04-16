@@ -57,7 +57,7 @@ export async function ready() {
 export const SCHEMA_V1 = "BRY-NFET-SX-VAULT-V1";
 export const SCHEMA_V2 = "BRY-NFET-SX-VAULT-V2";
 export const SCHEMA = SCHEMA_V2;
-export const VERSION = "0.28.1";
+export const VERSION = "0.29.0";
 
 export const KDF_ALG = "argon2id";
 export const AEAD_ALG = "XChaCha20-Poly1305";

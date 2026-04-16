@@ -1,6 +1,6 @@
 [package]
 name = "qev"
-version = "0.28.1"
+version = "0.29.0"
 description = "QEV — Qira Encryption Vault. Offline encrypted envelopes."
 authors = ["Bryan Leonard <bryanleonard@imagineqira.com>"]
 license = "Proprietary"
