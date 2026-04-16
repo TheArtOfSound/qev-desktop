@@ -1,0 +1,24 @@
+jsQR 1.4.0
+==========
+
+Source:       https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js
+Upstream:     https://github.com/cozmo/jsQR
+License:      Apache 2.0
+
+Downloaded:   2026-04-15
+SHA-256:      bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859
+Lines:        10101
+Size:         ~130 KB uncompressed (minified webpack bundle)
+
+jsQR is a pure-JS QR code detection library used by QEV's phase 2
+pairing UI to decode QR codes scanned from the device camera. It
+runs entirely in the browser/WebView, no network access, no
+server-side component.
+
+The vendored copy is committed verbatim so the tauri-app runs with
+ZERO runtime external fetches. If you need to update:
+
+  curl -sL -o tauri-app/ui/vendor/jsQR.js \
+      https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js
+  shasum -a 256 tauri-app/ui/vendor/jsQR.js
+  # update this file with the new version + hash

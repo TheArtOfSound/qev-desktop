@@ -437,6 +437,162 @@
        They must exist in the DOM so chat.js can set their values
        without errors; they take no visual space. */
     .app-hidden-wiring { display: none; }
+    .app-hidden { display: none !important; }
+
+    /* ───────── Phase 2 pairing UI ───────── */
+    .app-tab-beta {
+      display: inline-block;
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0 4px;
+      margin-left: 4px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+    .pair-section {
+      padding: 20px 0;
+    }
+    .pair-section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 6px;
+      color: var(--text);
+    }
+    .pair-hint {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin: 0 0 14px;
+      line-height: 1.5;
+    }
+    .pair-qr-box {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .pair-qr-svg {
+      display: block;
+      max-width: 260px;
+      margin: 0 auto 12px;
+    }
+    .pair-qr-svg svg { width: 100%; height: auto; display: block; }
+    .pair-qr-text-details { font-size: 0.72rem; color: var(--text-dim); }
+    .pair-qr-text-details summary {
+      cursor: pointer;
+      padding: 4px 0;
+      user-select: none;
+    }
+    .pair-qr-text {
+      display: block;
+      margin-top: 6px;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.68rem;
+      word-break: break-all;
+      max-height: 140px;
+      overflow-y: auto;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .pair-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+    .pair-scan-video {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+    }
+    .pair-paste-details {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: 10px;
+    }
+    .pair-paste-details summary {
+      cursor: pointer;
+      padding: 4px 0;
+      user-select: none;
+    }
+    .pair-paste-textarea {
+      display: block;
+      width: 100%;
+      min-height: 80px;
+      margin: 8px 0;
+      padding: 8px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.72rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .pair-preview-box {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .pair-preview-row {
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .pair-preview-row code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.72rem;
+      background: var(--bg);
+      padding: 1px 4px;
+      border-radius: 3px;
+      word-break: break-all;
+    }
+    .pair-result-box {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .pair-result-box h4 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+    .pair-safety-number {
+      margin: 12px 0;
+      padding: 12px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-align: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .pair-safety-hint {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin: 0;
+    }
 
     /* ───────── Mobile layout (Android/iOS phones, <= 600 px wide) ─────────
 
@@ -612,6 +768,7 @@
 <div class="app-tabs" role="tablist">
   <button type="button" class="app-tab app-tab-active" data-app-tab="lock">Lock a message</button>
   <button type="button" class="app-tab" data-app-tab="open">Open a vault</button>
+  <button type="button" id="app-tab-pair" class="app-tab" data-app-tab="pair">Pair <span class="app-tab-beta">beta</span></button>
 </div>
 
 <div class="app-panel-wrap">
@@ -765,6 +922,75 @@
     </div>
   </div>
 
+  <!-- ======================= PAIR PANEL ======================= -->
+  <!--
+    Phase 2 pairing UI. Two sub-flows:
+      1. "Show QR" — this device generates a pairing invite, shows
+         its QR, and waits for another device to scan and connect.
+         The Tauri responder task runs in the background and emits
+         a 'pairing://complete' event when the handshake finishes.
+      2. "Scan QR" — this device opens the camera, decodes a QR
+         from the other device, shows a preview, and (on user
+         confirm) runs the Noise XK handshake as the initiator.
+
+    Both paths end with a 30-digit safety number displayed for
+    in-person verification.
+  -->
+  <div id="app-panel-pair" class="app-panel app-panel-hidden">
+    <div class="pair-section">
+      <h3>Show a pairing QR</h3>
+      <p class="pair-hint">
+        Let another device scan a QR from this screen. The app will
+        listen for one incoming connection, run a Noise XK
+        handshake, and display a safety number to compare.
+      </p>
+      <div class="app-field">
+        <label for="pair-show-name">Your name</label>
+        <input type="text" id="pair-show-name" placeholder="alice" maxlength="32">
+      </div>
+      <div class="app-field">
+        <label for="pair-show-device">This device</label>
+        <input type="text" id="pair-show-device" placeholder="alice-laptop" maxlength="32">
+      </div>
+      <button type="button" id="pair-show-btn" class="app-btn-small">Show QR</button>
+      <div id="pair-qr-box" class="app-hidden pair-qr-box">
+        <div id="pair-qr-svg" class="pair-qr-svg"></div>
+        <details class="pair-qr-text-details">
+          <summary>Show invite as text</summary>
+          <code id="pair-qr-text" class="pair-qr-text"></code>
+        </details>
+      </div>
+      <div id="pair-qr-status" class="app-status"></div>
+    </div>
+
+    <hr class="pair-divider">
+
+    <div class="pair-section">
+      <h3>Scan a pairing QR</h3>
+      <p class="pair-hint">
+        Scan the other device's QR with the camera, or paste the
+        invite text below. After scanning you'll see a preview
+        before the handshake runs.
+      </p>
+      <button type="button" id="pair-scan-btn" class="app-btn-small">Scan QR with camera</button>
+      <video id="pair-scan-video" class="pair-scan-video" muted playsinline></video>
+
+      <details class="pair-paste-details">
+        <summary>Or paste the invite text</summary>
+        <textarea id="pair-scan-paste" class="pair-paste-textarea"
+                  placeholder="Base64url invite text from the other device..."></textarea>
+        <button type="button" id="pair-scan-paste-btn" class="app-btn-small">Use pasted invite</button>
+      </details>
+
+      <div id="pair-scan-preview" class="pair-preview-box app-hidden"></div>
+      <button type="button" id="pair-scan-accept-btn" class="app-big-btn app-hidden">
+        Accept pairing &amp; run handshake
+      </button>
+      <div id="pair-scan-result" class="pair-result-box app-hidden"></div>
+      <div id="pair-scan-status" class="app-status"></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="app-footer">
@@ -778,12 +1004,19 @@
                  before chat.js creates any Blob URLs.
      2. sodium.js — libsodium.
      3. chat.js — vault logic. Uses URL.createObjectURL (now hooked).
+     4. vendor/jsQR.js — QR code decoder. Used by pairing.js for
+                 camera-based scanning. No network access.
+     5. pairing.js — Phase 2 device pairing UI. Calls the four
+                 Tauri pairing commands and drives the QR
+                 display + scanner screens.
      Inline <script> blocks are forbidden by the CSP (script-src
      'self'), so every line of JavaScript must come from an
      external file in this same directory. -->
 <script src="./app.js"></script>
 <script src="./sodium.js"></script>
 <script src="./chat.js"></script>
+<script src="./vendor/jsQR.js"></script>
+<script src="./pairing.js"></script>
 
 </body>
 </html>

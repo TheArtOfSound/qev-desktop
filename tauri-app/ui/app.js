@@ -379,6 +379,10 @@
     var panels = {
       lock: document.getElementById("app-panel-lock"),
       open: document.getElementById("app-panel-open"),
+      // Phase 2 pair panel — optional: only present on builds
+      // that have the pairing UI markup. Older builds of the
+      // tauri-app HTML don't include it, so we tolerate null.
+      pair: document.getElementById("app-panel-pair"),
     };
     if (tabs.length === 0 || !panels.lock || !panels.open) {
       console.error("QEV: tab switcher DOM not found");
@@ -393,7 +397,9 @@
         );
       });
       Object.keys(panels).forEach(function (k) {
-        panels[k].classList.toggle("app-panel-hidden", k !== target);
+        if (panels[k]) {
+          panels[k].classList.toggle("app-panel-hidden", k !== target);
+        }
       });
       // Scroll the newly-shown panel to the top for a clean transition.
       var wrap = document.querySelector(".app-panel-wrap");
