@@ -223,3 +223,49 @@ jobs:
           path: tauri-app/src-tauri/gen/android/app/build/outputs/apk/universal/release/QEV_${{ github.sha }}_android.apk
           retention-days: 30
           if-no-files-found: warn
+
+  # ────────────────────── RELAY SERVER BUILD ──────────────────────
+  #
+  # Builds the qev-relay-server binary for Linux x86_64 and runs
+  # the unit + integration tests. The binary is uploaded as an
+  # artifact for deployment to secure.imagineqira.com.
+
+  relay:
+    name: Relay server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tauri-app/src-tauri/relay
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            tauri-app/src-tauri/relay/target
+            tauri-app/src-tauri/pairing/target
+          key: relay-cargo-${{ hashFiles('tauri-app/src-tauri/relay/Cargo.lock') }}
+          restore-keys: |
+            relay-cargo-
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Build release binary
+        run: cargo build --release --bin qev-relay-server
+
+      - name: Upload server binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: qev-relay-server-linux-x64
+          path: tauri-app/src-tauri/relay/target/release/qev-relay-server
+          retention-days: 30
+          if-no-files-found: warn

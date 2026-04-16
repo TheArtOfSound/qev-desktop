@@ -339,6 +339,9 @@
   function openSendModal(peers) {
     if (!sendList || !sendModal) return;
     sendList.innerHTML = "";
+    // Group peers by name for a cleaner display.
+    // "alice (laptop)" and "alice (phone)" group under "alice".
+    // Each device still gets its own send/unpair action.
     peers.forEach((peer) => {
       const row = document.createElement("div");
       row.className = "pair-send-peer-row";
@@ -347,13 +350,31 @@
           ? "pair-send-peer-trust-verified"
           : "pair-send-peer-trust-unverified";
       row.innerHTML = `
-        <div class="pair-send-peer-info">
+        <div class="pair-send-peer-info" data-action="send">
           <div class="name">${escapeHtml(peer.peer_name)}</div>
           <div class="device">${escapeHtml(peer.peer_device)}</div>
         </div>
         <span class="pair-send-peer-trust ${trustClass}">${escapeHtml(peer.trust)}</span>
+        <button class="pair-unpair-btn" title="Unpair this device">&times;</button>
       `;
-      row.addEventListener("click", () => sendToPeer(peer));
+      // Click the info area to send
+      row.querySelector("[data-action=send]").addEventListener("click", () => sendToPeer(peer));
+      // Click the × to unpair
+      row.querySelector(".pair-unpair-btn").addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+        if (!confirm(`Unpair ${peer.peer_name} / ${peer.peer_device}? This cannot be undone.`)) return;
+        try {
+          await invoke("pairing_unpair", { peerId: peer.id });
+          row.remove();
+          // If no peers left, close modal
+          if (sendList.children.length === 0) {
+            sendModal.classList.add("app-hidden");
+            sendBtn.classList.add("app-hidden");
+          }
+        } catch (err) {
+          alert("Unpair failed: " + err);
+        }
+      });
       sendList.appendChild(row);
     });
     sendModal.classList.remove("app-hidden");
