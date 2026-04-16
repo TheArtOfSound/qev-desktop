@@ -84,6 +84,7 @@ pub mod message;
 pub mod service;
 pub mod sqlite_store;
 pub mod store;
+pub mod ws_bridge;
 
 pub use crate::client::RelayClient;
 pub use crate::config::{Config, ServerConfig};

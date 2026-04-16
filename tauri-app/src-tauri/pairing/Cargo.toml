@@ -67,6 +67,11 @@ rand_core = { version = "0.6", features = ["std"] }
 # transport uses tokio TCP.
 tokio = { version = "1", features = ["net", "io-util", "rt", "macros", "sync"] }
 
+# OS keystore: macOS Keychain on Mac, stubs on other platforms.
+# Only compiled on macOS; other platforms use the plaintext fallback.
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "3"
+
 # Error type with backtraces. thiserror keeps the public error API
 # clean (distinct variants per failure mode) without a huge dep tree.
 thiserror = "1"

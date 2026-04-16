@@ -1,0 +1,33 @@
+QEV (Qira Encryption Vault) is a free, open-source offline encryption app. Type a message, pick a secret phrase, get an encrypted .vault.json file you can send through any channel. No accounts. No servers. No subscription.
+
+How it works:
+1. Type a message (up to 256 KiB)
+2. Pick a secret phrase or use the built-in generator
+3. Click Lock — QEV produces an encrypted vault file
+4. Send the file through email, chat, USB, AirDrop — anything
+5. Share the phrase separately (phone call, in person)
+6. The recipient opens the file in their QEV, types the phrase, reads the message
+
+Crypto:
+- XChaCha20-Poly1305 authenticated encryption (same primitive Signal uses)
+- Argon2id phrase stretching (64 MiB memory-hard)
+- Provided by libsodium — no custom cryptography
+- Crypto self-test on every app launch
+- All crypto runs offline on your device — zero network access
+
+Same vault format across Mac, Windows, Android, the web, and the CLI. A file encrypted on one platform decrypts on any other.
+
+Features:
+- QR-based device pairing with Noise XK handshake
+- Direct P2P vault transfer over local Wi-Fi
+- Relay-based offline delivery for cross-network sends
+- Optional per-message seal (two-factor phrase protection)
+- Persistent peer store with safety-number verification
+
+Privacy:
+- No accounts, no analytics, no tracking, no cookies
+- No telemetry — the app makes zero network calls
+- Network security config blocks all cleartext traffic
+- Cloud backup and device-transfer explicitly disabled
+
+Source: https://github.com/TheArtOfSound/qev-desktop

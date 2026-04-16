@@ -1,0 +1,1 @@
+Offline encrypted message envelopes. Free, open source, no accounts.

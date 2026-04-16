@@ -1,0 +1,8 @@
+Initial release:
+- XChaCha20-Poly1305 + Argon2id encryption
+- Same BRY-NFET-SX-VAULT-V2 format as desktop and web
+- Mobile-optimised UI with safe-area insets
+- QR pairing + direct P2P vault transfer
+- Relay-based offline delivery
+- Optional per-message seal
+- Crypto self-test on every launch
