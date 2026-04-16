@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BRY-NFET-SX | Policy-Aware Encrypted Envelope Workflow Platform</title>
+  <meta name="description" content="BRY-NFET-SX is a policy-aware encrypted envelope workflow platform. Authenticated encryption, multi-message session envelopes, signed bundle export, trust-aware verification, and persisted security artifacts.">
+  <meta name="keywords" content="encrypted envelope, authenticated encryption, ChaCha20-Poly1305, signed bundle verification, security workflow, policy comparison, AEAD, artifact signing, trust semantics, encrypted artifacts">
+  <meta name="author" content="Qira LLC">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://secure.imagineqira.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/">
+  <meta property="og:title" content="BRY-NFET-SX | Policy-Aware Encrypted Envelope Workflow Platform">
+  <meta property="og:description" content="Authenticated encrypted envelopes with policy comparison, signed bundle verification, and trust-aware semantics. Built on standard ChaCha20-Poly1305.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BRY-NFET-SX | Encrypted Envelope Workflow Platform">
+  <meta name="twitter:description" content="Policy-aware encrypted envelopes with signed bundle verification and trust-aware semantics.">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BRY-NFET-SX",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Linux, macOS",
+    "description": "Policy-aware encrypted envelope workflow platform with authenticated encryption, multi-message session envelopes, signed bundle export, and trust-aware verification semantics.",
+    "softwareVersion": "0.28.1",
+    "author": {
+      "@type": "Organization",
+      "name": "Qira LLC"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Controlled-use product preview"
+    }
+  }
+  </script>
+
+  <!-- FAQ Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is BRY-NFET-SX a new cryptographic algorithm?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. BRY-NFET-SX uses standard ChaCha20-Poly1305 authenticated encryption via the Python cryptography library. The value is in the workflow architecture: policy-aware routing, session envelopes, artifact comparison, and signed bundle verification."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is BRY-NFET-SX production-ready?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "This is a controlled-use product preview (v0.28.1). It has been through internal adversarial reviews and multiple hardening phases, but has not been formally audited by a third party. It is suitable for evaluation, controlled workflows, and technical review."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does signed bundle verification prove?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Verification checks integrity (manifest hashes match), authenticity (HMAC signature is valid), and metadata consistency (key fingerprint matches). The overall_trusted field is true only when all three pass."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-label">Controlled-Use Product Preview &mdash; v0.28.1</div>
+    <h1>Encrypted envelope workflows<br>with verifiable trust semantics</h1>
+    <p class="sub">A policy-aware encrypted envelope workflow platform built on standard authenticated encryption. Package structured messages into session artifacts, compare routing policies, export signed bundles, and verify trust &mdash; with semantics that distinguish integrity from authenticity.</p>
+    <div class="hero-actions">
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Demo%20Request" class="btn btn-primary">Request a Demo</a>
+      <a href="https://secure.imagineqira.com/app/" class="btn btn-outline">Live Demo</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Inquiry" class="btn btn-outline">Contact Us</a>
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap">
+    <div class="strip-row">
+      <div class="strip-item"><div class="dot dot-green"></div>258 tests passing</div>
+      <div class="strip-item"><div class="dot dot-green"></div>Signed bundle verification</div>
+      <div class="strip-item"><div class="dot dot-green"></div>Trust-aware verification output</div>
+      <div class="strip-item"><div class="dot dot-green"></div>Reviewer packet available</div>
+      <div class="strip-item"><div class="dot dot-amber"></div>Controlled-use release</div>
+    </div>
+  </div>
+</div>
+
+<!-- PUBLIC CHALLENGE CALLOUT -->
+<section style="padding: 56px 0;" id="public-challenge">
+  <div class="wrap">
+    <div class="card" style="max-width: 880px; margin: 0 auto; border: 1px solid var(--accent-border); background: var(--accent-bg);">
+      <div class="card-label" style="color: var(--accent);">Live Now &mdash; Public Decryption Challenge</div>
+      <h3 style="font-size: 1.25rem; margin-bottom: 12px;">A real signed encrypted bundle is posted. Decrypt it if you can.</h3>
+      <p style="margin-bottom: 16px;">A real BRY-NFET-SX bundle is live on this site. ChaCha20-Poly1305 AEAD. SHA-256 manifest. HMAC-SHA256 signature. The master key is held offline and released seven days after publication. Verify the manifest integrity today with standard tools. A commit-reveal scheme prevents any post-hoc plaintext swap.</p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <a href="/challenge" class="btn btn-sm btn-primary">See the Challenge</a>
+        <a href="/challenge#verify" class="btn btn-sm btn-outline">How to Verify</a>
+        <a href="/challenge/bry-nfet-sx-challenge-bundle.zip" class="btn btn-sm btn-outline" download>Download Bundle (zip)</a>
+      </div>
+      <div id="challenge-callout-countdown" style="margin-top: 16px; font-size: 0.8rem; color: var(--text-dim);">Loading challenge metadata...</div>
+    </div>
+
+    <div class="card" style="max-width: 880px; margin: 24px auto 0 auto; border: 1px solid var(--accent-border); background: var(--accent-bg);">
+      <div class="card-label" style="color: var(--accent);">Live Now &mdash; Browser-only Encrypted Envelope</div>
+      <h3 style="font-size: 1.25rem; margin-bottom: 12px;">A one-off secret, sent without a server.</h3>
+      <p style="margin-bottom: 16px;">Type a message, type a secret phrase, get an encrypted vault file. Send the file through one channel and the phrase through another. No account. No server. Plaintext never leaves the tab. Open DevTools: zero network requests after page load. XChaCha20-Poly1305 + Argon2id in libsodium. The V2 format wraps a random data key under your phrase so the phrase is one unlock path, not the sole root of secrecy.</p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <a href="/vault" class="btn btn-sm btn-primary">Open the Envelope</a>
+        <a href="/vault#verify" class="btn btn-sm btn-outline">How to Verify</a>
+        <a href="/verify" class="btn btn-sm btn-outline">Site Integrity Record</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  function fmtRemaining(ms){
+    if (ms <= 0) return 'Reveal window open';
+    var s = Math.floor(ms/1000);
+    var d = Math.floor(s/86400); s -= d*86400;
+    var h = Math.floor(s/3600);  s -= h*3600;
+    var m = Math.floor(s/60);
+    return 'Master key reveal in ' + d + 'd ' + h + 'h ' + m + 'm';
+  }
+  fetch('/challenge/challenge-meta.json')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(meta){
+      if (!meta) return;
+      var el = document.getElementById('challenge-callout-countdown');
+      function tick(){
+        var ms = new Date(meta.reveal_at).getTime() - Date.now();
+        if (el) el.textContent = fmtRemaining(ms);
+      }
+      tick(); setInterval(tick, 1000);
+    })
+    .catch(function(){});
+})();
+</script>
+
+<!-- WHO IT'S FOR -->
+<section>
+  <div class="wrap">
+    <div class="label">Who It's For</div>
+    <div class="heading">Built for teams that need verifiable encrypted artifacts</div>
+    <div class="desc">Designed for organizations evaluating structured encryption workflows with explicit policy control and auditable trust.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Security</div>
+        <h3>Security and Trust Reviewers</h3>
+        <p>Evaluate trust semantics, signed verification workflows, and the hardening posture of a system that documents its own boundaries.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Engineering</div>
+        <h3>Technical Evaluators</h3>
+        <p>Run the full demo: build envelopes, compare policies, export bundles, verify signatures. 258 tests passing (220 product + 38 vault-tool). Copy-paste review commands. 15-minute evaluation path.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Product</div>
+        <h3>Product and Platform Teams</h3>
+        <p>Understand how policy-aware encrypted workflows, persisted security artifacts, and signed bundle verification integrate into existing infrastructure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="alt-bg" id="how-it-works">
+  <div class="wrap">
+    <div class="label">How It Works</div>
+    <div class="heading">From structured messages to verified bundles</div>
+    <div class="desc">Four stages from plaintext input to a signed, independently verifiable artifact.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">Step 01</div>
+        <h4>Structure Messages</h4>
+        <p>Canonical symbolic preprocessing normalizes input into deterministic token streams via the Bry layer.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 02</div>
+        <h4>Encrypt and Package</h4>
+        <p>ChaCha20-Poly1305 authenticated encryption seals messages into validated packets, grouped into multi-message session envelopes.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 03</div>
+        <h4>Compare Policies</h4>
+        <p>Run the same messages under different routing policies. See exactly what changes, what doesn't, and why.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 04</div>
+        <h4>Export and Verify</h4>
+        <p>Export signed bundles with SHA-256 manifests and HMAC signatures. Verify with unambiguous trust semantics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVALUATION PATHS -->
+<section id="evaluate">
+  <div class="wrap">
+    <div class="label">Evaluate</div>
+    <div class="heading">Choose your evaluation path</div>
+    <div class="desc">Three structured paths depending on your role and what you need to assess.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Technical</div>
+        <h3>Technical Review</h3>
+        <p>Hands-on evaluation of the protocol, trust model, and verification semantics.</p>
+        <ul>
+          <li><a href="https://secure.imagineqira.com/app/">Live Demo Dashboard</a></li>
+          <li>Reviewer Brief</li>
+          <li>Trust Semantics Specification</li>
+          <li>Review Commands</li>
+        </ul>
+        <a href="https://secure.imagineqira.com/app/" class="btn btn-sm btn-primary">Start Technical Review</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Security</div>
+        <h3>Security Review</h3>
+        <p>Assess the trust model, hardening status, and documented boundaries.</p>
+        <ul>
+          <li>Security Status and Hardening</li>
+          <li>Threat Model</li>
+          <li>Trust Semantics</li>
+          <li>Adversarial Audit Results</li>
+        </ul>
+        <a href="#security" class="btn btn-sm btn-outline">Review Security Posture</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Buyer</div>
+        <h3>Buyer Evaluation</h3>
+        <p>Understand the product, see it in operation, and assess fit.</p>
+        <ul>
+          <li>Product Preview</li>
+          <li>Release Walkthrough</li>
+          <li>Guided Demo Flow</li>
+          <li>Direct contact path</li>
+        </ul>
+        <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Demo%20Request" class="btn btn-sm btn-outline">Request a Demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFFERENTIATION -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Differentiation</div>
+    <div class="heading">Not a new cipher. A verifiable workflow.</div>
+    <div class="desc">The cryptographic foundation is standard AEAD. The value is the policy, comparison, persistence, signing, and verification layer built on top of it.</div>
+    <div class="g3">
+      <div class="card">
+        <h3>Policy-Aware Comparison</h3>
+        <p>Run the same messages under manual, default, and auto routing. See which messages trigger specialist overrides and why. Differences are explicit and per-message.</p>
+      </div>
+      <div class="card">
+        <h3>Persisted Security Artifacts</h3>
+        <p>Envelopes, policy comparisons, and artifact comparisons are saved with SHA-256 integrity binding. Tampered files are rejected on load.</p>
+      </div>
+      <div class="card">
+        <h3>Signed Bundle Verification</h3>
+        <p>Export bundles with HMAC-SHA256 signatures over SHA-256 manifests. Verification output is unambiguous: integrity, signature, metadata, trust.</p>
+      </div>
+      <div class="card">
+        <h3>Trust-Aware Operator Surface</h3>
+        <p>The dashboard never implies trust where none exists. Unsigned bundles display warnings. Failed signatures display errors. Only fully verified bundles display as trusted.</p>
+      </div>
+      <div class="card">
+        <h3>Reviewer-Ready Evaluation</h3>
+        <p>Reviewer brief, trust semantics specification, copy-paste commands, canonical review artifacts. A technical evaluator can understand the system in 15 minutes.</p>
+      </div>
+      <div class="card">
+        <h3>Documented Boundaries</h3>
+        <p>What is hardened and what is not are both documented publicly. No inflated claims. The threat model and current limitations are available for review.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="wrap">
+    <div class="label">Security and Trust</div>
+    <div class="heading">What has been hardened, what remains limited</div>
+    <div class="desc">An internal adversarial review identified 11 issues. Phases 35A through 35F resolved the critical and high-severity findings.</div>
+    <div class="sec-grid">
+      <div class="sec-col">
+        <h3>Resolved (Phases 35A-35F)</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Key provider restricted to allowlisted paths and environment variables</li>
+          <li><span class="mark-done">Done</span>Nonce registry concurrency-safe via exclusive file locking</li>
+          <li><span class="mark-done">Done</span>Bundle trust: overall_trusted requires integrity, signature, and metadata consistency</li>
+          <li><span class="mark-done">Done</span>Storage integrity: SHA-256 content hashes with tamper detection on load</li>
+          <li><span class="mark-done">Done</span>Key fingerprint provenance binding derived from actual key material</li>
+          <li><span class="mark-done">Done</span>Bundle verification restricted to allowed directory paths</li>
+          <li><span class="mark-done">Done</span>Operator UI displays explicit trust verdicts for all verification states</li>
+        </ul>
+      </div>
+      <div class="sec-col">
+        <h3>Current Limitations</h3>
+        <ul>
+          <li><span class="mark-open">Open</span>Local trust model only. Not hardened for hostile multi-tenant deployment.</li>
+          <li><span class="mark-open">Open</span>No KMS or HSM integration. Key material is managed locally.</li>
+          <li><span class="mark-open">Open</span>No key rotation or revocation mechanism.</li>
+          <li><span class="mark-open">Open</span>Nonce registry uses POSIX file locking. Not portable to Windows or NFS.</li>
+          <li><span class="mark-open">Open</span>Index rows are HMAC-bound to a local secret. An attacker who can read both the data directory and the secret store could still forge entries.</li>
+          <li><span class="mark-open">Open</span>No formal third-party security audit has been conducted.</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 40px;">
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Security%20Review" class="btn btn-sm btn-outline">Contact for Security Questions</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="alt-bg" id="faq">
+  <div class="wrap">
+    <div class="label">Frequently Asked Questions</div>
+    <div class="heading">Common questions</div>
+    <div class="faq">
+
+      <div class="faq-row">
+        <div class="faq-q">Is this a new cryptographic algorithm?</div>
+        <div class="faq-a">No. BRY-NFET-SX uses standard ChaCha20-Poly1305 authenticated encryption provided by the Python cryptography library. The Bry and NFET layers handle canonical preprocessing and deterministic scheduling. They are not encryption primitives. The differentiated value is the workflow architecture.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">Is this production-ready?</div>
+        <div class="faq-a">This is a controlled-use product preview, version 0.28.1. It has been through three internal adversarial security reviews and multiple hardening phases (35A-35F, 38A-38E, plus audit-3 cleanup and v0.28.1 bundle write canonicalization). It has not been formally audited by a third party and is not designed for hostile multi-tenant deployment. It is suitable for evaluation, controlled workflows, demos, and technical review.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">What can I test today?</div>
+        <div class="faq-a">The full workflow: build multi-message encrypted envelopes, compare routing policies, browse persisted artifacts, export signed bundles, and verify trust semantics. The live demo requires no installation. The Demo Flow tab in the dashboard provides a guided walkthrough.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">What does signed bundle verification prove?</div>
+        <div class="faq-a">Verification checks three properties independently. Integrity: manifest hashes match the actual file contents. Authenticity: the HMAC signature is cryptographically valid. Metadata consistency: the key fingerprint derived from actual key material matches between signer and verifier. The overall_trusted field is true only when all three conditions hold. Unsigned or unchecked bundles are never reported as trusted.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">What are the current limitations?</div>
+        <div class="faq-a">Local trust model only, no KMS or HSM integration, no key rotation or revocation, POSIX-only nonce locking, index files not independently signed, no formal third-party audit. These are documented in the threat model and will be addressed in future hardening phases.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">How do I get a demo?</div>
+        <div class="faq-a">The live demo is running now and requires no setup. For a guided walkthrough or a deeper technical session, email bryanleonard@imagineqira.com with the subject line "Demo Request."</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">How do I contact you?</div>
+        <div class="faq-a">Email bryanleonard@imagineqira.com. For security-specific questions, use the subject line "Security Review."</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="cta-block" id="contact">
+  <div class="wrap">
+    <h2>Evaluate the system</h2>
+    <p>Run the live demo, request a guided walkthrough, or contact us for a security review.</p>
+    <div class="cta-actions">
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Demo%20Request" class="btn btn-primary">Request a Demo</a>
+      <a href="https://secure.imagineqira.com/app/" class="btn btn-outline">Live Demo</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Inquiry" class="btn btn-outline">Contact Us</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.faq-q').forEach(function(el){
+  el.addEventListener('click',function(){
+    this.parentElement.classList.toggle('open');
+  });
+});
+</script>
+
+</body>
+</html>

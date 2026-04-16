@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Download QEV | Qira Encryption Vault</title>
-  <meta name="description" content="QEV — Qira Encryption Vault. Offline encrypted envelopes for Mac and Windows. One-time purchase, no accounts, no servers. $19.">
+  <meta name="description" content="QEV — Qira Encryption Vault. Offline encrypted envelopes for Mac and Windows. Free, open-source, no accounts, no servers.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://secure.imagineqira.com/downloads">
   <meta property="og:type" content="product">
   <meta property="og:url" content="https://secure.imagineqira.com/downloads">
   <meta property="og:title" content="Download QEV — Offline Encryption Vault for Mac and Windows">
-  <meta property="og:description" content="One-time purchase. No accounts. No servers. Encrypt a message, send the file anywhere, remember the phrase. $19.">
+  <meta property="og:description" content="Free. Open source. No accounts. No servers. Encrypt a message, send the file anywhere, remember the phrase.">
   <meta property="og:site_name" content="BRY-NFET-SX">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="QEV — Offline Encryption Vault">
-  <meta name="twitter:description" content="One-time $19. Mac + Windows. Offline forever.">
+  <meta name="twitter:description" content="Free. Mac + Windows + Android + CLI. Offline forever.">
 
   <script type="application/ld+json">
   {
@@ -174,6 +174,39 @@
       border: 1px solid var(--border-subtle);
       border-radius: 4px;
     }
+    .dl-card-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity 0.12s;
+    }
+    .dl-card-btn:hover { opacity: 0.9; }
+    .dl-card-btn-alt {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .dl-card-cmd {
+      display: block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.78rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      user-select: all;
+      -webkit-user-select: all;
+    }
 
     .dl-vs-table {
       width: 100%;
@@ -267,6 +300,7 @@
       <a href="/challenge">Challenge</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
       <a href="/contact">Contact</a>
       <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
     </div>
@@ -276,7 +310,7 @@
 <!-- ============================ HERO ============================ -->
 <header class="dl-hero">
   <div class="wrap">
-    <div class="price-tag">One-time purchase &middot; $19</div>
+    <div class="price-tag">Free &middot; Open source</div>
     <h1>QEV &mdash; Qira Encryption Vault</h1>
     <p class="sub">
       Encrypt a message. Remember the phrase. Send the file anywhere.
@@ -291,38 +325,43 @@
       product URL (e.g. after re-upload or slug change), edit both
       occurrences of "bryanleonard6.gumroad.com/l/qev" below.
     -->
-    <a href="https://bryanleonard6.gumroad.com/l/qev" class="dl-buy" id="qev-buy-button">
-      <span class="dl-buy-price">Buy QEV &middot; $19</span>
-      <span class="dl-buy-sub">One-time payment &middot; Lifetime license</span>
+    <a href="/assets/QEV_0.28.1_aarch64.dmg" class="dl-buy" id="qev-buy-button">
+      <span class="dl-buy-price">Download QEV for Mac</span>
+      <span class="dl-buy-sub">Free &middot; No account &middot; No payment</span>
     </a>
 
     <div class="dl-trust-row">
-      <div class="dl-trust-item">No subscription</div>
+      <div class="dl-trust-item">Free forever</div>
       <div class="dl-trust-item">No account required</div>
-      <div class="dl-trust-item">30-day refund</div>
-      <div class="dl-trust-item">Secure checkout via Gumroad</div>
+      <div class="dl-trust-item">Open source</div>
+      <div class="dl-trust-item">Offline by design</div>
     </div>
 
     <div class="dl-os-row">
       <div class="dl-os-card">
         <h4>macOS</h4>
         <p>Apple Silicon &amp; Intel &middot; macOS 11 Big Sur or newer</p>
-        <span class="size">~10 MB DMG</span>
+        <span class="size">~2 MB DMG</span>
+        <a href="/assets/QEV_0.28.1_aarch64.dmg" class="dl-card-btn" download>Download .dmg</a>
       </div>
       <div class="dl-os-card">
         <h4>Windows</h4>
         <p>x64 &middot; Windows 10 / 11 &middot; WebView2 (auto-installed)</p>
-        <span class="size">~12 MB MSI</span>
+        <span class="size">~2 MB MSI &middot; ~1.5 MB EXE</span>
+        <a href="/assets/QEV_0.28.1_x64_en-US.msi" class="dl-card-btn" download>Download .msi</a>
+        <a href="/assets/QEV_0.28.1_x64-setup.exe" class="dl-card-btn dl-card-btn-alt" download>or .exe installer</a>
       </div>
       <div class="dl-os-card">
-        <h4>Android <span class="dl-beta-tag">beta</span></h4>
-        <p>arm64 &middot; Android 7.0+ &middot; sideload from secure.imagineqira.com/assets/QEV_0.28.1_android.apk</p>
+        <h4><a href="/android" style="color:var(--text);text-decoration:none;">Android <span class="dl-beta-tag">beta</span></a></h4>
+        <p>arm64 &middot; Android 7.0+</p>
         <span class="size">~11 MB APK</span>
+        <a href="/assets/QEV_0.28.1_android.apk" class="dl-card-btn" download>Download .apk</a>
       </div>
       <div class="dl-os-card">
         <h4>Linux / CLI <span class="dl-beta-tag">beta</span></h4>
-        <p>Node 18.17+ &middot; <code>npm i -g @imagineqira/qev-cli</code> &middot; same vault format</p>
+        <p>Node 18.17+ &middot; same vault format</p>
         <span class="size">~17 KB tarball</span>
+        <code class="dl-card-cmd">npm i -g @imagineqira/qev-cli</code>
       </div>
     </div>
   </div>
@@ -406,14 +445,14 @@
       <tbody>
         <tr class="highlight">
           <td>Cost</td>
-          <td><strong>$19 once</strong></td>
-          <td>$19.80/year</td>
+          <td><strong>Free</strong></td>
+          <td>~$20/year</td>
           <td>$35.88/year</td>
           <td>Free</td>
         </tr>
         <tr>
           <td>5-year total cost</td>
-          <td><strong>$19</strong></td>
+          <td><strong>Free</strong></td>
           <td>$99</td>
           <td>$180</td>
           <td>$0</td>
@@ -524,9 +563,9 @@
 <div class="cta-block">
   <div class="wrap">
     <h2>Ready?</h2>
-    <p>$19 one-time. Mac and Windows. Lifetime license. Refund in 30 days if it's not what you expected.</p>
+    <p>Free and open source. Mac, Windows, Android, and CLI. No account, no payment, no server.</p>
     <div class="cta-actions">
-      <a href="https://bryanleonard6.gumroad.com/l/qev" class="btn btn-primary" id="qev-buy-button-2">Buy QEV &middot; $19</a>
+      <a href="/assets/QEV_0.28.1_aarch64.dmg" class="btn btn-primary" id="qev-buy-button-2">Download QEV for Mac</a>
       <a href="/vault" class="btn btn-outline">Open the Web Vault</a>
       <a href="/contact" class="btn btn-outline">Questions?</a>
     </div>

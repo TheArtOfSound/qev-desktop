@@ -1,0 +1,28 @@
+libsodium.js — vendored copy
+
+Upstream:        https://github.com/jedisct1/libsodium.js
+Version:         0.7.13 (sumo build)
+Source URL:      https://raw.githubusercontent.com/jedisct1/libsodium.js/0.7.13/dist/browsers-sumo/sodium.js
+Downloaded:      2026-04-14
+SHA-256:         b13df42138a77880bd8e18ab184ca74fac59c31471cf82f8ded677cc46b5087f
+File:            sodium.js
+Size:            1044865 bytes
+License:         ISC (see LICENSE-libsodium.txt)
+
+This file is the unmodified upstream sumo build. Any modification will
+invalidate the SHA-256 above and the SHA-384 SRI hash embedded in
+chat/index.html.
+
+To verify the file matches upstream:
+
+  shasum -a 256 sodium.js
+  # should print: b13df42138a77880bd8e18ab184ca74fac59c31471cf82f8ded677cc46b5087f
+
+The file provides:
+  - Argon2id (crypto_pwhash with ALG_ARGON2ID13)
+  - XChaCha20-Poly1305 IETF AEAD
+  - secure random byte generation
+  - constant-time memzero
+  - base64url codecs
+
+All of which are used by chat.js to implement the BRY-NFET-SX vault format.

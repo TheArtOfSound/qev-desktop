@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviewer Resources | BRY-NFET-SX</title>
+  <meta name="description" content="Technical review resources for BRY-NFET-SX. Reviewer brief, trust semantics specification, review commands, release walkthrough, and canonical review artifacts.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/review">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/review">
+  <meta property="og:title" content="Reviewer Resources | BRY-NFET-SX">
+  <meta property="og:description" content="Technical review resources for evaluating the BRY-NFET-SX encrypted envelope workflow platform.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Reviewer Resources | BRY-NFET-SX">
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Reviewer Resources</div>
+    <h1>Everything you need to evaluate BRY-NFET-SX</h1>
+    <p class="page-desc">Structured materials for technical reviewers, security evaluators, and product teams. The full evaluation path takes approximately 15 minutes.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Start here</div>
+    <div class="desc">Run the live demo first, then work through the documentation in order.</div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">Step 1</div>
+        <h3>Live Demo</h3>
+        <p>The full product is running at secure.imagineqira.com/app/. Start with the Demo Flow tab for a guided walkthrough of the end-to-end workflow: build envelopes, compare policies, export signed bundles, verify trust.</p>
+        <a href="/app/" class="btn btn-sm btn-primary">Open Live Demo</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Step 2</div>
+        <h3>Reviewer Brief</h3>
+        <p>A concise memo covering the product overview, strongest capabilities, trust model, hardening status, limitations, and key files for code review. Written for fast comprehension.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">Documentation</div>
+    <div class="desc">Four documents that give a complete picture of the system.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>Trust Semantics Specification</h3>
+        <p>Technical specification of every trust-related field in bundle verification output. Covers packet vs. envelope layers, integrity vs. signature vs. trust, the full truth table for all verification states, and what the semantics do not cover.</p>
+      </div>
+      <div class="card">
+        <h3>Review Commands</h3>
+        <p>Copy-paste commands for running tests, starting services, building envelopes, exporting signed bundles, verifying with correct and incorrect keys, and confirming provider lockdown restrictions. Every command is tested and minimal.</p>
+      </div>
+      <div class="card">
+        <h3>Release Walkthrough</h3>
+        <p>Step-by-step walkthrough of the strongest end-to-end workflow: build an envelope, compare policies, browse saved artifacts, export a signed bundle, verify it, then demonstrate trust failure states.</p>
+      </div>
+      <div class="card">
+        <h3>Threat Model</h3>
+        <p>Current trust boundaries, adversary classes, out-of-scope claims, known weak areas, and findings from the internal adversarial review. Honest about what is protected and what is not.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Review artifacts</div>
+    <div class="desc">Canonical artifacts are generated fresh from the current code using non-sensitive demo secrets.</div>
+    <div class="card" style="max-width: 680px;">
+      <h3>Generate review artifacts</h3>
+      <p>If you have the repository locally, run the preparation script to generate a saved envelope, a signed bundle, and a verification summary:</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 16px; margin-top: 16px; font-size: 0.84rem; color: var(--text-secondary); overflow-x: auto;">uv run python scripts/prepare_review_artifacts.py</pre>
+      <p style="margin-top: 14px;">Artifacts land under data/review/, data/runs/, and data/bundles/. All secrets used are printed in the output. You can also run the full workflow interactively through the <a href="/app/">live demo</a> without any local setup.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">What to evaluate</div>
+    <div class="desc">Structured feedback is most useful in four categories.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>Technical coherence</h3>
+        <p>Does the system hold together? Are the trust semantics clear? Does the verification output make sense? Are the protocol boundaries well-defined?</p>
+      </div>
+      <div class="card">
+        <h3>Security posture</h3>
+        <p>Are the hardening measures adequate for the stated trust model? Are the documented limitations accurate? What would you harden next?</p>
+      </div>
+      <div class="card">
+        <h3>Product clarity</h3>
+        <p>Is it immediately clear what this system does and does not do? Does the positioning feel honest? Is anything confusing or misleading?</p>
+      </div>
+      <div class="card">
+        <h3>Adoption blockers</h3>
+        <p>What would prevent you from using or recommending this system? What is missing? What feels weak?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Ready to review</h2>
+    <p>Start with the live demo or contact us for a guided technical session.</p>
+    <div class="cta-actions">
+      <a href="/app/" class="btn btn-primary">Open Live Demo</a>
+      <a href="/contact" class="btn btn-outline">Contact Us</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>

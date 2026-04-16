@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Integrity | BRY-NFET-SX</title>
+  <meta name="description" content="Independently verify the integrity of the BRY-NFET-SX site using an ed25519 public key. Every file is SHA-256 hashed and the manifest is signed with ed25519.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/verify">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/verify">
+  <meta property="og:title" content="Site Integrity | BRY-NFET-SX">
+  <meta property="og:description" content="ed25519-signed site manifest with a published public key. Anyone with the public key can verify the signature independently, no operator cooperation required.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Site Integrity</div>
+    <h1>Signed by an ed25519 key.<br>Anyone with the public key can verify it.</h1>
+    <p class="page-desc">Every file served on secure.imagineqira.com is SHA-256 hashed at deployment. The resulting manifest is signed with ed25519 using a private key the operator holds; the corresponding public key is <a href="/site-signer.ed25519.pub">published on this site</a>. A third party running standard tools can verify the signature without any cooperation from the operator.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="heading">How it works</div>
+    <div class="desc">The signing pipeline is small and deliberately boring: hash every file, sign the manifest, publish both the manifest and the verification key.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Step 1</div>
+        <h3>Content is hashed</h3>
+        <p>Every HTML, CSS, JS, WASM, text, JSON and zip file in the signed list is SHA-256 hashed at deployment time. The filenames and their hex digests are recorded in a canonical JSON manifest with sorted keys and deterministic formatting.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Step 2</div>
+        <h3>Manifest is ed25519-signed</h3>
+        <p>The manifest is signed with an ed25519 private key kept off the web server. The signature covers the domain separator <code>BRY-NFET-SX|SITE-INTEGRITY|V2</code> concatenated with the canonical manifest bytes. The ed25519 public key is published at <a href="/site-signer.ed25519.pub">/site-signer.ed25519.pub</a>.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Step 3</div>
+        <h3>Anyone can verify</h3>
+        <p>Because ed25519 is an asymmetric signature scheme, anyone who fetches the public key and the manifest can verify the signature locally — no secret required. A ready-to-run verifier is available in the project repo at <code>scripts/verify_site_integrity.py</code> and uses only the Python <code>cryptography</code> library.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">Integrity record</div>
+    <div class="desc">The current signed integrity record for this site.</div>
+    <div class="card" style="max-width: 720px;">
+      <div id="integrity-loading">Loading integrity record...</div>
+      <pre id="integrity-record" style="display:none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto; white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere; max-height: 500px;"></pre>
+      <div id="integrity-error" style="display:none; color: var(--amber-text);">Could not load the integrity record. The file may not have been generated yet.</div>
+    </div>
+    <div style="margin-top: 20px;">
+      <a href="/site-integrity.json" class="btn btn-sm btn-outline" download>Download integrity record (JSON)</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Verify it yourself</div>
+    <div class="desc">Two checks: (1) the ed25519 signature over the manifest, and (2) the SHA-256 of each file. Neither check requires anything beyond the public key and the manifest.</div>
+
+    <div class="card" style="max-width: 780px;">
+      <h3>Option A &mdash; One-liner with the bundled verifier</h3>
+      <p style="margin-top: 10px;">The project repo ships a standalone verifier that does both checks using only the Python <code>cryptography</code> library.</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">git clone https://github.com/TheArtOfSound/nfet-primitive  # any project checkout works
+uv run python scripts/verify_site_integrity.py --url https://secure.imagineqira.com</pre>
+      <p style="margin-top: 10px; font-size: 0.86rem;">Output on success:</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 8px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">Step 1: ed25519 signature...
+  OK
+Step 2: SHA-256 file hashes...
+  OK (21 files)
+
+VERIFIED. The manifest is signed by the holder of the ed25519 private
+key corresponding to the committed public key, and every file's SHA-256
+matches.</pre>
+    </div>
+
+    <div class="card" style="max-width: 780px; margin-top: 20px;">
+      <h3>Option B &mdash; Verify the signature manually</h3>
+      <p style="margin-top: 10px;">Fetch the public key and the manifest, then verify the ed25519 signature with any standard library. Python example:</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">import hashlib, json, urllib.request
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+BASE = "https://secure.imagineqira.com"
+DOMAIN = b"BRY-NFET-SX|SITE-INTEGRITY|V2"
+
+# 1. Fetch the public key and the signed manifest.
+pub_hex = urllib.request.urlopen(BASE + "/site-signer.ed25519.pub").read().strip().decode()
+pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(pub_hex))
+record = json.loads(urllib.request.urlopen(BASE + "/site-integrity.json").read())
+
+# 2. Strip the signature block and reconstruct the signed bytes exactly
+#    as the signer did: domain separator + canonical JSON.
+manifest = {k: v for k, v in record.items() if k != "signature"}
+signed_bytes = DOMAIN + json.dumps(manifest, indent=2, sort_keys=True).encode()
+
+# 3. Verify. Raises InvalidSignature on mismatch.
+pub.verify(bytes.fromhex(record["signature"]["signature_hex"]), signed_bytes)
+print("signature OK")
+
+# 4. Hash every file and compare.
+for name, expected in record["files"].items():
+    body = urllib.request.urlopen(f"{BASE}/{name}").read()
+    actual = hashlib.sha256(body).hexdigest()
+    assert actual == expected, f"{name}: {actual} != {expected}"
+    print(f"  {name}: OK")</pre>
+    </div>
+
+    <div class="card" style="max-width: 780px; margin-top: 20px;">
+      <h3>Option C &mdash; Just check a single file's hash</h3>
+      <p style="margin-top: 10px;">If you trust the signed manifest itself (because you already checked the ed25519 signature, or because you're only worried about over-the-wire tampering with a single file), you can just compare a SHA-256 digest with <code>shasum</code>:</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">curl -s https://secure.imagineqira.com/ | shasum -a 256
+# compare against files.index.html in the integrity record below</pre>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">What this does and does not prove</div>
+    <div class="desc">The integrity claim has a specific, bounded meaning. Read it before drawing conclusions.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>What it proves</h3>
+        <ul>
+          <li>The manifest was signed by whoever holds the ed25519 private key whose public half is at <a href="/site-signer.ed25519.pub">/site-signer.ed25519.pub</a>. Anyone can verify this locally.</li>
+          <li>Every byte of every listed file matches its SHA-256 digest in the signed manifest. Tampering with even one byte of any listed file breaks the comparison.</li>
+          <li>The list of signed files is itself bound into the signature, so silently adding or removing files from the manifest breaks verification.</li>
+          <li>The manifest includes a signing timestamp, so you can tell when the operator last signed this version.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What it does NOT prove</h3>
+        <ul>
+          <li>That the published ed25519 public key belongs to the person you think it does. If you haven't verified the key out-of-band (TLS certificate pinning, prior knowledge, a trusted channel), a sophisticated attacker controlling this page could publish their own key alongside their own forged manifest.</li>
+          <li>That the source code under the hashed HTML/JS is free of bugs. Hash integrity is not code correctness.</li>
+          <li>That files NOT in the signed list are untampered. Files outside the manifest (e.g. third-party search engine verification tokens) are explicitly out of scope.</li>
+          <li>That the operator is trustworthy — only that a specific party with continuous control of one ed25519 key signed a specific manifest at a specific moment.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-block">
+  <div class="wrap">
+    <h2>See the full platform</h2>
+    <p>The same signing and verification workflow is available for your own artifacts.</p>
+    <div class="cta-actions">
+      <a href="/app/" class="btn btn-primary">Live Demo</a>
+      <a href="/security" class="btn btn-outline">Security Posture</a>
+      <a href="/contact" class="btn btn-outline">Contact Us</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+<script>
+fetch('/site-integrity.json')
+  .then(function(r) { return r.ok ? r.json() : Promise.reject('not found'); })
+  .then(function(data) {
+    document.getElementById('integrity-loading').style.display = 'none';
+    document.getElementById('integrity-record').style.display = 'block';
+    document.getElementById('integrity-record').textContent = JSON.stringify(data, null, 2);
+  })
+  .catch(function() {
+    document.getElementById('integrity-loading').style.display = 'none';
+    document.getElementById('integrity-error').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>

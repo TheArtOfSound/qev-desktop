@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Bundle Tampering Challenge | BRY-NFET-SX</title>
+  <meta name="description" content="A real signed bundle from BRY-NFET-SX is posted publicly. The challenge: find a way to tamper with it that our verifier reports as fully trusted. We are not asking the public to break ChaCha20-Poly1305 or HMAC-SHA256. We are asking you to attack our use of them.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/challenge">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/challenge">
+  <meta property="og:title" content="Public Bundle Tampering Challenge | BRY-NFET-SX">
+  <meta property="og:description" content="A real signed bundle from BRY-NFET-SX. The challenge: tamper with it in a way that our verifier accepts as trusted. We are not asking you to attack ChaCha20-Poly1305 or HMAC-SHA256 \u2014 only our use of them.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BRY-NFET-SX Public Bundle Tampering Challenge">
+  <meta name="twitter:description" content="Real signed bundle. Tamper with it in a way our verifier accepts as trusted. We are not asking you to break the primitives.">
+
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-label">Public Bundle Tampering Challenge</div>
+    <h1>A real signed bundle is posted below.<br>Find a way to break our use of it.</h1>
+    <p class="sub">We are <strong>not</strong> asking the public to break ChaCha20-Poly1305 or HMAC-SHA256. Those are well-vetted primitives we deliberately did not invent. We are asking you to find a way to tamper with the bundle, or with the workflow around it, such that our own verifier reports the result as fully trusted. That is the realistic and interesting attack surface, and it is the one a security review actually finds bugs in.</p>
+    <div class="hero-actions">
+      <a href="#bundle" class="btn btn-primary">Download the Bundle</a>
+      <a href="#verify" class="btn btn-outline">Verify it Yourself</a>
+      <a href="#challenge" class="btn btn-outline">See the Challenge</a>
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap">
+    <div class="strip-row">
+      <div class="strip-item"><div class="dot dot-green"></div><span id="strip-published">Published &mdash;</span></div>
+      <div class="strip-item"><div class="dot dot-amber"></div><span id="strip-reveal">Key reveal &mdash;</span></div>
+      <div class="strip-item"><div class="dot dot-green"></div><span id="strip-countdown">Time remaining &mdash;</span></div>
+      <div class="strip-item"><div class="dot dot-green"></div>ChaCha20-Poly1305 AEAD</div>
+      <div class="strip-item"><div class="dot dot-green"></div>HMAC-SHA256 signature</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT YOU ARE LOOKING AT -->
+<section>
+  <div class="wrap">
+    <div class="label">What You Are Looking At</div>
+    <div class="heading">A real artifact from a real system</div>
+    <div class="desc">This bundle was produced by the same BRY-NFET-SX codebase running in the live demo. The secrets were generated fresh for this challenge and are used nowhere else in the project.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Encryption</div>
+        <h3>ChaCha20-Poly1305</h3>
+        <p>Messages are sealed with ChaCha20-Poly1305 authenticated encryption as provided by the Python cryptography library. No custom cipher. No new primitive. Standard AEAD.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Integrity</div>
+        <h3>SHA-256 Manifest</h3>
+        <p>Every file in the bundle is hashed with SHA-256. The hashes are bound together into a manifest that is stable, canonical, and independently verifiable without any secrets.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Authenticity</div>
+        <h3>HMAC-SHA256 Signature</h3>
+        <p>The manifest is signed with HMAC-SHA256 using a signer secret held only by the publisher. The signature includes a key fingerprint derived from the actual signer key material.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUNDLE DOWNLOAD -->
+<section class="alt-bg" id="bundle">
+  <div class="wrap">
+    <div class="label">Download</div>
+    <div class="heading">The challenge bundle</div>
+    <div class="desc">Download individual files or the full zip. Everything here is safe to serve. Nothing here contains the master key.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>Full bundle (zip)</h3>
+        <p>All four files packaged into a single zip for one-click download. Checksum included below.</p>
+        <a href="/challenge/bry-nfet-sx-challenge-bundle.zip" class="btn btn-sm btn-primary" download>Download bundle zip</a>
+      </div>
+      <div class="card">
+        <h3>Individual files</h3>
+        <ul>
+          <li><a href="/challenge/bundle/artifact.json" download>artifact.json</a> &mdash; the encrypted envelope payload</li>
+          <li><a href="/challenge/bundle/manifest.json" download>manifest.json</a> &mdash; SHA-256 hashes of every file</li>
+          <li><a href="/challenge/bundle/metadata.json" download>metadata.json</a> &mdash; provenance and key versions</li>
+          <li><a href="/challenge/bundle/signature.json" download>signature.json</a> &mdash; HMAC-SHA256 of the manifest</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 20px;">
+      <h3>Public challenge metadata</h3>
+      <p style="margin-bottom: 16px;">This file records the publish time, reveal time, envelope ID, signer key fingerprint, and the SHA-256 commitment to the reveal token. Download it alongside the bundle.</p>
+      <a href="/challenge/challenge-meta.json" class="btn btn-sm btn-outline" download>Download challenge-meta.json</a>
+    </div>
+  </div>
+</section>
+
+<!-- VERIFY IT YOURSELF -->
+<section id="verify">
+  <div class="wrap">
+    <div class="label">Verify</div>
+    <div class="heading">What you can confirm today, with zero secrets</div>
+    <div class="desc">Everything below runs on your machine. You do not need to trust this page. You do not need the master key.</div>
+
+    <div class="card" style="max-width: 780px;">
+      <h3>1. Fetch the bundle</h3>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">mkdir -p bry-challenge &amp;&amp; cd bry-challenge
+for f in artifact.json metadata.json manifest.json signature.json; do
+  curl -s -O https://secure.imagineqira.com/challenge/bundle/$f
+done
+curl -s -O https://secure.imagineqira.com/challenge/challenge-meta.json</pre>
+
+      <h3 style="margin-top: 24px;">2. Verify the manifest integrity</h3>
+      <p style="margin-top: 8px;">Recompute the SHA-256 of every file listed in the manifest and compare to the published hashes. If the hashes match, those files have not been modified since publication. <code>manifest.json</code> and <code>signature.json</code> are not listed in the manifest (the manifest cannot reference itself, and signature.json signs the manifest).</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">python3 - &lt;&lt;'EOF'
+import hashlib, json
+manifest = json.load(open("manifest.json"))
+for entry in manifest["files"]:
+    name = entry["name"]
+    want = entry["sha256"]
+    got = hashlib.sha256(open(name, "rb").read()).hexdigest()
+    print(f"{name}: {'OK' if got == want else 'FAIL'}  {got[:16]}...")
+EOF</pre>
+
+      <h3 style="margin-top: 24px;">3. Inspect the signature</h3>
+      <p style="margin-top: 8px;">The signer key fingerprint is published in <code>challenge-meta.json</code>. Confirm the signature file references the same fingerprint. Verification of the actual HMAC requires the signer secret, which is published at reveal time along with the master key.</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">python3 -c '
+import json
+sig = json.load(open("signature.json"))
+meta = json.load(open("challenge-meta.json"))
+print("signature fingerprint:", sig.get("key_fingerprint", "(none)"))
+print("published fingerprint:", meta["signer_key_fingerprint"])
+print("match:", sig.get("key_fingerprint") == meta["signer_key_fingerprint"])'</pre>
+
+      <h3 style="margin-top: 24px;">4. Full signature verification (once the signer secret is released)</h3>
+      <p style="margin-top: 8px;">After reveal, run the built-in bundle verification against the published signer secret. This confirms the manifest HMAC is valid.</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">uv run python -c '
+from bry_nfet_sx.protocol.bundles import verify_bundle_dir
+result = verify_bundle_dir(
+    "./",
+    signer_provider_mode="local",
+    signer_secret="&lt;published-signer-secret&gt;",
+    signer_key_version="challenge-v1",
+)
+import json; print(json.dumps(result, indent=2))'</pre>
+    </div>
+  </div>
+</section>
+
+<!-- THE CHALLENGE -->
+<section class="alt-bg" id="challenge">
+  <div class="wrap">
+    <div class="label">The Challenge</div>
+    <div class="heading">Find a way to tamper with the bundle that our verifier accepts as trusted</div>
+    <div class="desc">One target. One question. A credible, reproducible result is a real finding and will be acknowledged publicly.</div>
+
+    <div class="card" style="max-width: 780px;">
+      <h3>The actual ask</h3>
+      <p style="margin-top: 12px;">Modify any byte of the published bundle &mdash; <code>artifact.json</code>, <code>metadata.json</code>, <code>manifest.json</code>, <code>signature.json</code>, or any combination &mdash; in such a way that running <code>verify_bundle_dir</code> against the result reports <code>overall_trusted: true</code>, while the bundle is materially different from the one published here. Or find any other path through the BRY-NFET-SX bundle and storage layer that produces a falsely-trusted verdict on tampered content.</p>
+      <p style="margin-top: 12px;">This is the realistic attack surface for any solo-built signed-bundle system. It is where actual bugs live: in the parser, the canonicalization, the path resolution, the metadata-consistency rules, the trust-aggregation logic. The published source is part of the in-scope material. So is anything you discover by reading it.</p>
+    </div>
+
+    <div class="card" style="margin-top: 20px; max-width: 780px;">
+      <h3>What we are not asking for, and why</h3>
+      <p style="margin-top: 12px;">We are <strong>not</strong> offering this as a challenge to break ChaCha20-Poly1305, HMAC-SHA256, or SHA-256. Those are well-vetted public primitives. Asking the public to break them would be a category error: it conflates "we picked a strong primitive" with "our system is strong," and it would invite the wrong kind of attention from the wrong kind of reader. We use those primitives because they have been analyzed for years by people more qualified than us. We are not asking you to attack them. We are asking you to attack <em>our use of them</em>.</p>
+      <p style="margin-top: 12px;">If you do recover the plaintext through some path other than the published key release, that is interesting and we want to hear about it &mdash; but the framing of this page is bundle-level workflow attacks, not cryptanalysis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RULES OF ENGAGEMENT -->
+<section>
+  <div class="wrap">
+    <div class="label">Rules of Engagement</div>
+    <div class="heading">Scope and expectations</div>
+    <div class="desc">The challenge scope is the bundle. The website, live demo, and server are explicitly out of scope.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>In scope</h3>
+        <ul>
+          <li>The four bundle files downloaded from this page</li>
+          <li>The challenge metadata file</li>
+          <li>The BRY-NFET-SX source code in the public review packet</li>
+          <li>Any analysis you perform locally on your own machine</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Out of scope</h3>
+        <ul>
+          <li>Attacks against secure.imagineqira.com or its infrastructure</li>
+          <li>Attacks against the live demo application</li>
+          <li>Denial of service, brute force against the server, or scraping</li>
+          <li>Social engineering or attempts to obtain the key out of band</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 24px; max-width: 780px;">
+      <h3>How to submit</h3>
+      <p style="margin-top: 10px;">Email <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Challenge%20Submission">bryanleonard@imagineqira.com</a> with the subject line "Challenge Submission" and include:</p>
+      <ul style="margin-top: 12px;">
+        <li>A reproducible description of the tampering or workflow path</li>
+        <li>The modified bundle files, or the steps to produce them</li>
+        <li>The exact verifier output (<code>verify_bundle_dir</code>) showing <code>overall_trusted: true</code> on the tampered content</li>
+      </ul>
+      <p style="margin-top: 16px;">Credible findings will be acknowledged publicly on this page and in the security posture document, with attribution you approve.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HONEST CAVEATS -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Honest Caveats</div>
+    <div class="heading">What this challenge does and does not prove</div>
+    <div class="desc">Every security challenge needs an honest framing. Here is the one for this one.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>What this does prove (if uncracked)</h3>
+        <ul>
+          <li>The BRY-NFET-SX bundle format is real, reproducible, and externally hashable</li>
+          <li>The workflow produces signed artifacts with verifiable trust semantics</li>
+          <li>The publisher is willing to put a real artifact and the source code in front of the public</li>
+          <li>The commit-reveal scheme prevents post-hoc plaintext substitution</li>
+          <li>No reviewer found a workflow flaw that fooled the verifier within the challenge window</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What this does not prove</h3>
+        <ul>
+          <li>Anything about the strength of ChaCha20-Poly1305, HMAC-SHA256, or SHA-256 &mdash; those are public primitives, not this product, and we are not asking you to attack them</li>
+          <li>That the overall system is audited by a third party &mdash; it is not</li>
+          <li>That the bundle format is the only possible trust envelope &mdash; it is one design</li>
+          <li>That the product is production-ready for hostile multi-tenant use &mdash; it is not</li>
+          <li>That a longer or better-funded review would not find something &mdash; it might</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Every file is public. Every hash is verifiable. Every byte is fair game.</h2>
+    <p>The bundle is posted. The source is linked. The verifier is the target. See you in seven days.</p>
+    <div class="cta-actions">
+      <a href="#bundle" class="btn btn-primary">Download the Bundle</a>
+      <a href="/app/" class="btn btn-outline">Live Demo</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Challenge%20Submission" class="btn btn-outline">Submit an Attempt</a>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE LOG -->
+<section>
+  <div class="wrap">
+    <div class="card" style="max-width: 780px; margin: 0 auto; background: var(--surface);">
+      <div class="card-label">Page change log</div>
+      <h3 style="margin-top: 4px;">2026-04-15 &mdash; rewrote the challenge framing</h3>
+      <p style="margin-top: 10px;">An earlier version of this page enumerated three challenges: (1) recover the plaintext, (2) forge an HMAC-SHA256 signature, (3) find a workflow flaw. After feedback that (1) and (2) were category errors &mdash; asking the public to break ChaCha20-Poly1305 or HMAC-SHA256 is asking for academic-grade cryptanalytic results, not security findings about <em>this</em> system &mdash; we removed both and kept only the workflow attack as the actual challenge. Bundling them next to the workflow attack created a false equivalence and would have read as crypto theater to any qualified reader. The honest framing is the one above: we use well-vetted primitives we are not asking you to break, and we are asking you to break our use of them. We are leaving this note in place rather than silently rewriting history.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+<script>
+(function(){
+  function fmtUTC(iso){
+    try {
+      var d = new Date(iso);
+      return d.toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC');
+    } catch(e) { return iso; }
+  }
+  function fmtRemaining(ms){
+    if (ms <= 0) return 'reveal window open';
+    var s = Math.floor(ms/1000);
+    var d = Math.floor(s/86400); s -= d*86400;
+    var h = Math.floor(s/3600);  s -= h*3600;
+    var m = Math.floor(s/60);    s -= m*60;
+    return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  fetch('/challenge/challenge-meta.json')
+    .then(function(r){ return r.ok ? r.json() : Promise.reject('not found'); })
+    .then(function(meta){
+      var pubEl = document.getElementById('strip-published');
+      var revEl = document.getElementById('strip-reveal');
+      var ctdEl = document.getElementById('strip-countdown');
+      if (pubEl) pubEl.textContent = 'Published ' + fmtUTC(meta.published_at);
+      if (revEl) revEl.textContent = 'Key reveal ' + fmtUTC(meta.reveal_at);
+      function tick(){
+        var ms = new Date(meta.reveal_at).getTime() - Date.now();
+        if (ctdEl) ctdEl.textContent = 'Time remaining: ' + fmtRemaining(ms);
+      }
+      tick(); setInterval(tick, 1000);
+    })
+    .catch(function(){
+      var els = ['strip-published','strip-reveal','strip-countdown'];
+      els.forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.textContent = 'Challenge metadata loading...';
+      });
+    });
+})();
+</script>
+
+</body>
+</html>

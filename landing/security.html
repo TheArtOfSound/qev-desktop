@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security and Trust | BRY-NFET-SX</title>
+  <meta name="description" content="Security status, trust model, hardening history, and known limitations of the BRY-NFET-SX encrypted envelope workflow platform. Honest assessment of what is solid and what remains open.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/security">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/security">
+  <meta property="og:title" content="Security and Trust | BRY-NFET-SX">
+  <meta property="og:description" content="Security status, hardening history, trust model, and documented limitations for BRY-NFET-SX.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Security and Trust | BRY-NFET-SX">
+  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/review">Review</a>
+      <a href="/security">Security</a>
+      <a href="/verify">Integrity</a>
+      <a href="/challenge">Challenge</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/android">Android</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Security and Trust</div>
+    <h1>What is hardened, what is limited,<br>and why we document both</h1>
+    <p class="page-desc">BRY-NFET-SX is a controlled-use product preview. This page describes the current security posture, the hardening work completed, the trust model, and the limitations that remain open.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Cryptographic foundation</div>
+    <div class="desc">The system uses standard authenticated encryption. No custom primitives.</div>
+    <div class="g3">
+      <div class="card">
+        <h3>ChaCha20-Poly1305</h3>
+        <p>All packet encryption uses ChaCha20-Poly1305 AEAD provided by the Python cryptography library. Key derivation uses HMAC-SHA256. No novel cryptographic algorithms are introduced.</p>
+      </div>
+      <div class="card">
+        <h3>Standard library dependency</h3>
+        <p>Cryptographic operations are delegated to the pyca/cryptography library, which wraps OpenSSL and Rust-based implementations. BRY-NFET-SX does not implement its own cipher.</p>
+      </div>
+      <div class="card">
+        <h3>Packet integrity</h3>
+        <p>Packet headers are bound as additional authenticated data. Header tampering, ciphertext modification, and field injection all cause authentication failure and are rejected.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">Trust model</div>
+    <div class="desc">How integrity, authenticity, and trust compose in bundle verification.</div>
+    <div class="card" style="max-width: 720px;">
+      <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+            <th style="padding: 10px 8px; color: var(--text-dim); font-weight: 600;">Field</th>
+            <th style="padding: 10px 8px; color: var(--text-dim); font-weight: 600;">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border-subtle);">
+            <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">integrity_ok</td>
+            <td style="padding: 10px 8px; color: var(--text-secondary);">SHA-256 manifest hashes match the actual file contents</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-subtle);">
+            <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">signature_verified</td>
+            <td style="padding: 10px 8px; color: var(--text-secondary);">HMAC-SHA256 digest is cryptographically valid</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-subtle);">
+            <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">metadata_consistent</td>
+            <td style="padding: 10px 8px; color: var(--text-secondary);">Key fingerprint derived from actual key material matches between signer and verifier</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">overall_trusted</td>
+            <td style="padding: 10px 8px; color: var(--text-secondary);">True only when integrity, signature, and metadata consistency all pass</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <p style="margin-top: 16px; font-size: 0.84rem; color: var(--text-dim);">Unsigned bundles, unchecked signatures, and failed verifications are never reported as trusted. The verification output distinguishes every state explicitly.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Hardening completed</div>
+    <div class="desc">Three internal adversarial security reviews have been run against BRY-NFET-SX. Audit 1 produced 11 findings and was resolved in Phases 35A-35F. Audit 2 produced further findings and was resolved in Phases 38A-38E. Audit 3 produced residual-issue findings that were closed out in a cleanup pass. v0.28.1 added a dogfooding fix discovered during the public challenge work. 258 tests currently pass (220 product tests + 38 tests covering the local Python vault tool that opens V1/V2 browser-produced vaults).</div>
+    <div class="sec-grid">
+      <div class="sec-col">
+        <h3>Phase 35A: Provider lockdown</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>File key provider restricted to configurable root directory</li>
+          <li><span class="mark-done">Done</span>Environment variable provider restricted to explicit allowlist</li>
+          <li><span class="mark-done">Done</span>Bundle verification restricted to allowed directory paths</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 35B: Nonce safety</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Nonce registry read-check-write protected by exclusive file lock</li>
+          <li><span class="mark-done">Done</span>Concurrent strict-mode duplicate nonce attempts correctly serialize</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 35C: Trust semantics</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Unambiguous top-level trust fields in verification output</li>
+          <li><span class="mark-done">Done</span>overall_trusted requires integrity, signature, and metadata consistency</li>
+        </ul>
+      </div>
+      <div class="sec-col">
+        <h3>Phase 35D: Storage integrity</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Artifacts SHA-256 hashed at save time</li>
+          <li><span class="mark-done">Done</span>Load verifies hash against index, rejects tampered files</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 35E: Provenance honesty</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Key fingerprint derived from actual key material at resolution time</li>
+          <li><span class="mark-done">Done</span>Fingerprint carried through signature records and checked at verification</li>
+          <li><span class="mark-done">Done</span>key_version label mismatches exposed without conflating with crypto validity</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 35F: Operator trust display</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Explicit trust verdict banners for all verification states</li>
+          <li><span class="mark-done">Done</span>Unsigned exports display warnings, not success messages</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-grid" style="margin-top: 48px;">
+      <div class="sec-col">
+        <h3>Phase 38A: Downgrade resistance</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Signed records missing key_fingerprint are rejected as metadata-inconsistent</li>
+          <li><span class="mark-done">Done</span>Legacy fallback restricted to genuinely unsigned records only</li>
+          <li><span class="mark-done">Done</span>Closes the re-sign-and-strip-fingerprint attack path</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 38B: Provenance separation</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Encryption and signer provenance reported as separate objects</li>
+          <li><span class="mark-done">Done</span>Verification output no longer conflates key custody between the two</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 38C: Index row binding</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Index rows HMAC-bound to an auto-generated local secret</li>
+          <li><span class="mark-done">Done</span>Secret stored at 0o600 outside the data directory</li>
+          <li><span class="mark-done">Done</span>Forged index rows cannot be introduced without reading the secret store</li>
+        </ul>
+      </div>
+      <div class="sec-col">
+        <h3>Phase 38D: Bundle root lockdown</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Bundle directory resolution rejected under world-writable temp roots</li>
+          <li><span class="mark-done">Done</span>Verification refuses paths outside the allowed bundle root</li>
+        </ul>
+        <h3 style="margin-top: 28px;">Phase 38E: Artifact envelope limits</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Envelope message count limit enforced (default 100, configurable)</li>
+          <li><span class="mark-done">Done</span>Non-numeric configuration values fall back to default instead of crashing</li>
+        </ul>
+        <h3 style="margin-top: 28px;">v0.28.1: Bundle write canonicalization</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Bundle files written in the same canonical form the manifest hashes</li>
+          <li><span class="mark-done">Done</span>External verification with standard tools (shasum, sha256sum) now matches the manifest directly</li>
+          <li><span class="mark-done">Done</span>Discovered while dogfooding the public decryption challenge</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">Current limitations</div>
+    <div class="desc">These are the known boundaries of the current system. They are documented, not hidden.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>Local trust model</h3>
+        <p>The system assumes a trusted local execution environment. It is not hardened for hostile multi-tenant deployment or untrusted API exposure.</p>
+      </div>
+      <div class="card">
+        <h3>No KMS or HSM integration</h3>
+        <p>Key material is managed locally via inline, environment variable, or file providers. There is no integration with managed key management services or hardware security modules.</p>
+      </div>
+      <div class="card">
+        <h3>No key lifecycle management</h3>
+        <p>There is no key rotation or revocation mechanism. Key versioning is supported as metadata but lifecycle operations are not automated.</p>
+      </div>
+      <div class="card">
+        <h3>POSIX-only nonce locking</h3>
+        <p>The nonce registry uses fcntl file locking. This is not portable to Windows and is not suitable for network filesystems such as NFS.</p>
+      </div>
+      <div class="card">
+        <h3>Index rows HMAC-bound, file not independently signed</h3>
+        <p>Index rows are HMAC-bound to an auto-generated local secret (Phase 38C), so rows cannot be forged without reading the secret store. The index file as a whole is not independently signed, and an attacker who can read both the data directory and the secret store could still introduce forged entries.</p>
+      </div>
+      <div class="card">
+        <h3>No formal external audit</h3>
+        <p>The internal adversarial review identified and resolved critical issues. A formal third-party security audit has not been conducted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="heading">Assumed environment</div>
+    <div class="desc">The trust boundary assumptions under which the system operates.</div>
+    <div class="card" style="max-width: 680px;">
+      <ul>
+        <li>Trusted local execution environment</li>
+        <li>Operator controls master keys and signer secrets</li>
+        <li>Artifacts are generated and verified within a controlled service boundary</li>
+        <li>Standard Python process and OS-level security assumptions apply</li>
+        <li>The code being executed is the intended, unmodified code</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Security questions</h2>
+    <p>For security-specific inquiries, include "Security Review" in the subject line.</p>
+    <div class="cta-actions">
+      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Security%20Review" class="btn btn-primary">Contact for Security Review</a>
+      <a href="/review" class="btn btn-outline">Reviewer Resources</a>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="card" style="max-width: 780px; margin: 0 auto; background: var(--surface);">
+      <div class="card-label">Research (not in the product)</div>
+      <h3 style="margin-top: 4px;">NFET-SC-512 candidate primitive</h3>
+      <p style="margin-top: 10px;">Qira LLC is separately developing a candidate cryptographic primitive called NFET-SC-512 and an AEAD construction called BRY-NFET-AEAD-512. <strong>It is a research artifact, not part of this product.</strong> It has not been reviewed by any credentialed cryptographer and is not integrated into BRY-NFET-SX. The product above continues to use ChaCha20-Poly1305 exclusively for secrecy.</p>
+      <p style="margin-top: 10px;">The spec, reference implementation, 18 pinned test vectors, and a first-pass self-attack report are published for external evaluation at <a href="https://github.com/TheArtOfSound/nfet-primitive">github.com/TheArtOfSound/nfet-primitive</a>. If you are a cryptographer willing to review or attack it, please do &mdash; credible findings will be acknowledged publicly.</p>
+      <div style="margin-top: 14px;">
+        <a href="https://github.com/TheArtOfSound/nfet-primitive" class="btn btn-sm btn-outline" target="_blank" rel="noopener">Research repository (GitHub)</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    This security page last updated: 2026-04-15.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>

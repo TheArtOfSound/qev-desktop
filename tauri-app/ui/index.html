@@ -694,6 +694,23 @@
       background: rgba(214, 138, 0, 0.12);
       border: 1px solid rgba(214, 138, 0, 0.3);
     }
+    .pair-send-seal-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 0.82rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .pair-send-seal-label input[type="checkbox"] {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+    .pair-send-seal-hint {
+      color: var(--text-dim);
+      font-size: 0.74rem;
+    }
     .pair-send-actions {
       display: flex;
       justify-content: flex-end;
@@ -1011,6 +1028,14 @@
           <div id="vault-send-peer-list" class="pair-send-list">
             <!-- Populated at open time -->
           </div>
+          <label class="pair-send-seal-label">
+            <input type="checkbox" id="pair-send-seal-check">
+            <span>Add extra seal phrase</span>
+            <span class="pair-send-seal-hint">
+              — recipient needs BOTH this phrase and the vault phrase.
+              Use for high-sensitivity messages only.
+            </span>
+          </label>
           <div class="pair-send-actions">
             <button type="button" id="vault-send-peer-cancel" class="app-btn-small">Cancel</button>
           </div>

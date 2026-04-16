@@ -1,0 +1,46 @@
+{
+  "schema": "BRY-NFET-SX-SITE-INTEGRITY-V2",
+  "site": "secure.imagineqira.com",
+  "signed_at": "2026-04-16T02:06:52.202202+00:00",
+  "file_count": 25,
+  "files": {
+    "index.html": "112b3fd9d50420633a05994d9ad400f23e9af7bd8ff99575e8f17987321529c8",
+    "review.html": "1f9543a2c81ff330cd82fcd0d26c60a6e508ca68f2be3b7cb73a2538e1b68707",
+    "security.html": "23c8346545a66604b3de0a008a0d8ab907ad2ccd8d57300e03f2fc3c2ff91e83",
+    "contact.html": "0a3acd9922a303d30f6a4c352f180d6775eeac9feec32a955f3234a7f87267d2",
+    "verify.html": "4f0059e2e432c8967db17f7befe4bda2baa19a62d8037ecf51e0ef7de965769d",
+    "challenge.html": "99be635c475ef6c8c9e5296a7d4fa99f1ed35278bd05a3484a06669ffacf00e3",
+    "downloads.html": "f824aa9f2c88192abb68d2046166060d20948b13f004bff40ac2aa8831eccfa7",
+    "vault/index.html": "cd7b1627798818e940c686086c3bb1f02cd12df84f4c44a98fc7480e81296a8c",
+    "vault/gate.js": "59dd335a4407a2275c1e3a1bb41a9bdfe084be21615a32fcecafd88c41755d54",
+    "vault/chat.js": "7e7fcaa41379a34778429a4211245c3e29dfc2981b1ef875493274489e9e4860",
+    "vault/sodium.js": "b13df42138a77880bd8e18ab184ca74fac59c31471cf82f8ded677cc46b5087f",
+    "vault/SODIUM-VERSION.txt": "b273c527bdd08abe17f2e4262612ada4a17b9b3147cdceb2d1459de585adfa41",
+    "vault/LICENSE-libsodium.txt": "f553d26033111e076272eef847dfd292a4672c33054b1adaa8c4da8d424fa36b",
+    "styles.css": "7fb9f30c8ad1a7fe59f95cbd9a64f68506459cb5198463426c6005b0c3743547",
+    "robots.txt": "8aeda31517272b3e3726bcbc0b9f5fe0b2c4f3853c9b6f1ac50837e30be4dc18",
+    "sitemap.xml": "c74eb9c4b0045921278f9e6a55bfba63a77566d6a6188320e23b585c7387ed65",
+    "challenge/challenge-meta.json": "c53694e1a080a3dfb5c970ec7336f62b0a0ced6560248a4c5add6af37bab8216",
+    "challenge/bry-nfet-sx-challenge-bundle.zip": "b83823f686983d65cc9dd9db519d4e323bcd73c0bf96388aaf411781f3b4bcae",
+    "challenge/bundle/artifact.json": "c010abc757b758ff7cb62273720d8f01bda45e46ed90e05b85dcf54ad271e2d5",
+    "challenge/bundle/manifest.json": "985688c2a9d228f2c254ad31b9faf296b4a2e0cbed2e7837de9633997cebe95d",
+    "challenge/bundle/metadata.json": "ccc1ff8dbf12719c03313af4d15b9caf3d4a0154b2fa43cc117da938deca0327",
+    "challenge/bundle/signature.json": "9e06618bc8abb8bf5e1f47c78d04c7832c74a441cace854e146d8d875ba89d67",
+    "android/index.html": "c51dc594e3f5f978489b712775a287319edc2bdda46d80fc55d39ba12ca26533",
+    "android/gate.js": "a4bef24c46b4b6e5c78623eb9cb92404697016f061288fb585abbeea2fc825cd",
+    "site-signer.ed25519.pub": "dbb282b70657334bbf1cdf6f2fa6d758b5a81556aaf0c16b5602167d08879c18"
+  },
+  "signer": {
+    "scheme": "ed25519",
+    "public_key_hex": "881de4e7616992f92013b84ba1bbd08280a007b491bde28a46d8a15612d1d326",
+    "public_key_url": "https://secure.imagineqira.com/site-signer.ed25519.pub",
+    "domain": "BRY-NFET-SX|SITE-INTEGRITY|V2"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "domain": "BRY-NFET-SX|SITE-INTEGRITY|V2",
+    "public_key_hex": "881de4e7616992f92013b84ba1bbd08280a007b491bde28a46d8a15612d1d326",
+    "signature_hex": "c94e97cf7ffd9b6398297156731998ffce4ca6a2aca931d04513ff498acb5ac558fe319dbfe2afb2ab3821e024ac49399be80247d520e3eaba347f341cf7690d",
+    "canonical_json_note": "The signed bytes are: BRY-NFET-SX|SITE-INTEGRITY|V2 || json.dumps(manifest_without_signature, indent=2, sort_keys=True).encode('utf-8'). The 'manifest_without_signature' object is this record with the 'signature' field removed."
+  }
+}

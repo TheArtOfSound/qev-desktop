@@ -361,36 +361,73 @@
 
   async function sendToPeer(peer) {
     // Pull the just-locked vault bytes from the result JSON box.
-    // chat.js renders the vault as pretty-printed JSON there; we
-    // re-serialize it for the send.
     const resultJson = document.getElementById("vault-encrypt-result-json");
     if (!resultJson || !resultJson.textContent.trim()) {
       alert("No locked vault found. Lock a message first.");
       return;
     }
-    let vaultObj;
+    let vaultJson;
     try {
-      vaultObj = JSON.parse(resultJson.textContent);
+      vaultJson = resultJson.textContent.trim();
+      JSON.parse(vaultJson); // validate
     } catch (e) {
       alert("Could not parse locked vault JSON: " + e);
       return;
     }
-    const vaultBytes = new TextEncoder().encode(JSON.stringify(vaultObj));
+
+    // Check if user wants to add an extra seal phrase.
+    const sealCheckbox = document.getElementById("pair-send-seal-check");
+    let finalPayload = vaultJson;
+
+    if (sealCheckbox && sealCheckbox.checked) {
+      const sealPhrase = prompt(
+        "Enter a seal phrase for extra protection.\n\n" +
+        "The recipient will need BOTH this seal phrase AND the " +
+        "original vault phrase to read the message.\n\n" +
+        "Use a different phrase from the vault phrase."
+      );
+      if (!sealPhrase) {
+        alert("Seal cancelled — message not sent.");
+        return;
+      }
+      try {
+        finalPayload = await invoke("seal_vault_cmd", {
+          innerVaultJson: vaultJson,
+          sealPhrase,
+        });
+      } catch (err) {
+        alert("Seal failed: " + err);
+        return;
+      }
+    }
+
+    const vaultBytes = new TextEncoder().encode(finalPayload);
     const filename = `vault-${new Date().toISOString().slice(0, 10)}.vault.json`;
 
     if (sendModal) sendModal.classList.add("app-hidden");
     try {
-      // Tauri's invoke automatically coerces Uint8Array -> Vec<u8>
-      // for the Rust side via serde_bytes.
       await invoke("pairing_send_vault", {
         peerId: peer.id,
         vaultBytes: Array.from(vaultBytes),
         filename,
         note: null,
       });
-      alert(`Sent to ${peer.peer_name}.`);
+      alert(`Sent to ${peer.peer_name}${sealCheckbox?.checked ? " (sealed)" : ""}.`);
     } catch (err) {
-      alert("Send failed: " + err);
+      // If direct P2P fails, offer relay fallback.
+      if (confirm(`Direct send failed: ${err}\n\nTry sending via relay instead?`)) {
+        try {
+          await invoke("relay_send_to_peer", {
+            peerId: peer.id,
+            vaultBytes: Array.from(vaultBytes),
+            filename,
+            note: null,
+          });
+          alert(`Sent via relay to ${peer.peer_name}${sealCheckbox?.checked ? " (sealed)" : ""}.`);
+        } catch (relayErr) {
+          alert("Relay send also failed: " + relayErr);
+        }
+      }
     }
   }
 
@@ -426,18 +463,47 @@
       inboxList.innerHTML = '<div class="pair-hint">No pending envelopes.</div>';
       return;
     }
-    inboxList.innerHTML = envelopes.map((env) => `
-      <div class="pair-inbox-row">
+    inboxList.innerHTML = "";
+    envelopes.forEach((env, i) => {
+      const row = document.createElement("div");
+      row.className = "pair-inbox-row";
+      row.innerHTML = `
         <div class="pair-inbox-from">From: <code>${escapeHtml(env.from_hex.slice(0, 16))}...</code></div>
         <div class="pair-inbox-time">${new Date(env.created_at).toLocaleString()}</div>
-        <button class="app-btn-small" onclick="document.getElementById('vault-decrypt-input').value = atob('${btoa(env.payload)}'); document.querySelector('[data-app-tab=\\'open\\']').click();">
-          Open in Decrypt tab
-        </button>
-      </div>
-    `).join("");
-    // Auto-ack the fetched envelopes (mark them as delivered
-    // so the relay can delete). This is best-effort; a failure
-    // just means the relay holds them until the next fetch.
+        <button class="app-btn-small" data-env-idx="${i}">Open</button>
+      `;
+      row.querySelector("button").addEventListener("click", async () => {
+        let payload = env.payload;
+        // Check if this is a sealed vault — if so, prompt for
+        // the seal phrase first to unwrap the outer layer.
+        try {
+          const sealed = await invoke("is_sealed_cmd", { jsonStr: payload });
+          if (sealed) {
+            const sealPhrase = prompt(
+              "This message has an extra seal.\n\n" +
+              "Enter the seal phrase the sender shared with you " +
+              "(this is separate from the vault phrase):"
+            );
+            if (!sealPhrase) return;
+            payload = await invoke("unseal_vault_cmd", {
+              sealedJson: payload,
+              sealPhrase,
+            });
+          }
+        } catch (err) {
+          alert("Unseal failed: " + err);
+          return;
+        }
+        // Put the (possibly-unsealed) vault JSON into the
+        // decrypt tab's textarea and switch to that tab.
+        const ta = document.getElementById("vault-decrypt-input");
+        if (ta) ta.value = payload;
+        const openTab = document.querySelector('[data-app-tab="open"]');
+        if (openTab) openTab.click();
+      });
+      inboxList.appendChild(row);
+    });
+    // Auto-ack.
     const ackIds = envelopes.map((e) => e.id);
     invoke("relay_ack_envelopes", { idsHex: ackIds }).catch(() => {});
   }

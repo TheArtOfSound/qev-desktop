@@ -1,0 +1,26 @@
+{
+  "schema": "BRY-NFET-SX-CHALLENGE-V1",
+  "site": "secure.imagineqira.com",
+  "published_at": "2026-04-14T22:57:45.281114+00:00",
+  "reveal_at": "2026-04-21T22:57:45.281114+00:00",
+  "window_days": 7,
+  "envelope_id": "7a2860e23b7fb9e551ca694c43f7402794eaa063bda67aa834fc2b7dfa0a3e71",
+  "message_count": 3,
+  "signer_key_version": "challenge-v1",
+  "signer_key_fingerprint": "c20f7f7949578025",
+  "master_key_fingerprint": "c8ac9026fac25f60",
+  "context": "challenge-public-v1",
+  "reveal_commitment": {
+    "algorithm": "SHA-256",
+    "value": "270339e348befe4720104c4e032e379d01a322d54f59b25fb6aeeb6c0f5c3663",
+    "note": "SHA-256 of a random reveal_token embedded in the encrypted plaintext. After the key is published, anyone can decrypt, extract the reveal_token, recompute this hash, and confirm the revealed plaintext is genuine. This prevents a post-hoc plaintext swap."
+  },
+  "bundle_files": [
+    "artifact.json",
+    "metadata.json",
+    "manifest.json",
+    "signature.json"
+  ],
+  "verification_note": "The master key and signer secret for this bundle are held offline and not present on any server. Verification of the signature and manifest integrity is possible today without secrets. Decryption requires the master key, which will be published at reveal_at.",
+  "reveal_status": "pending"
+}

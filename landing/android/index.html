@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV for Android | Qira Encryption Vault</title>
+  <meta name="description" content="QEV — Qira Encryption Vault for Android. Offline encrypted envelopes on your phone. Free, open-source, sideload the APK. Same vault format as Mac, Windows, and the web.">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .android-hero {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+      text-align: center;
+    }
+    .android-hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+    .android-hero .tagline {
+      font-size: 1rem;
+      color: var(--text-dim);
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+    .android-download-btn {
+      display: inline-block;
+      padding: 18px 40px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: opacity 0.12s;
+    }
+    .android-download-btn:hover { opacity: 0.9; }
+    .android-meta {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .android-steps {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+    .android-steps h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 16px;
+    }
+    .android-steps ol {
+      padding-left: 20px;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .android-steps ol li { margin-bottom: 8px; }
+    .android-steps .note {
+      margin-top: 20px;
+      padding: 14px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .android-compat {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+    .android-compat h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+    .android-compat ul {
+      padding-left: 20px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<nav>
+  <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
+    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
+    <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
+      <a href="/downloads">Download</a>
+      <a href="/vault">Vault</a>
+      <a href="/android" style="font-weight:700;color:var(--accent);">Android</a>
+      <a href="/contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<div class="android-hero">
+  <h1>QEV for Android</h1>
+  <p class="tagline">
+    The same offline encryption vault that runs on Mac and Windows,
+    now on your phone. Same vault format. Same crypto. Same
+    phrase-based security. No accounts, no servers, no Play Store.
+    Free and open.
+  </p>
+  <a href="/assets/QEV_0.28.1_android.apk" class="android-download-btn" download>
+    Download QEV_0.28.1_android.apk
+  </a>
+  <div class="android-meta">
+    ARM64 &middot; ~11 MB &middot; Android 7.0+ &middot; Free &middot; Open source
+  </div>
+</div>
+
+<!-- ===================== INSTALL ===================== -->
+<div class="android-steps">
+  <h2>Install</h2>
+  <ol>
+    <li>Tap the download button above. Your browser will download
+        <code>QEV_0.28.1_android.apk</code>.</li>
+    <li>Open your phone's <strong>Downloads</strong> folder (or tap
+        the notification when the download finishes).</li>
+    <li>Tap the APK file. Android will ask you to allow installing
+        from this source — tap <strong>Settings</strong>, enable
+        "Install unknown apps" for your browser, then come back
+        and tap <strong>Install</strong>.</li>
+    <li>Open QEV from your app drawer. The first launch runs a
+        crypto self-test (takes ~1 second). When the status reads
+        <strong>Ready</strong>, the app is working.</li>
+    <li>Encrypt a message, or open a <code>.vault.json</code> file
+        someone sent you. The vault format is the same across Mac,
+        Windows, Android, the web, and the CLI — a file encrypted
+        on any platform decrypts on any other.</li>
+  </ol>
+  <div class="note">
+    <strong>Sideload note:</strong> because the APK is not distributed
+    through the Play Store, Android shows a sideload warning the
+    first time. This is normal for any directly downloaded APK.
+    The permission is per-browser — once granted, future updates
+    install without the prompt.
+  </div>
+</div>
+
+<!-- ===================== WHAT'S INCLUDED ===================== -->
+<div class="android-compat">
+  <h2>What's included</h2>
+  <ul>
+    <li>XChaCha20-Poly1305 + Argon2id — same primitives as the desktop app</li>
+    <li>Crypto self-test on every launch (known-answer vector)</li>
+    <li>Mobile-optimised UI with 48px tap targets and safe-area insets</li>
+    <li>File-import intent filter — tap a <code>.vault.json</code>
+        in your file manager or email and QEV offers to open it</li>
+    <li>Network security config blocking all cleartext traffic</li>
+    <li>Cloud backup and device-transfer explicitly disabled</li>
+    <li>QR pairing + direct P2P vault transfer (same LAN)</li>
+    <li>Relay-based offline delivery via secure.imagineqira.com</li>
+    <li>Same vault format (BRY-NFET-SX-VAULT-V2) as every other QEV platform</li>
+  </ul>
+</div>
+
+<!-- ===================== OTHER PLATFORMS ===================== -->
+<div class="android-compat">
+  <h2>Other platforms</h2>
+  <ul>
+    <li><a href="/downloads" style="color:var(--accent);">Mac + Windows desktop app</a> — native installers</li>
+    <li><a href="/vault" style="color:var(--accent);">Web vault</a> — browser-based, same crypto</li>
+    <li><strong>Linux / CLI</strong> — <code>npm i -g @imagineqira/qev-cli</code></li>
+  </ul>
+</div>
+
+<footer style="text-align:center;padding:32px 24px;font-size:0.76rem;color:var(--text-dim);border-top:1px solid var(--border);">
+  QEV v0.28.1 &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC
+  <br>
+  <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">Source on GitHub</a>
+  &middot;
+  <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">bryanleonard@imagineqira.com</a>
+</footer>
+
+</body>
+</html>
