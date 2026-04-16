@@ -21,6 +21,12 @@ snow = { version = "0.9", default-features = false, features = ["default-resolve
 # same content. No streaming needed — everything fits in one buffer.
 ciborium = "0.2"
 
+# JSON for the peer_store on-disk format. QR content uses CBOR
+# for size; the local persistent store uses JSON because it's
+# human-inspectable for debugging ("what peers does my device
+# remember?") and the size doesn't matter once it's local.
+serde_json = "1"
+
 # QR code generator. ~10 KB pure Rust, no deps, produces ASCII or SVG.
 qrcodegen = "1.8"
 

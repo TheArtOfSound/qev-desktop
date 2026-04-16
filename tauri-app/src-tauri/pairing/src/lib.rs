@@ -103,6 +103,7 @@ pub mod error;
 pub mod handshake;
 pub mod identity;
 pub mod invite;
+pub mod peer_store;
 pub mod safety;
 pub mod transport;
 
@@ -110,5 +111,6 @@ pub use crate::error::{Error, Result};
 pub use crate::handshake::{Channel, Initiator, Responder};
 pub use crate::identity::StaticKeypair;
 pub use crate::invite::PairingInvite;
+pub use crate::peer_store::{pk_to_hex, store_path, OwnIdentity, PeerStore, StoredPeer, TrustLevel};
 pub use crate::safety::safety_number;
 pub use crate::transport::{ChannelExt, QevMessage};

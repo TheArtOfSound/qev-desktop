@@ -275,6 +275,125 @@
     `;
   }
 
+  // --- SEND TO PEER (from Lock tab) ----------------------------
+  //
+  // After a vault is locked, the user can click 'Send to paired
+  // peer...' on the result card. We open a modal with the list
+  // of peers returned by pairing_peers_list(), the user picks
+  // one, and we call pairing_send_vault() with the just-locked
+  // vault bytes + filename.
+  //
+  // The button is hidden by default; we un-hide it at init time
+  // iff we're running in Tauri AND pairing_peers_list returns
+  // at least one peer. That way the button doesn't appear in
+  // the browser-only build or on a brand-new install with no
+  // paired peers.
+
+  const sendBtn = $("vault-send-peer-btn");
+  const sendModal = $("vault-send-peer-modal");
+  const sendList = $("vault-send-peer-list");
+  const sendCancel = $("vault-send-peer-cancel");
+
+  async function refreshSendButtonVisibility() {
+    if (!sendBtn) return;
+    try {
+      const peers = await invoke("pairing_peers_list");
+      if (Array.isArray(peers) && peers.length > 0) {
+        sendBtn.classList.remove("app-hidden");
+      } else {
+        sendBtn.classList.add("app-hidden");
+      }
+    } catch (_e) {
+      sendBtn.classList.add("app-hidden");
+    }
+  }
+
+  // Watch the vault-encrypt-result visibility. When it appears
+  // (user just locked a vault), refresh the send button.
+  const encryptResult = document.getElementById("vault-encrypt-result");
+  if (encryptResult) {
+    const obs = new MutationObserver(() => {
+      if (!encryptResult.classList.contains("vault-hidden")) {
+        refreshSendButtonVisibility();
+      }
+    });
+    obs.observe(encryptResult, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", async () => {
+      try {
+        const peers = await invoke("pairing_peers_list");
+        openSendModal(peers || []);
+      } catch (err) {
+        alert("Could not load peers: " + err);
+      }
+    });
+  }
+  if (sendCancel) {
+    sendCancel.addEventListener("click", () => {
+      if (sendModal) sendModal.classList.add("app-hidden");
+    });
+  }
+
+  function openSendModal(peers) {
+    if (!sendList || !sendModal) return;
+    sendList.innerHTML = "";
+    peers.forEach((peer) => {
+      const row = document.createElement("div");
+      row.className = "pair-send-peer-row";
+      const trustClass =
+        peer.trust === "verified"
+          ? "pair-send-peer-trust-verified"
+          : "pair-send-peer-trust-unverified";
+      row.innerHTML = `
+        <div class="pair-send-peer-info">
+          <div class="name">${escapeHtml(peer.peer_name)}</div>
+          <div class="device">${escapeHtml(peer.peer_device)}</div>
+        </div>
+        <span class="pair-send-peer-trust ${trustClass}">${escapeHtml(peer.trust)}</span>
+      `;
+      row.addEventListener("click", () => sendToPeer(peer));
+      sendList.appendChild(row);
+    });
+    sendModal.classList.remove("app-hidden");
+  }
+
+  async function sendToPeer(peer) {
+    // Pull the just-locked vault bytes from the result JSON box.
+    // chat.js renders the vault as pretty-printed JSON there; we
+    // re-serialize it for the send.
+    const resultJson = document.getElementById("vault-encrypt-result-json");
+    if (!resultJson || !resultJson.textContent.trim()) {
+      alert("No locked vault found. Lock a message first.");
+      return;
+    }
+    let vaultObj;
+    try {
+      vaultObj = JSON.parse(resultJson.textContent);
+    } catch (e) {
+      alert("Could not parse locked vault JSON: " + e);
+      return;
+    }
+    const vaultBytes = new TextEncoder().encode(JSON.stringify(vaultObj));
+    const filename = `vault-${new Date().toISOString().slice(0, 10)}.vault.json`;
+
+    if (sendModal) sendModal.classList.add("app-hidden");
+    try {
+      // Tauri's invoke automatically coerces Uint8Array -> Vec<u8>
+      // for the Rust side via serde_bytes.
+      await invoke("pairing_send_vault", {
+        peerId: peer.id,
+        vaultBytes: Array.from(vaultBytes),
+        filename,
+        note: null,
+      });
+      alert(`Sent to ${peer.peer_name}.`);
+    } catch (err) {
+      alert("Send failed: " + err);
+    }
+  }
+
   // --- utils --------------------------------------------------
 
   function setStatus(el, text, kind) {

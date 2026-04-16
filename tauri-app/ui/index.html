@@ -594,6 +594,112 @@
       margin: 0;
     }
 
+    /* ───── Send-to-peer button + modal ───── */
+    .pair-send-btn {
+      background: var(--accent-bg, rgba(120, 160, 255, 0.12));
+      border-color: var(--accent-border, rgba(120, 160, 255, 0.3));
+      color: var(--accent);
+    }
+    .pair-send-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .pair-send-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+    }
+    .pair-send-card h4 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    .pair-send-hint {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin: 0 0 16px;
+      line-height: 1.5;
+    }
+    .pair-send-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .pair-send-list:empty::after {
+      content: "No paired peers yet. Go to the Pair tab to add one.";
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    .pair-send-peer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .pair-send-peer-row:hover {
+      border-color: var(--accent-border, rgba(120, 160, 255, 0.5));
+    }
+    .pair-send-peer-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .pair-send-peer-info .name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .pair-send-peer-info .device {
+      color: var(--text-dim);
+      font-size: 0.74rem;
+    }
+    .pair-send-peer-trust {
+      font-size: 0.64rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+    .pair-send-peer-trust-verified {
+      color: #2da42d;
+      background: rgba(45, 164, 45, 0.12);
+      border: 1px solid rgba(45, 164, 45, 0.3);
+    }
+    .pair-send-peer-trust-unverified {
+      color: #d68a00;
+      background: rgba(214, 138, 0, 0.12);
+      border: 1px solid rgba(214, 138, 0, 0.3);
+    }
+    .pair-send-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
     /* ───────── Mobile layout (Android/iOS phones, <= 600 px wide) ─────────
 
        The desktop layout assumes ~900 px of width for the two-column form.
@@ -851,6 +957,30 @@
         <button type="button" id="vault-download-btn" class="app-btn-small">Save vault file</button>
         <button type="button" id="vault-recovery-btn" class="app-btn-small">Save recovery sheet</button>
         <button type="button" id="vault-copy-btn" class="app-btn-small">Copy as text</button>
+        <button type="button" id="vault-send-peer-btn" class="app-btn-small pair-send-btn app-hidden">Send to paired peer...</button>
+      </div>
+
+      <!-- Peer picker modal — shown when Send to paired peer is clicked.
+           Populated from pairing_peers_list() at open time. Scoped to
+           Tauri builds only; pairing.js will un-hide the button at
+           init time if window.__TAURI__ is present AND there's at
+           least one paired peer. -->
+      <div id="vault-send-peer-modal" class="pair-send-modal app-hidden">
+        <div class="pair-send-card">
+          <h4>Send to paired peer</h4>
+          <p class="pair-send-hint">
+            Pick a peer you've already paired with. QEV will open a
+            direct encrypted channel and deliver the vault bytes.
+            The recipient still needs the phrase to open it — you
+            should share the phrase through a separate channel.
+          </p>
+          <div id="vault-send-peer-list" class="pair-send-list">
+            <!-- Populated at open time -->
+          </div>
+          <div class="pair-send-actions">
+            <button type="button" id="vault-send-peer-cancel" class="app-btn-small">Cancel</button>
+          </div>
+        </div>
       </div>
       <div class="app-result-envelope">
         <strong>Box name (envelope ID):</strong>

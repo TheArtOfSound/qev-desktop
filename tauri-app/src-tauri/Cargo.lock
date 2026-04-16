@@ -2854,6 +2854,7 @@ checksum = "b5a041e753da8b807c9255f28de81879c78c876392ff2469cde94799b2896b9d"
 name = "qev"
 version = "0.28.1"
 dependencies = [
+ "base64 0.22.1",
  "qev-pairing",
  "serde",
  "serde_json",
@@ -2861,6 +2862,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
+ "time",
  "tokio",
 ]
 
@@ -2876,6 +2878,7 @@ dependencies = [
  "rand_core 0.6.4",
  "serde",
  "serde_bytes",
+ "serde_json",
  "snow",
  "thiserror 1.0.69",
  "time",

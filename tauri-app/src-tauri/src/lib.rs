@@ -34,11 +34,71 @@ use tokio::sync::oneshot;
 // Tauri commands so the UI can drive the flow.
 use qev_pairing::{
     invite::PairingInvite,
+    peer_store::{store_path, PeerStore, StoredPeer, TrustLevel},
     safety_number,
     ChannelExt, Initiator, QevMessage, Responder, StaticKeypair,
 };
 use std::net::SocketAddr;
+use std::path::PathBuf as StdPathBuf;
+use std::sync::Mutex;
 use tokio::net::{TcpListener, TcpStream};
+
+// ------------ Phase 2: peer store state ------------
+//
+// The persistent peer store lives at
+// <app_data_dir>/peers.json. We keep it in Tauri's managed state
+// behind a Mutex so the four pairing commands can read + write
+// without stepping on each other. All writes flush to disk
+// immediately so the store survives a crash.
+
+struct PeerStoreState {
+    /// Absolute path to peers.json.
+    path: StdPathBuf,
+    /// In-memory copy of the store. Mutex-guarded.
+    store: Mutex<PeerStore>,
+}
+
+impl PeerStoreState {
+    fn new(path: StdPathBuf) -> Result<Self, String> {
+        let store = PeerStore::load_or_empty(&path).map_err(|e| e.to_string())?;
+        Ok(Self {
+            path,
+            store: Mutex::new(store),
+        })
+    }
+
+    /// Run a closure with a mutable reference to the store, then
+    /// persist to disk. Use this for any write.
+    fn with_write<F, T>(&self, f: F) -> Result<T, String>
+    where
+        F: FnOnce(&mut PeerStore) -> Result<T, String>,
+    {
+        let result = {
+            let mut guard = self
+                .store
+                .lock()
+                .map_err(|e| format!("peer store mutex poisoned: {e}"))?;
+            f(&mut guard)?
+        };
+        // Save with a fresh read of the store.
+        let guard = self
+            .store
+            .lock()
+            .map_err(|e| format!("peer store mutex poisoned: {e}"))?;
+        guard.save(&self.path).map_err(|e| e.to_string())?;
+        Ok(result)
+    }
+
+    /// Read-only snapshot of the store. Cheap because the store
+    /// is small (< 100 KB even with hundreds of peers).
+    fn snapshot(&self) -> Result<PeerStore, String> {
+        let guard = self
+            .store
+            .lock()
+            .map_err(|e| format!("peer store mutex poisoned: {e}"))?;
+        Ok(guard.clone())
+    }
+}
 
 // ------------ Command payloads ------------
 
@@ -254,25 +314,36 @@ pub struct InvitePreview {
 }
 
 /// Start a pairing session as the RESPONDER (the device that shows
-/// the QR code). Binds a random high port, generates a fresh static
-/// keypair, builds an invite, and waits for an initiator to connect.
+/// the QR code). Binds a random high port, loads-or-generates the
+/// device's persistent static keypair, builds an invite, and waits
+/// for an initiator to connect.
+///
+/// The responder's static key is PERSISTENT — once a device has
+/// generated one, the same key appears in every invite this device
+/// emits forever. That means a remote peer who has paired with us
+/// before can recognise us by the public key hex alone.
 ///
 /// Returns a [`PairingQrResult`] immediately (with the QR to display),
 /// then continues to listen in the background. The UI receives the
 /// completed pairing via a Tauri event `pairing://complete` when the
 /// handshake finishes.
-///
-/// For the first shipping version this is a ONE-SHOT operation: the
-/// listener handles exactly one inbound connection then exits. For
-/// multi-concurrent pairings we'd switch to an always-running daemon
-/// with a peer registry — that's phase 2.10.
 #[tauri::command]
 async fn pairing_show_qr(
     app: tauri::AppHandle,
+    state: tauri::State<'_, PeerStoreState>,
     name: String,
     device: String,
 ) -> Result<PairingQrResult, String> {
-    let keypair = StaticKeypair::generate().map_err(|e| e.to_string())?;
+    // Ensure the device has a persistent identity, loading it if
+    // present and generating one otherwise. The user-provided
+    // name/device are applied to the freshly-generated identity
+    // OR refreshed on the existing one (so renaming is allowed).
+    let keypair = state.with_write(|s| {
+        let kp = s.ensure_own_identity(&name, &device).map_err(|e| e.to_string())?;
+        s.set_own_name(name.clone());
+        s.set_own_device(device.clone());
+        Ok(kp)
+    })?;
     let own_pk_hex = keypair.public_hex();
 
     // Bind to :0 so the OS picks a free port.
@@ -297,16 +368,49 @@ async fn pairing_show_qr(
     let qr_text = invite.encode_qr().map_err(|e| e.to_string())?;
     let qr_svg = invite.render_qr_svg().map_err(|e| e.to_string())?;
 
-    // Spawn the handshake task. It runs in the background; when it
-    // completes it emits a Tauri event that the UI subscribes to.
+    // Spawn the handshake task. It runs in the background; when
+    // it completes it persists the new peer and emits a Tauri
+    // event that the UI subscribes to.
     let handshake_key = keypair.clone();
+    let app_for_task = app.clone();
     tokio::spawn(async move {
         let result = accept_one_pairing(listener, handshake_key).await;
         let event_payload = match result {
-            Ok(peer) => serde_json::json!({ "status": "ok", "peer": peer }),
+            Ok(peer) => {
+                // Persist the new peer (or update the existing
+                // record if we've seen this ID before).
+                // Best-effort: if the disk write fails, the UI
+                // still gets the success event via the
+                // PairedPeer payload and the session-scoped
+                // pairing is still usable.
+                if let Some(store_state) = app_for_task.try_state::<PeerStoreState>() {
+                    use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+                    use base64::Engine;
+                    // Convert the hex peer id back to bytes, then
+                    // re-encode as base64url for the on-disk
+                    // format (matches invite.static_pk encoding).
+                    if let Ok(pk_bytes) = hex_to_32(&peer.id) {
+                        let stored = StoredPeer {
+                            id: peer.id.clone(),
+                            name: peer.peer_name.clone(),
+                            device: peer.peer_device.clone(),
+                            static_pk: URL_SAFE_NO_PAD.encode(pk_bytes),
+                            paired_at: iso_now(),
+                            last_seen_at: iso_now(),
+                            trust: TrustLevel::Unverified,
+                            last_addrs: peer.peer_addrs.clone(),
+                        };
+                        let _ = store_state.with_write(|s| {
+                            s.upsert_peer(stored);
+                            Ok(())
+                        });
+                    }
+                }
+                serde_json::json!({ "status": "ok", "peer": peer })
+            }
             Err(e) => serde_json::json!({ "status": "error", "error": format!("{e}") }),
         };
-        let _ = app.emit("pairing://complete", event_payload);
+        let _ = app_for_task.emit("pairing://complete", event_payload);
     });
 
     Ok(PairingQrResult {
@@ -342,14 +446,21 @@ async fn pairing_preview_invite(qr_text: String) -> Result<InvitePreview, String
     })
 }
 
-/// Accept a scanned invite: generate our own static key, connect
-/// to the peer's listener, run the Noise XK handshake as initiator,
-/// and return the resulting [`PairedPeer`] with its safety number.
+/// Accept a scanned invite: use our persistent static key,
+/// connect to the peer's listener, run the Noise XK handshake as
+/// initiator, persist the peer, and return a [`PairedPeer`] with
+/// the safety number.
 ///
-/// The user is expected to compare the safety number out loud with
-/// the peer before saving the pairing anywhere.
+/// The user is expected to compare the safety number out loud
+/// with the peer and call [`pairing_verify_peer`] to upgrade the
+/// trust level to `verified`.
 #[tauri::command]
-async fn pairing_accept_invite(qr_text: String) -> Result<PairedPeer, String> {
+async fn pairing_accept_invite(
+    state: tauri::State<'_, PeerStoreState>,
+    qr_text: String,
+    own_name: String,
+    own_device: String,
+) -> Result<PairedPeer, String> {
     let invite = PairingInvite::decode_qr(&qr_text).map_err(|e| e.to_string())?;
     invite
         .check_expiry(std::time::SystemTime::now())
@@ -357,7 +468,13 @@ async fn pairing_accept_invite(qr_text: String) -> Result<PairedPeer, String> {
     let peer_pk = invite.static_pk_array().map_err(|e| e.to_string())?;
     let addrs = invite.addrs_parsed().map_err(|e| e.to_string())?;
 
-    let own = StaticKeypair::generate().map_err(|e| e.to_string())?;
+    // Load or generate OUR persistent identity. This is the
+    // same key we'll use when acting as responder too, so the
+    // peer recognises us across roles.
+    let own = state.with_write(|s| {
+        let kp = s.ensure_own_identity(&own_name, &own_device).map_err(|e| e.to_string())?;
+        Ok(kp)
+    })?;
 
     // Try each advertised address in order until one accepts.
     let mut last_err = None;
@@ -386,8 +503,30 @@ async fn pairing_accept_invite(qr_text: String) -> Result<PairedPeer, String> {
         s
     });
 
-    // We don't persist in v1, and we don't hold on to the channel
-    // after pairing — send_vault opens a fresh channel each time.
+    // Persist the new peer. upsert_peer preserves any
+    // previously-set trust level on re-pair.
+    let stored = StoredPeer {
+        id: id.clone(),
+        name: invite.name.clone(),
+        device: invite.device.clone(),
+        static_pk: {
+            use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+            use base64::Engine;
+            URL_SAFE_NO_PAD.encode(invite.static_pk.as_slice())
+        },
+        paired_at: iso_now(),
+        last_seen_at: iso_now(),
+        trust: TrustLevel::Unverified,
+        last_addrs: invite.addrs.clone(),
+    };
+    state.with_write(|s| {
+        s.upsert_peer(stored);
+        Ok(())
+    })?;
+
+    // Don't hold on to the channel — send_vault opens a fresh
+    // one each time it's called. This keeps the command layer
+    // stateless and avoids connection-lifetime issues.
     drop(channel);
 
     Ok(PairedPeer {
@@ -399,24 +538,122 @@ async fn pairing_accept_invite(qr_text: String) -> Result<PairedPeer, String> {
     })
 }
 
+/// List all persisted peers. Called by the UI to populate the
+/// "Send to paired peer" picker on the Lock tab.
+#[tauri::command]
+async fn pairing_peers_list(
+    state: tauri::State<'_, PeerStoreState>,
+) -> Result<Vec<PairedPeerBrief>, String> {
+    let snap = state.snapshot()?;
+    Ok(snap
+        .peers
+        .into_iter()
+        .map(|p| PairedPeerBrief {
+            id: p.id,
+            peer_name: p.name,
+            peer_device: p.device,
+            trust: match p.trust {
+                TrustLevel::Verified => "verified".into(),
+                TrustLevel::Unverified => "unverified".into(),
+            },
+            peer_addrs: p.last_addrs,
+            last_seen_at: p.last_seen_at,
+        })
+        .collect())
+}
+
+/// Mark a peer as trust=verified. Called after the user confirms
+/// the safety number in person.
+#[tauri::command]
+async fn pairing_verify_peer(
+    state: tauri::State<'_, PeerStoreState>,
+    peer_id: String,
+) -> Result<(), String> {
+    state.with_write(|s| {
+        if !s.set_trust(&peer_id, TrustLevel::Verified) {
+            return Err(format!("peer not found: {peer_id}"));
+        }
+        Ok(())
+    })
+}
+
+/// Remove a peer from the store. One-way delete — no undo.
+#[tauri::command]
+async fn pairing_unpair(
+    state: tauri::State<'_, PeerStoreState>,
+    peer_id: String,
+) -> Result<(), String> {
+    state.with_write(|s| {
+        if !s.remove(&peer_id) {
+            return Err(format!("peer not found: {peer_id}"));
+        }
+        Ok(())
+    })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PairedPeerBrief {
+    pub id: String,
+    pub peer_name: String,
+    pub peer_device: String,
+    pub trust: String,
+    pub peer_addrs: Vec<String>,
+    pub last_seen_at: String,
+}
+
+fn iso_now() -> String {
+    use time::format_description::well_known::Iso8601;
+    use time::OffsetDateTime;
+    let odt: OffsetDateTime = std::time::SystemTime::now().into();
+    odt.format(&Iso8601::DEFAULT)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00.000000000Z".to_string())
+}
+
 /// Directly send a vault to a peer we've previously paired with.
-/// Opens a fresh TCP connection to one of the peer's known
-/// addresses, runs a fresh Noise XK handshake, sends the vault,
-/// closes.
+/// Looks the peer up in the persistent store, opens a fresh TCP
+/// connection to one of the known addresses, runs a fresh Noise
+/// XK handshake with our persistent static identity, sends the
+/// vault, closes.
 #[tauri::command]
 async fn pairing_send_vault(
-    peer_public_hex: String,
-    peer_addrs: Vec<String>,
+    state: tauri::State<'_, PeerStoreState>,
+    peer_id: String,
     vault_bytes: Vec<u8>,
     filename: String,
     note: Option<String>,
 ) -> Result<(), String> {
-    // Decode the hex public key.
-    let peer_pk = hex_to_32(&peer_public_hex)?;
+    // Look the peer up. Error if unknown — the UI should only
+    // call this with peer_ids from pairing_peers_list.
+    let (peer_pk, peer_addrs) = {
+        let snap = state.snapshot()?;
+        let peer = snap
+            .find(&peer_id)
+            .ok_or_else(|| format!("unknown peer: {peer_id}"))?
+            .clone();
+        // Convert the base64url public key back into bytes.
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine;
+        let pk_bytes = URL_SAFE_NO_PAD
+            .decode(peer.static_pk.as_bytes())
+            .map_err(|e| format!("bad peer static_pk in store: {e}"))?;
+        if pk_bytes.len() != 32 {
+            return Err(format!(
+                "peer static_pk wrong length: {}",
+                pk_bytes.len()
+            ));
+        }
+        let mut pk = [0u8; 32];
+        pk.copy_from_slice(&pk_bytes);
+        (pk, peer.last_addrs)
+    };
 
-    // Generate a fresh ephemeral static for the send — or later,
-    // load the persisted identity. For v1 we use ephemeral.
-    let own = StaticKeypair::generate().map_err(|e| e.to_string())?;
+    // Use our persistent identity rather than generating a fresh
+    // one per send. This matters because the receiver may
+    // recognise us by the static key from a previous pairing.
+    let own = state.with_write(|s| {
+        let kp = s.ensure_own_identity("", "").map_err(|e| e.to_string())?;
+        Ok(kp)
+    })?;
 
     let mut last_err = None;
     let stream = 'connect: {
@@ -557,6 +794,9 @@ pub fn run() {
             pairing_preview_invite,
             pairing_accept_invite,
             pairing_send_vault,
+            pairing_peers_list,
+            pairing_verify_peer,
+            pairing_unpair,
         ])
         .setup(|app| {
             #[cfg(desktop)]
@@ -564,7 +804,20 @@ pub fn run() {
                 let _ = win.show();
                 let _ = win.set_focus();
             }
-            let _ = app; // silence unused on mobile
+
+            // Initialize the peer store at the canonical location
+            // under app_data_dir. On first launch the store is
+            // empty; on subsequent launches it loads the
+            // persisted keypair + peers.
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .map_err(|e| format!("app_data_dir: {e}"))?;
+            let path = store_path(&data_dir);
+            let state = PeerStoreState::new(path)
+                .map_err(|e| format!("peer store init: {e}"))?;
+            app.manage(state);
+
             Ok(())
         })
         .run(tauri::generate_context!())

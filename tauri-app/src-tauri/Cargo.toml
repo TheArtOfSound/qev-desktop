@@ -42,6 +42,13 @@ tokio = { version = "1", features = ["sync", "rt-multi-thread", "net", "io-util"
 # pairing-invite CBOR/QR format.
 qev-pairing = { path = "./pairing" }
 
+# Used by the pairing command layer for base64url
+# encode/decode of stored peer keys and for ISO 8601 timestamps
+# on peer records. Duplicated here (qev-pairing already pulls them
+# in) but Cargo resolves to the same crate version.
+base64 = "0.22"
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+
 [features]
 # Enable logging in dev builds, strip for release.
 custom-protocol = ["tauri/custom-protocol"]
