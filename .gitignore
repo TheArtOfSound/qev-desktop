@@ -20,6 +20,7 @@ data/*.ed25519.key
 # committed because QEV is an application (not a library) and
 # reproducible builds depend on it.
 tauri-app/src-tauri/target/
+tauri-app/src-tauri/pairing/target/
 
 # Tauri gen/android contains both source (the manifest and custom
 # resources we actually edit) and generated build outputs. Track the

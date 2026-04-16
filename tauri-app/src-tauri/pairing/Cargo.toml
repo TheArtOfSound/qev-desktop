@@ -1,0 +1,67 @@
+[package]
+name = "qev-pairing"
+version = "0.29.0"
+description = "QEV Phase 2 — QR-based device pairing and direct P2P vault transfer over Noise XK."
+authors = ["Bryan Leonard <bryanleonard@imagineqira.com>"]
+license = "Proprietary"
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "qev_pairing"
+crate-type = ["rlib"]
+
+[dependencies]
+# Noise protocol framework — formally-analysed handshake patterns.
+# Same X25519 + ChaCha20-Poly1305 + BLAKE2 primitives we already ship
+# in the vault layer.
+snow = { version = "0.9", default-features = false, features = ["default-resolver"] }
+
+# CBOR because QR code size matters; 40% smaller than JSON for the
+# same content. No streaming needed — everything fits in one buffer.
+ciborium = "0.2"
+
+# QR code generator. ~10 KB pure Rust, no deps, produces ASCII or SVG.
+qrcodegen = "1.8"
+
+# BLAKE2 for the 30-digit safety number. snow uses BLAKE2 internally
+# for its key derivation but doesn't expose a raw hash API, so we
+# pull the blake2 crate directly for this narrow use.
+blake2 = "0.10"
+digest = "0.10"
+
+# Base64url without padding for encoding the QR payload.
+# Same alphabet as the vault format, so a user can paste an invite
+# string into the vault UI and vice versa without format confusion.
+base64 = "0.22"
+
+# Serde for the PairingInvite and QevMessage types — used by CBOR
+# and by the Tauri IPC layer above.
+serde = { version = "1", features = ["derive"] }
+
+# Compact byte-string serialization for fixed-size key arrays.
+# Without this, ciborium encodes [u8; 32] as a CBOR array of 32
+# integers (3-byte overhead per byte) rather than a byte string
+# (~2 byte overhead total). Matters for QR code size.
+serde_bytes = "0.11"
+
+# RNG for generating ephemeral keys. Just use the standard lib +
+# getrandom via snow internally; we only need std RNG for
+# non-sensitive stuff like nonce-for-session-id.
+rand_core = { version = "0.6", features = ["std"] }
+
+# Async runtime for the network layer. Optional: test-only code can
+# drive a Noise session via tokio::io::duplex pipes, and the real
+# transport uses tokio TCP.
+tokio = { version = "1", features = ["net", "io-util", "rt", "macros", "sync"] }
+
+# Error type with backtraces. thiserror keeps the public error API
+# clean (distinct variants per failure mode) without a huge dep tree.
+thiserror = "1"
+
+# std::time is not enough — we need ISO 8601 parsing for the
+# invite expiry field. time is the minimal-feature choice.
+time = { version = "0.3", features = ["serde", "formatting", "parsing", "macros"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "sync", "test-util"] }
