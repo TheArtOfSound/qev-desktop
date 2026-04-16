@@ -194,6 +194,49 @@
       margin-left: 6px;
       font-weight: 600;
     }
+    .dl-install-help {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0;
+      background: var(--surface);
+    }
+    .dl-install-help summary {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+      user-select: none;
+      list-style: none;
+    }
+    .dl-install-help summary::-webkit-details-marker { display: none; }
+    .dl-install-help summary::before { content: "? "; }
+    .dl-install-help[open] summary { border-bottom: 1px solid var(--border); }
+    .dl-install-help ol {
+      padding: 12px 14px 12px 30px;
+      margin: 0;
+      line-height: 1.7;
+    }
+    .dl-install-help ol li { margin-bottom: 6px; }
+    .dl-install-help code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.76rem;
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      user-select: all;
+      -webkit-user-select: all;
+    }
+    .dl-install-why {
+      padding: 10px 14px;
+      margin: 0;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
     .dl-card-cmd {
       display: block;
       margin-top: 12px;
@@ -339,6 +382,18 @@
         <p>Apple Silicon &amp; Intel &middot; macOS 11 Big Sur or newer</p>
         <span class="size">~2 MB DMG</span>
         <a href="/assets/QEV_0.28.1_aarch64.dmg" class="dl-card-btn" download>Download .dmg</a>
+        <details class="dl-install-help">
+          <summary>Mac says "can't verify"? Here's the fix (10 seconds)</summary>
+          <ol>
+            <li>Open the <code>.dmg</code> and drag <strong>QEV.app</strong> into your <strong>Applications</strong> folder.</li>
+            <li>Open <strong>Terminal</strong> (search "Terminal" in Spotlight).</li>
+            <li>Paste this and press Enter:<br><code>xattr -cr /Applications/QEV.app && open /Applications/QEV.app</code></li>
+            <li>QEV opens. Done. You only do this once &mdash; after that, double-click works normally.</li>
+          </ol>
+          <p class="dl-install-why">
+            <strong>Why does this happen?</strong> The app isn't signed with a $99/year Apple Developer certificate yet, so macOS Gatekeeper blocks it by default. The command above removes the browser's quarantine flag. The app itself is safe &mdash; same code that passes 362 tests, same binary CI produced from the public source.
+          </p>
+        </details>
       </div>
       <div class="dl-os-card">
         <h4>Windows</h4>
@@ -346,6 +401,17 @@
         <span class="size">~2 MB MSI &middot; ~1.5 MB EXE</span>
         <a href="/assets/QEV_0.28.1_x64_en-US.msi" class="dl-card-btn" download>Download .msi</a>
         <a href="/assets/QEV_0.28.1_x64-setup.exe" class="dl-card-btn dl-card-btn-alt" download>or .exe installer</a>
+        <details class="dl-install-help">
+          <summary>Windows shows a blue SmartScreen warning?</summary>
+          <ol>
+            <li>Click <strong>"More info"</strong> (small text under the warning).</li>
+            <li>Click <strong>"Run anyway"</strong>.</li>
+            <li>The installer runs normally. This only happens once.</li>
+          </ol>
+          <p class="dl-install-why">
+            <strong>Why?</strong> The installer isn't Authenticode-signed yet, so Windows SmartScreen flags it as unrecognized. The file is the same binary GitHub Actions CI produced from the public source.
+          </p>
+        </details>
       </div>
       <div class="dl-os-card">
         <h4><a href="/android" style="color:var(--text);text-decoration:none;">Android <span class="dl-beta-tag">beta</span></a></h4>
