@@ -34,7 +34,13 @@ tauri-plugin-dialog = "2"
 tauri-plugin-clipboard-manager = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "rt-multi-thread", "net", "io-util"] }
+
+# Phase 2: device pairing + direct P2P vault transfer.
+# Local path dep on the sibling crate under ./pairing/. That crate
+# owns the Noise XK handshake, CBOR QevMessage framing, and the
+# pairing-invite CBOR/QR format.
+qev-pairing = { path = "./pairing" }
 
 [features]
 # Enable logging in dev builds, strip for release.
