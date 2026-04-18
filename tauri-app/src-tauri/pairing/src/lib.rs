@@ -99,9 +99,11 @@ pub const INVITE_SCHEMA: &str = "QEV-PAIRING-V1";
 /// in UI so users can see "Alice's QEV v0.29.0 is pairing with..."
 pub const QEV_VERSION: &str = "0.29.0";
 
+pub mod chat_store;
 pub mod error;
 pub mod handshake;
 pub mod identity;
+pub mod identity_backup;
 pub mod invite;
 pub mod keystore;
 pub mod mdns;

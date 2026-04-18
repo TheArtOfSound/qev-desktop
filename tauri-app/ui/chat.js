@@ -1188,6 +1188,64 @@
     return Promise.reject(new Error("Clipboard API not available"));
   }
 
+  // Chat envelope decrypt path. Returns { plaintext, meta } on
+  // success, null if the input isn't a chat envelope, or throws a
+  // user-friendly Error if the input IS a chat envelope but decryption
+  // fails (wrong phrase, malformed payload, etc). The caller catches
+  // the throw and surfaces the error to the user.
+  function tryDecryptChatEnvelope(raw, phrase) {
+    const trimmed = (raw || "").trim();
+    if (trimmed.length === 0 || trimmed.charAt(0) !== "{") return null;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (e) {
+      return null;
+    }
+    if (!parsed || parsed.schema !== "QEV-CHAT-ENVELOPE-V1") return null;
+    if (!Array.isArray(parsed.ids) || parsed.ids.length !== 2) {
+      throw new Error("Chat envelope missing 'ids' pair");
+    }
+    if (typeof parsed.nonce !== "string" || typeof parsed.ct !== "string") {
+      throw new Error("Chat envelope missing 'nonce' or 'ct'");
+    }
+    if (typeof phrase !== "string" || phrase.length === 0) {
+      throw new Error("Type the shared phrase to decrypt the chat message");
+    }
+    const ids = parsed.ids
+      .map(function (s) { return String(s).toLowerCase(); })
+      .sort();
+    const contextStr = "QEV-CHAT-V1:" + ids[0] + ":" + ids[1];
+    const phraseBytes = new TextEncoder().encode(phrase);
+    const contextBytes = new TextEncoder().encode(contextStr);
+    const combined = new Uint8Array(phraseBytes.length + contextBytes.length);
+    combined.set(phraseBytes);
+    combined.set(contextBytes, phraseBytes.length);
+    const key = sodium.crypto_generichash(32, combined);
+    sodium.memzero(combined);
+    sodium.memzero(phraseBytes);
+    let nonceBytes;
+    let ctBytes;
+    try {
+      nonceBytes = sodium.from_base64(parsed.nonce, sodium.base64_variants.URLSAFE_NO_PADDING);
+      ctBytes = sodium.from_base64(parsed.ct, sodium.base64_variants.URLSAFE_NO_PADDING);
+    } catch (e) {
+      throw new Error("Chat envelope base64 malformed");
+    }
+    let ptBytes;
+    try {
+      ptBytes = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, ctBytes, null, nonceBytes, key);
+    } catch (e) {
+      sodium.memzero(key);
+      throw new Error("Wrong phrase (AEAD auth tag mismatch)");
+    }
+    sodium.memzero(key);
+    const plaintext = new TextDecoder().decode(ptBytes);
+    sodium.memzero(ptBytes);
+    const meta = "Schema: QEV-CHAT-ENVELOPE-V1  |  Participants: " + ids[0].slice(0, 8) + "… ↔ " + ids[1].slice(0, 8) + "…";
+    return { plaintext: plaintext, meta: meta };
+  }
+
   function parseVaultInput(raw) {
     const trimmed = (raw || "").trim();
     if (trimmed.length === 0) {
@@ -1403,6 +1461,24 @@
           try {
             const raw = $("vault-decrypt-input").value;
             const password = $("vault-decrypt-password").value;
+
+            // Chat-envelope fast path. Before attempting vault decode,
+            // peek at the trimmed JSON and see if it's a chat envelope
+            // copied from a locked conversation. If so, decrypt with
+            // the per-chat BLAKE2b(phrase || context) key and bypass
+            // the vault Argon2id path entirely. Vault code is never
+            // touched — this is a pre-check that only fires for the
+            // chat schema string.
+            const chatResult = tryDecryptChatEnvelope(raw, password);
+            if (chatResult !== null) {
+              $("vault-decrypt-password").value = "";
+              $("vault-decrypt-result-text").textContent = chatResult.plaintext;
+              $("vault-decrypt-result").classList.remove("vault-hidden");
+              $("vault-decrypt-result-meta").textContent = chatResult.meta;
+              setStatus("vault-decrypt-status", "Chat message decrypted", "ok");
+              return;
+            }
+
             const vault = parseVaultInput(raw);
             const plaintext = decryptVault({ vault: vault, password: password });
             // Clear sensitive form fields

@@ -76,6 +76,17 @@ pub enum QevMessage {
         timestamp: u64,
     },
 
+    /// Identity announcement. Sent by both sides immediately after
+    /// the Noise XK handshake completes so each device learns the
+    /// other's human-readable name and device label.
+    #[serde(rename = "identity-v1")]
+    Identity {
+        /// Human name (e.g. "bry").
+        name: String,
+        /// Device label (e.g. "macbook").
+        device: String,
+    },
+
     /// Connection-liveness ping. Sent periodically by either side.
     #[serde(rename = "ping-v1")]
     Ping,

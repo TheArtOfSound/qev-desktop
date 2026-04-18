@@ -12,6 +12,7 @@
   },
 
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "QEV",

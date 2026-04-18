@@ -73,6 +73,12 @@ pub const MAX_ENVELOPE_BYTES: usize = 1_048_576 + 4096;
 /// negligible for any realistic server load.
 pub const ENVELOPE_ID_BYTES: usize = 16;
 
+/// Maximum payload size for a single `LinkTunnel` live-mode
+/// packet. Sized generously above a typical 1500-byte MTU plus
+/// the ~32-byte WG/transport header so jumbo frames still fit,
+/// while staying small enough to reject obvious abuse.
+pub const MAX_LINK_PAYLOAD_BYTES: usize = 4096;
+
 /// Default listening port for a qev-relay server.
 /// Not privileged, not conflicting with common services.
 pub const DEFAULT_PORT: u16 = 7892;

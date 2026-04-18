@@ -21,18 +21,8 @@
 (function () {
   "use strict";
 
-  // Shorthand wrappers around Tauri's IPC.
-  //
-  // We don't rely on the @tauri-apps/api NPM package because the
-  // tauri-app UI bundle is kept dependency-free — the only scripts
-  // it loads are sodium.js, chat.js, app.js, jsQR (vendored), and
-  // this file. window.__TAURI__ is injected by the Tauri shell at
-  // page load and is stable across versions of Tauri v2.
   const tauri = window.__TAURI__;
   if (!tauri) {
-    // Pairing is native-only for now. If the page is loaded in a
-    // plain browser (file:// or https for testing), the pairing
-    // tab shows a disabled notice instead of the functional UI.
     return;
   }
   const invoke = tauri.core && tauri.core.invoke ? tauri.core.invoke : tauri.invoke;
@@ -77,62 +67,109 @@
 
   // --- Tab wiring ---------------------------------------------
 
-  pair.tab.addEventListener("click", () => {
+  pair.tab.onclick = function () {
     setStatus(pair.qrStatus, "", "");
     setStatus(pair.scanStatus, "", "");
-  });
+  };
 
   // --- SHOW QR (responder) ------------------------------------
 
-  pair.showBtn.addEventListener("click", async () => {
-    const name = (pair.showNameInput.value || "").trim();
-    const device = (pair.showDeviceInput.value || "").trim();
+  pair.showBtn.onclick = function () {
+    var self = this;
+    self.textContent = "Working...";
+    var name = (pair.showNameInput.value || "").trim();
+    var device = (pair.showDeviceInput.value || "").trim();
     if (!name || !device) {
       setStatus(pair.qrStatus, "Enter a name and a device label first.", "err");
+      self.textContent = "Show QR";
       return;
     }
-    pair.showBtn.disabled = true;
+    self.disabled = true;
     setStatus(pair.qrStatus, "Starting listener and generating QR...", "info");
-    try {
-      const result = await invoke("pairing_show_qr", { name, device });
+
+    // Snapshot current peers BEFORE showing QR so we can detect new ones
+    var peersBefore = [];
+    invoke("pairing_peers_list").then(function (list) {
+      peersBefore = (list || []).map(function (p) { return p.id; });
+    }).catch(function () {});
+
+    invoke("pairing_show_qr", { name: name, device: device }).then(function (result) {
       pair.qrSvg.innerHTML = result.qr_svg;
       pair.qrText.textContent = result.qr_text;
       pair.qrBox.classList.remove("app-hidden");
       setStatus(
         pair.qrStatus,
-        `Ready. Listening on port ${result.listen_port}. Show this QR to the other device.`,
+        "Waiting for the other device to scan this QR...",
         "ok",
       );
-    } catch (err) {
-      setStatus(pair.qrStatus, String(err), "err");
-    } finally {
-      pair.showBtn.disabled = false;
-    }
-  });
 
-  // Listen for the 'pairing://complete' event emitted by the
-  // background responder task when the handshake succeeds (or
-  // fails). The event's payload is { status: "ok", peer: {...} }
-  // or { status: "error", error: "..." }.
-  if (listen) {
-    listen("pairing://complete", (event) => {
-      const payload = event.payload;
-      if (!payload) return;
-      if (payload.status === "ok" && payload.peer) {
-        setStatus(
-          pair.qrStatus,
-          `Pairing completed. Safety number: ${payload.peer.safety_number}`,
-          "ok",
-        );
-      } else {
-        setStatus(
-          pair.qrStatus,
-          "Pairing failed: " + (payload.error || "unknown error"),
-          "err",
-        );
-      }
+      // Poll for new peers every 2 seconds. When a new peer appears,
+      // the handshake completed — show safety number.
+      var pollCount = 0;
+      var pairingPoll = setInterval(function () {
+        pollCount++;
+        if (pollCount > 150) { // 5 minutes max
+          clearInterval(pairingPoll);
+          setStatus(pair.qrStatus, "Timed out waiting. Try again.", "err");
+          return;
+        }
+        invoke("pairing_peers_list").then(function (list) {
+          var current = (list || []).map(function (p) { return p.id; });
+          // Find new peer IDs
+          for (var i = 0; i < current.length; i++) {
+            if (peersBefore.indexOf(current[i]) === -1) {
+              // NEW PEER! Pairing completed.
+              clearInterval(pairingPoll);
+              var newPeer = list.filter(function (p) { return p.id === current[i]; })[0];
+              // Get the safety number for in-person verification, then prompt for shared phrase
+              invoke("pairing_safety_number", { peerId: current[i] }).then(function (sn) {
+                pair.qrBox.classList.add("app-hidden");
+                setStatus(
+                  pair.qrStatus,
+                  "Paired with " + escapeHtml(newPeer.peer_name) + "!\n\nSafety number:\n" + sn +
+                  "\n\nCompare this number with " + escapeHtml(newPeer.peer_name) + " in person.\nIf it matches, set your shared chat phrase next.",
+                  "ok",
+                );
+                // Prompt for shared phrase right now — both sides are together
+                setTimeout(function () {
+                  if (window.qevShowPhraseDialog) {
+                    window.qevShowPhraseDialog(newPeer.peer_name, function (phrase) {
+                      if (phrase && window.qevSetPhraseForPeer) {
+                        window.qevSetPhraseForPeer(current[i], phrase);
+                        setStatus(
+                          pair.qrStatus,
+                          "Paired with " + escapeHtml(newPeer.peer_name) + ". Shared phrase saved. Go to Chat to start messaging.",
+                          "ok",
+                        );
+                      }
+                    });
+                  }
+                }, 400);
+              }).catch(function () {
+                pair.qrBox.classList.add("app-hidden");
+                setStatus(
+                  pair.qrStatus,
+                  "Paired with " + escapeHtml(newPeer.peer_name) + "! Go to Chat to start messaging.",
+                  "ok",
+                );
+              });
+              self.disabled = false;
+              self.textContent = "Show QR";
+              return;
+            }
+          }
+        }).catch(function () {});
+      }, 2000);
+
+    }).catch(function (err) {
+      setStatus(pair.qrStatus, String(err), "err");
+      self.disabled = false;
+      self.textContent = "Show QR";
     });
-  }
+  };
+
+  // NOTE: pairing://complete events are replaced by polling above.
+  // Polling is more reliable across Tauri v2 capability configs.
 
   // --- SCAN TO PAIR (initiator) -------------------------------
   //
@@ -147,7 +184,7 @@
   //      a webcam, or the user prefers to transfer the invite
   //      over a different channel like AirDrop or a shared doc).
 
-  pair.scanBtn.addEventListener("click", async () => {
+  pair.scanBtn.onclick = async function () {
     if (scanStream) {
       stopScanner();
       return;
@@ -168,16 +205,16 @@
       setStatus(pair.scanStatus, "Camera denied or unavailable: " + err, "err");
       stopScanner();
     }
-  });
+  };
 
-  pair.scanPasteBtn.addEventListener("click", async () => {
+  pair.scanPasteBtn.onclick = async function () {
     const txt = (pair.scanPasteInput.value || "").trim();
     if (!txt) {
       setStatus(pair.scanStatus, "Paste the invite text first.", "err");
       return;
     }
     await previewInvite(txt);
-  });
+  };
 
   function runScanLoop() {
     const canvas = document.createElement("canvas");
@@ -243,22 +280,39 @@
     pair.scanAcceptBtn.disabled = false;
   }
 
-  pair.scanAcceptBtn.addEventListener("click", async () => {
+  pair.scanAcceptBtn.onclick = async function () {
     if (!pendingPreview) return;
+    // The accept command needs our own name/device for the identity.
+    // Reuse the "Show QR" fields — they're on the same panel.
+    var ownName = (pair.showNameInput.value || "").trim() || "user";
+    var ownDevice = (pair.showDeviceInput.value || "").trim() || "device";
     pair.scanAcceptBtn.disabled = true;
     setStatus(pair.scanStatus, "Connecting and running handshake...", "info");
     try {
       const peer = await invoke("pairing_accept_invite", {
         qrText: pendingPreview.qr_text,
+        ownName: ownName,
+        ownDevice: ownDevice,
       });
       renderResult(peer);
-      setStatus(pair.scanStatus, "Paired.", "ok");
+      setStatus(pair.scanStatus, "Paired. Compare the safety number in person, then set your shared chat phrase.", "ok");
+      // Prompt for shared phrase right now — both sides are together
+      setTimeout(function () {
+        if (window.qevShowPhraseDialog) {
+          window.qevShowPhraseDialog(peer.peer_name, function (phrase) {
+            if (phrase && window.qevSetPhraseForPeer) {
+              window.qevSetPhraseForPeer(peer.id, phrase);
+              setStatus(pair.scanStatus, "Shared phrase saved. Go to Chat to start messaging.", "ok");
+            }
+          });
+        }
+      }, 400);
     } catch (err) {
       setStatus(pair.scanStatus, "Pairing failed: " + err, "err");
     } finally {
       pair.scanAcceptBtn.disabled = false;
     }
-  });
+  };
 
   function renderResult(peer) {
     pair.scanResultBox.classList.remove("app-hidden");
@@ -563,5 +617,297 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+  }
+
+  // ========== Identity backup & restore ==========
+  //
+  // Wraps the three Tauri commands added in src/lib.rs:
+  //   identity_backup_status() → { has_identity, has_never_backed_up,
+  //                                last_backup_at, peer_count }
+  //   export_identity_backup(passphrase) → String (envelope JSON)
+  //   import_identity_backup(envelope_json, passphrase) →
+  //       { own_public_hex, name, device, peers_restored,
+  //         backup_created_at }
+  //
+  // Plus the UI layer:
+  //   - top-of-app at-risk banner when the user has paired but
+  //     never backed up
+  //   - an export panel (passphrase + confirm → save-file dialog)
+  //   - an import panel (pick-file → passphrase → restore)
+
+  const backupEls = {
+    banner: document.getElementById("identity-risk-banner"),
+    bannerDetail: document.getElementById("identity-risk-banner-detail"),
+    bannerPeerCount: document.getElementById("identity-risk-peer-count"),
+    bannerCTA: document.getElementById("identity-risk-banner-cta"),
+    bannerDismiss: document.getElementById("identity-risk-banner-dismiss"),
+    statusText: document.getElementById("identity-backup-status-text"),
+    exportBtn: document.getElementById("backup-export-btn"),
+    importBtn: document.getElementById("backup-import-btn"),
+    exportPanel: document.getElementById("backup-export-panel"),
+    importPanel: document.getElementById("backup-import-panel"),
+    exportPass: document.getElementById("backup-export-passphrase"),
+    exportPassConfirm: document.getElementById("backup-export-passphrase-confirm"),
+    exportGoBtn: document.getElementById("backup-export-go-btn"),
+    exportCancelBtn: document.getElementById("backup-export-cancel-btn"),
+    exportStatus: document.getElementById("backup-export-status"),
+    importPickBtn: document.getElementById("backup-import-pick-btn"),
+    importFilename: document.getElementById("backup-import-filename"),
+    importPass: document.getElementById("backup-import-passphrase"),
+    importGoBtn: document.getElementById("backup-import-go-btn"),
+    importCancelBtn: document.getElementById("backup-import-cancel-btn"),
+    importStatus: document.getElementById("backup-import-status"),
+  };
+
+  // Loaded backup text kept in closure until the user clicks
+  // Restore. Never persisted.
+  let loadedBackupJson = null;
+  const RISK_DISMISS_KEY = "qev_identity_risk_banner_dismissed_this_session";
+
+  async function refreshBackupStatus() {
+    try {
+      const st = await invoke("identity_backup_status");
+      // Banner: show only if user has an identity AND paired peers
+      // AND has never backed up AND hasn't dismissed this session.
+      const dismissed =
+        sessionStorage.getItem(RISK_DISMISS_KEY) === "1";
+      const shouldShow =
+        st.has_identity &&
+        st.peer_count > 0 &&
+        st.has_never_backed_up &&
+        !dismissed;
+      if (backupEls.banner) {
+        backupEls.banner.hidden = !shouldShow;
+        if (shouldShow && backupEls.bannerPeerCount) {
+          backupEls.bannerPeerCount.textContent = String(st.peer_count);
+        }
+      }
+      // Status line in the backup section.
+      if (backupEls.statusText) {
+        if (!st.has_identity) {
+          backupEls.statusText.textContent =
+            "No identity yet — pair a device first, then back up.";
+        } else if (st.has_never_backed_up) {
+          backupEls.statusText.innerHTML =
+            "<strong>You've never backed up your identity.</strong> " +
+            "If you lose this Mac without a backup, you'll need to re-pair every device.";
+        } else {
+          const when = st.last_backup_at.replace("T", " ").slice(0, 19);
+          backupEls.statusText.textContent =
+            "Last backup: " + when + " (UTC). Refresh your backup after major changes.";
+        }
+      }
+    } catch (e) {
+      console.warn("identity_backup_status failed:", e);
+    }
+  }
+
+  function hideBackupPanels() {
+    if (backupEls.exportPanel) backupEls.exportPanel.classList.add("app-hidden");
+    if (backupEls.importPanel) backupEls.importPanel.classList.add("app-hidden");
+    if (backupEls.exportPass) backupEls.exportPass.value = "";
+    if (backupEls.exportPassConfirm) backupEls.exportPassConfirm.value = "";
+    if (backupEls.importPass) backupEls.importPass.value = "";
+    if (backupEls.importFilename) {
+      backupEls.importFilename.classList.add("app-hidden");
+      backupEls.importFilename.textContent = "";
+    }
+    if (backupEls.importGoBtn) backupEls.importGoBtn.disabled = true;
+    loadedBackupJson = null;
+    setStatus(backupEls.exportStatus, "");
+    setStatus(backupEls.importStatus, "");
+  }
+
+  function openExportPanel() {
+    hideBackupPanels();
+    if (backupEls.exportPanel) backupEls.exportPanel.classList.remove("app-hidden");
+    if (backupEls.exportPass) backupEls.exportPass.focus();
+  }
+
+  function openImportPanel() {
+    hideBackupPanels();
+    if (backupEls.importPanel) backupEls.importPanel.classList.remove("app-hidden");
+  }
+
+  function switchToPairTab() {
+    // The pairing tab's click handler is bound via a data-app-tab
+    // attribute in chat.js; just click it programmatically.
+    const pairTab = document.getElementById("app-tab-pair");
+    if (pairTab) pairTab.click();
+  }
+
+  async function onExportGo() {
+    const pass = backupEls.exportPass?.value || "";
+    const confirm = backupEls.exportPassConfirm?.value || "";
+    if (pass.length < 12) {
+      setStatus(backupEls.exportStatus, "Passphrase must be at least 12 characters.", "err");
+      return;
+    }
+    if (pass !== confirm) {
+      setStatus(backupEls.exportStatus, "Passphrases don't match.", "err");
+      return;
+    }
+    setStatus(backupEls.exportStatus, "Encrypting backup…");
+    backupEls.exportGoBtn.disabled = true;
+
+    // Watchdog: if no status transition happens in 6 seconds, surface
+    // a hint that a macOS Keychain prompt or save dialog might be
+    // hidden behind the app window. Without this hint, a stuck prompt
+    // looks indistinguishable from a crashed app.
+    let watchdogFired = false;
+    const watchdog = setTimeout(() => {
+      watchdogFired = true;
+      setStatus(
+        backupEls.exportStatus,
+        "Still waiting… if your macOS password prompt or save dialog is hidden behind the window, " +
+          "click outside this app (Cmd+Tab) or check your menu bar. If it's truly stuck, press Cancel " +
+          "and try again.",
+        "warn"
+      );
+    }, 6000);
+
+    try {
+      const envelope = await invoke("export_identity_backup", { passphrase: pass });
+      // Keychain unwrap + crypto done. Tell the user what's next so
+      // the save dialog (next phase) has narrative context instead of
+      // popping out of nowhere or getting buried.
+      if (!watchdogFired) {
+        setStatus(backupEls.exportStatus, "Encrypted. Pick where to save the backup file…");
+      }
+      const date = new Date().toISOString().slice(0, 10);
+      const filename = `qev-identity-backup-${date}.json`;
+      const saveResult = await invoke("save_vault_file", {
+        payload: { filename, text: envelope },
+      });
+      clearTimeout(watchdog);
+      if (saveResult && saveResult.saved) {
+        setStatus(
+          backupEls.exportStatus,
+          "Backup saved to " + (saveResult.path || filename) +
+            ". Keep it somewhere safe — 1Password, encrypted USB, or similar. The passphrase is the only thing protecting it.",
+          "ok"
+        );
+        await refreshBackupStatus();
+      } else {
+        setStatus(backupEls.exportStatus, "Save cancelled.");
+      }
+    } catch (e) {
+      clearTimeout(watchdog);
+      setStatus(backupEls.exportStatus, "Export failed: " + (e?.toString() || "unknown"), "err");
+    } finally {
+      clearTimeout(watchdog);
+      backupEls.exportGoBtn.disabled = false;
+    }
+  }
+
+  async function onImportPick() {
+    try {
+      const result = await invoke("pick_vault_file");
+      if (!result || !result.loaded) {
+        setStatus(backupEls.importStatus, "No file picked.");
+        return;
+      }
+      loadedBackupJson = result.text;
+      if (backupEls.importFilename) {
+        backupEls.importFilename.textContent = "Loaded: " + (result.filename || "backup file");
+        backupEls.importFilename.classList.remove("app-hidden");
+      }
+      if (backupEls.importGoBtn) backupEls.importGoBtn.disabled = false;
+      setStatus(backupEls.importStatus, "Enter the passphrase that locks this backup.");
+    } catch (e) {
+      setStatus(backupEls.importStatus, "Pick failed: " + (e?.toString() || "unknown"), "err");
+    }
+  }
+
+  async function onImportGo() {
+    if (!loadedBackupJson) {
+      setStatus(backupEls.importStatus, "Pick a backup file first.", "err");
+      return;
+    }
+    const pass = backupEls.importPass?.value || "";
+    if (!pass) {
+      setStatus(backupEls.importStatus, "Enter the passphrase.", "err");
+      return;
+    }
+    setStatus(backupEls.importStatus, "Decrypting & restoring…");
+    backupEls.importGoBtn.disabled = true;
+    try {
+      const r = await invoke("import_identity_backup", {
+        envelopeJson: loadedBackupJson,
+        passphrase: pass,
+      });
+      setStatus(
+        backupEls.importStatus,
+        "Restored. You are now " +
+          escapeHtml(r.name) + " (" + escapeHtml(r.device) + ") · fingerprint " +
+          (r.own_public_hex || "").slice(0, 16) + " · " +
+          r.peers_restored + " peer(s) merged from backup. " +
+          "Reload the app to see your peers.",
+        "ok"
+      );
+      loadedBackupJson = null;
+      await refreshBackupStatus();
+    } catch (e) {
+      setStatus(backupEls.importStatus, "Restore failed: " + (e?.toString() || "unknown"), "err");
+    } finally {
+      backupEls.importGoBtn.disabled = false;
+    }
+  }
+
+  // ---- Wire up listeners (defensive — elements may not exist on
+  //      older index.html versions) ----
+  if (backupEls.exportBtn) backupEls.exportBtn.addEventListener("click", openExportPanel);
+  if (backupEls.importBtn) backupEls.importBtn.addEventListener("click", openImportPanel);
+  if (backupEls.exportGoBtn) backupEls.exportGoBtn.addEventListener("click", onExportGo);
+  if (backupEls.exportCancelBtn)
+    backupEls.exportCancelBtn.addEventListener("click", hideBackupPanels);
+  if (backupEls.importPickBtn) backupEls.importPickBtn.addEventListener("click", onImportPick);
+  if (backupEls.importGoBtn) backupEls.importGoBtn.addEventListener("click", onImportGo);
+  if (backupEls.importCancelBtn)
+    backupEls.importCancelBtn.addEventListener("click", hideBackupPanels);
+  if (backupEls.bannerCTA) {
+    backupEls.bannerCTA.addEventListener("click", () => {
+      switchToPairTab();
+      // Give the tab a beat to render before we scroll & open.
+      setTimeout(() => {
+        const section = document.getElementById("identity-backup-section");
+        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        openExportPanel();
+      }, 50);
+    });
+  }
+  if (backupEls.bannerDismiss) {
+    backupEls.bannerDismiss.addEventListener("click", () => {
+      if (backupEls.banner) backupEls.banner.hidden = true;
+      try {
+        sessionStorage.setItem(RISK_DISMISS_KEY, "1");
+      } catch (_) {
+        /* sessionStorage blocked — banner reappears on reload, that's fine */
+      }
+    });
+  }
+
+  // Kick off an initial status check. We defer slightly (500ms)
+  // because Tauri's IPC bridge isn't reliably ready the instant the
+  // DOM parses — a too-early invoke can hang indefinitely. On the
+  // user's first interactive click everything works, but the page-
+  // load initial refresh needs this gap.
+  //
+  // We ALSO kick off again when the Pair tab is clicked, so the
+  // status line updates whenever the user navigates there, without
+  // depending on whether the first refresh succeeded.
+  const kickoff = () => setTimeout(refreshBackupStatus, 500);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", kickoff);
+  } else {
+    kickoff();
+  }
+  const pairTab = document.getElementById("app-tab-pair");
+  if (pairTab) {
+    pairTab.addEventListener("click", () => {
+      // A short delay lets the existing tab-switch logic finish
+      // rendering before we potentially overwrite the status line.
+      setTimeout(refreshBackupStatus, 120);
+    });
   }
 })();

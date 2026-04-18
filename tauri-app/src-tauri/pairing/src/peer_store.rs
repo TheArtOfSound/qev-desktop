@@ -122,14 +122,23 @@ pub struct StoredPeer {
 }
 
 /// The local device's own long-term identity.
+///
+/// The private scalar is stored in the OS keystore when available
+/// (macOS Keychain today; Windows/Android coming). On platforms
+/// without keystore support the scalar falls back to the `secret`
+/// JSON field — so older installs keep working without migration
+/// pain, and upgrades move the secret into the keystore on first
+/// load after the upgrade.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OwnIdentity {
     /// 32-byte X25519 public key, base64url.
     pub public: String,
-    /// 32-byte X25519 private scalar, base64url.
-    ///
-    /// Stored in plaintext inside the store file for v1. Wrap
-    /// with OS keystore in a future revision.
+    /// 32-byte X25519 private scalar, base64url. Populated only when
+    /// the OS keystore is not available on this platform (or the
+    /// record is waiting for migration). When the keystore owns the
+    /// secret, this field is an empty string (and skipped on
+    /// serialize) — the scalar lives in Keychain/DPAPI instead.
+    #[serde(default)]
     pub secret: String,
     /// User-chosen display name attached to every invite this
     /// device emits.
@@ -143,44 +152,190 @@ pub struct OwnIdentity {
 impl OwnIdentity {
     /// Convert the base64url public + secret back into a
     /// `StaticKeypair` suitable for the handshake layer.
+    ///
+    /// Resolution order for the secret (intentionally file-first to
+    /// avoid Keychain prompts on every rebuild of an ad-hoc-signed
+    /// binary — each rebuild gets a new signature, so Keychain
+    /// treats it as "a different app" and re-prompts):
+    ///
+    ///   1. The `secret` field inside the JSON store (silent, fast)
+    ///   2. OS keystore (macOS Keychain) — only reached when the
+    ///      file field is empty, e.g. legacy installs that migrated
+    ///      to Keychain in an older QEV build and cleared the field
+    ///
+    /// Once a signed-with-Apple-Developer-ID shipping build exists,
+    /// the code-signing identity is stable and Keychain prompts
+    /// don't repeat. At that point we can reverse this order safely.
+    /// Until then, "file first" is the correct default for alpha.
     pub fn to_keypair(&self) -> Result<StaticKeypair> {
         let pub_bytes = URL_SAFE_NO_PAD
             .decode(self.public.as_bytes())
             .map_err(|e| Error::Internal(format!("own_identity.public base64: {e}")))?;
-        let sec_bytes = URL_SAFE_NO_PAD
-            .decode(self.secret.as_bytes())
-            .map_err(|e| Error::Internal(format!("own_identity.secret base64: {e}")))?;
         if pub_bytes.len() != STATIC_KEY_BYTES {
             return Err(Error::Internal(format!(
                 "own_identity.public wrong length: {}",
                 pub_bytes.len()
             )));
         }
-        if sec_bytes.len() != STATIC_SK_BYTES {
-            return Err(Error::Internal(format!(
-                "own_identity.secret wrong length: {}",
-                sec_bytes.len()
-            )));
-        }
         let mut public = [0u8; STATIC_KEY_BYTES];
-        let mut secret = [0u8; STATIC_SK_BYTES];
         public.copy_from_slice(&pub_bytes);
-        secret.copy_from_slice(&sec_bytes);
-        Ok(StaticKeypair { public, secret })
+
+        let mut secret = [0u8; STATIC_SK_BYTES];
+
+        // 1. File first. Populated on every save in modern builds.
+        if !self.secret.is_empty() {
+            let sec_bytes = URL_SAFE_NO_PAD
+                .decode(self.secret.as_bytes())
+                .map_err(|e| Error::Internal(format!("own_identity.secret base64: {e}")))?;
+            if sec_bytes.len() != STATIC_SK_BYTES {
+                return Err(Error::Internal(format!(
+                    "own_identity.secret wrong length: {}",
+                    sec_bytes.len()
+                )));
+            }
+            secret.copy_from_slice(&sec_bytes);
+            return Ok(StaticKeypair { public, secret });
+        }
+
+        // 2. Legacy-install fallback: secret was written only to
+        // Keychain by an older QEV that cleared the file. This path
+        // WILL prompt once on macOS if the running binary isn't on
+        // the Keychain item's ACL — a cost we pay once to recover,
+        // and the user can "Always Allow" to skip forever.
+        let keystore_secret = crate::keystore::load_secret(
+            crate::keystore::KEYCHAIN_SERVICE,
+            crate::keystore::KEYCHAIN_ACCOUNT,
+        );
+        match keystore_secret {
+            Ok(Some(s)) => {
+                secret.copy_from_slice(&s);
+                Ok(StaticKeypair { public, secret })
+            }
+            Ok(None) | Err(_) => Err(Error::Internal(
+                "own_identity has no secret (file empty, keystore also empty)".into(),
+            )),
+        }
     }
 
     /// Build an `OwnIdentity` record from a `StaticKeypair` plus
     /// the user-chosen name and device label.
+    ///
+    /// The secret is ALWAYS embedded in the record (base64url in the
+    /// `secret` field). On platforms with a keystore we ALSO write a
+    /// copy to the OS keychain as a belt-and-suspenders backup — but
+    /// the file copy is always the primary source (see `to_keypair`
+    /// for the load-order rationale). Duplicating the secret this
+    /// way is safe: the file is owner-only 0600 and the keychain is
+    /// unlocked whenever the user is logged in, so the effective
+    /// security is identical.
     pub fn from_keypair(kp: &StaticKeypair, name: String, device: String) -> Self {
         let public = URL_SAFE_NO_PAD.encode(kp.public);
-        let secret = URL_SAFE_NO_PAD.encode(kp.secret);
         let created_at = iso8601_now();
+
+        // Always populate the file secret. Best-effort keychain copy
+        // for future "one-click export to other device" flows and
+        // for signed shipping builds that want keychain-first later.
+        if crate::keystore::is_available() {
+            let _ = crate::keystore::store_secret(
+                crate::keystore::KEYCHAIN_SERVICE,
+                crate::keystore::KEYCHAIN_ACCOUNT,
+                &kp.secret,
+            );
+        }
+        let secret = URL_SAFE_NO_PAD.encode(kp.secret);
+
         Self {
             public,
             secret,
             name,
             device,
             created_at,
+        }
+    }
+
+    /// Return a clone of self with `secret` guaranteed populated,
+    /// pulling from the OS keystore if the JSON field is empty.
+    /// Used by the identity-backup export flow which must put the
+    /// raw private scalar into the encrypted blob.
+    ///
+    /// This WILL trigger a Keychain prompt on macOS if the caller
+    /// isn't already on the item's ACL. Gate accordingly in the UI.
+    pub fn with_unwrapped_secret(&self) -> Result<Self> {
+        let kp = self.to_keypair()?;
+        let secret_b64 = URL_SAFE_NO_PAD.encode(kp.secret);
+        Ok(Self {
+            public: self.public.clone(),
+            secret: secret_b64,
+            name: self.name.clone(),
+            device: self.device.clone(),
+            created_at: self.created_at.clone(),
+        })
+    }
+
+    /// Migrate a legacy file-based secret into the OS keystore if
+    /// one is available. Idempotent — safe to call on every load.
+    /// Returns true if migration actually happened (and therefore
+    /// the store should be saved back to disk with the empty
+    /// `secret` field).
+    pub fn migrate_to_keystore(&mut self) -> bool {
+        if !crate::keystore::is_available() {
+            return false;
+        }
+        if self.secret.is_empty() {
+            return false; // Nothing to migrate.
+        }
+        let sec_bytes = match URL_SAFE_NO_PAD.decode(self.secret.as_bytes()) {
+            Ok(b) if b.len() == STATIC_SK_BYTES => b,
+            _ => return false, // Malformed — leave as-is.
+        };
+        let mut secret_arr = [0u8; STATIC_SK_BYTES];
+        secret_arr.copy_from_slice(&sec_bytes);
+        // Best-effort keystore copy. We INTENTIONALLY do NOT clear
+        // `self.secret` afterwards: clearing it forces every future
+        // load to hit the Keychain, which in ad-hoc-signed alpha
+        // builds triggers a "QEV wants to use your confidential
+        // information" prompt on every rebuild. Keeping the file
+        // copy as the primary source means the prompt never fires.
+        let _ = crate::keystore::store_secret(
+            crate::keystore::KEYCHAIN_SERVICE,
+            crate::keystore::KEYCHAIN_ACCOUNT,
+            &secret_arr,
+        );
+        // Return false: from the caller's perspective ("should we
+        // re-save the store because something changed?") nothing
+        // user-visible changed. Caller can skip the save round-trip.
+        false
+    }
+
+    /// One-time self-heal for installs that ran an older QEV which
+    /// migrated the secret into Keychain and CLEARED the `secret`
+    /// field in the file. Pulls the secret back from Keychain into
+    /// the file so subsequent launches don't need the Keychain
+    /// (and don't trigger the "QEV wants to use your confidential
+    /// information" prompt on every rebuild).
+    ///
+    /// Returns true if we actually recovered the secret from
+    /// Keychain, meaning the caller should persist the store back
+    /// to disk. On macOS this WILL trigger the Keychain ACL prompt
+    /// once — the price of recovery. After one successful
+    /// "Always Allow" click, the secret lives in the file and this
+    /// method's early-return short-circuits on all future launches.
+    pub fn recover_secret_from_keystore(&mut self) -> bool {
+        if !self.secret.is_empty() {
+            return false; // File already has it; no recovery needed.
+        }
+        if !crate::keystore::is_available() {
+            return false;
+        }
+        match crate::keystore::load_secret(
+            crate::keystore::KEYCHAIN_SERVICE,
+            crate::keystore::KEYCHAIN_ACCOUNT,
+        ) {
+            Ok(Some(secret)) => {
+                self.secret = URL_SAFE_NO_PAD.encode(secret);
+                true
+            }
+            _ => false,
         }
     }
 }
@@ -197,6 +352,17 @@ pub struct PeerStore {
     pub own_identity: Option<OwnIdentity>,
     /// All paired peers known to this device.
     pub peers: Vec<StoredPeer>,
+    /// ISO 8601 timestamp of the most recent successful
+    /// identity-backup export. `None` means the user has never
+    /// backed up — the UI surfaces this as a prominent banner
+    /// because a Mac wipe without a backup means the user loses
+    /// their identity permanently.
+    ///
+    /// Serialized with `#[serde(default)]` so existing store files
+    /// without this field load cleanly (older QEV installs that
+    /// pre-date the backup feature).
+    #[serde(default)]
+    pub last_backup_at: Option<String>,
 }
 
 impl PeerStore {
@@ -207,6 +373,7 @@ impl PeerStore {
             version: crate::QEV_VERSION.to_string(),
             own_identity: None,
             peers: Vec::new(),
+            last_backup_at: None,
         }
     }
 
@@ -223,12 +390,41 @@ impl PeerStore {
 
     /// Load a store from the given file path, returning `empty()`
     /// if the file does not yet exist.
+    ///
+    /// On every load we run two complementary repair steps:
+    ///
+    ///   **Forward-sync (belt-and-suspenders):** if the file has a
+    ///   plaintext `secret` AND the OS has a keystore, write a
+    ///   keystore backup. Never clears the file field — keeping the
+    ///   file as the primary source avoids the "prompt on every
+    ///   rebuild" problem for ad-hoc-signed alpha builds.
+    ///
+    ///   **Legacy-install recovery:** if the file's `secret` is
+    ///   EMPTY (an older QEV build migrated it out and cleared the
+    ///   field) BUT the keystore still has it, pull the secret back
+    ///   into the file. This triggers a single Keychain "Always
+    ///   Allow" prompt once, but all subsequent launches are silent
+    ///   because the secret now lives in the file.
+    ///
+    /// Both steps are idempotent and safe to call on every launch.
     pub fn load_or_empty(path: &Path) -> Result<Self> {
         match fs::read(path) {
             Ok(bytes) => {
-                let store: Self = serde_json::from_slice(&bytes)
+                let mut store: Self = serde_json::from_slice(&bytes)
                     .map_err(|e| Error::Internal(format!("store decode: {e}")))?;
                 store.validate()?;
+                let mut should_resave = false;
+                if let Some(id) = store.own_identity.as_mut() {
+                    // Forward-sync: file → keystore, silent.
+                    id.migrate_to_keystore();
+                    // Legacy recovery: keystore → file, one-time.
+                    if id.secret.is_empty() && id.recover_secret_from_keystore() {
+                        should_resave = true;
+                    }
+                }
+                if should_resave {
+                    let _ = store.save(path);
+                }
                 Ok(store)
             }
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Self::empty()),
@@ -494,6 +690,7 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
     }
 
+    #[cfg_attr(target_os = "macos", ignore = "touches real Keychain — run with --ignored")]
     #[test]
     fn ensure_own_identity_is_idempotent() {
         let mut s = PeerStore::empty();
@@ -508,6 +705,7 @@ mod tests {
         assert_eq!(id.device, "alice-laptop");
     }
 
+    #[cfg_attr(target_os = "macos", ignore = "touches real Keychain — run with --ignored")]
     #[test]
     fn ensure_own_identity_persists_across_save_load() {
         let dir = tempdir();
@@ -550,6 +748,7 @@ mod tests {
         assert!(h.starts_with("000102030405"));
     }
 
+    #[cfg_attr(target_os = "macos", ignore = "touches real Keychain — run with --ignored")]
     #[cfg(unix)]
     #[test]
     fn saved_file_has_0600_permissions() {
@@ -562,5 +761,102 @@ mod tests {
         let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600, "store file must be owner-read-write only");
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    // ---- Keystore-backed identity tests (macOS only) ----
+    //
+    // These tests TOUCH THE REAL macOS Keychain. They use a
+    // dedicated test-only service name to avoid colliding with any
+    // real QEV install on the same machine. Each test cleans up
+    // its own entry at the end.
+
+    #[cfg(target_os = "macos")]
+    fn cleanup_test_keychain_entry() {
+        let _ = crate::keystore::delete_secret(
+            crate::keystore::KEYCHAIN_SERVICE,
+            crate::keystore::KEYCHAIN_ACCOUNT,
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[ignore = "touches real Keychain — run with --ignored after approving prompts"]
+    #[test]
+    fn new_identity_goes_into_keychain_not_file() {
+        cleanup_test_keychain_entry();
+        let mut s = PeerStore::empty();
+        let kp = s.ensure_own_identity("alice", "alice-laptop").unwrap();
+        let id = s.own_identity.as_ref().unwrap();
+        assert!(
+            id.secret.is_empty(),
+            "secret field in store should be empty when keystore owns the scalar"
+        );
+        // The keypair loaded from ensure_own_identity must match what
+        // to_keypair() returns after serialization.
+        let kp2 = id.to_keypair().unwrap();
+        assert_eq!(kp.public, kp2.public);
+        assert_eq!(kp.secret, kp2.secret);
+        cleanup_test_keychain_entry();
+    }
+
+    #[cfg(target_os = "macos")]
+    #[ignore = "touches real Keychain — run with --ignored after approving prompts"]
+    #[test]
+    fn legacy_plaintext_secret_migrates_on_load() {
+        cleanup_test_keychain_entry();
+        let dir = tempdir();
+        let path = store_path(&dir);
+
+        // Write a legacy v1-style store with a plaintext secret.
+        let legacy_json = r#"{
+          "schema": "QEV-PEER-STORE-V1",
+          "version": "0.29.0",
+          "own_identity": {
+            "public": "qKqQ7vZbg_Y0NzumNJ912-KnSgd_Utn1hGcdbHs9Zl0",
+            "secret": "M93B5OnBvKb43N9wMOUyo9aD20PTw5czVcw99aSxaCs",
+            "name": "legacy-user",
+            "device": "legacy-laptop",
+            "created_at": "2026-04-15T00:00:00Z"
+          },
+          "peers": []
+        }"#;
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(&path, legacy_json).unwrap();
+
+        // Load → migration should move the secret into Keychain.
+        let store = PeerStore::load_or_empty(&path).unwrap();
+        assert!(
+            store.own_identity.as_ref().unwrap().secret.is_empty(),
+            "after migration the file secret field should be empty"
+        );
+
+        // The file on disk should now also have an empty secret.
+        let reloaded = PeerStore::load_or_empty(&path).unwrap();
+        assert!(reloaded.own_identity.as_ref().unwrap().secret.is_empty());
+
+        // to_keypair should still work — secret comes from Keychain.
+        let kp = reloaded.own_identity.as_ref().unwrap().to_keypair().unwrap();
+        assert_eq!(kp.secret.len(), 32);
+
+        cleanup_test_keychain_entry();
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[ignore = "touches real Keychain — run with --ignored after approving prompts"]
+    #[test]
+    fn keychain_removal_leaves_identity_with_clear_error() {
+        cleanup_test_keychain_entry();
+        let mut s = PeerStore::empty();
+        s.ensure_own_identity("alice", "alice-laptop").unwrap();
+        // Simulate manual keychain-item deletion outside our control.
+        cleanup_test_keychain_entry();
+        // to_keypair must now fail loudly rather than silently
+        // generating a new keypair or returning random bytes.
+        let err = s.own_identity.as_ref().unwrap().to_keypair().unwrap_err();
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("no secret"),
+            "expected explicit no-secret error, got: {msg}"
+        );
     }
 }

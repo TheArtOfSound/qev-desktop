@@ -56,9 +56,13 @@
        variables (--bg, --text, --accent, etc.) are inherited from
        styles.css which is loaded above. */
 
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
     body {
       background: var(--bg);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
@@ -329,6 +333,7 @@
     .app-status-info { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
     .app-status-ok { background: var(--green-bg); color: var(--green-text); border: 1px solid rgba(13,122,79,0.2); }
     .app-status-err { background: rgba(220,38,38,0.06); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
+    .app-status-warn { background: rgba(230,162,60,0.10); color: #b45309; border: 1px solid rgba(230,162,60,0.3); }
 
     .app-result {
       margin-top: 24px;
@@ -432,6 +437,346 @@
       user-select: none;
     }
 
+    /* --------- Chat messaging UI --------- */
+    .app-chat-badge {
+      display: inline-block;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 5px;
+      font-size: 0.6rem;
+      font-weight: 800;
+      line-height: 16px;
+      text-align: center;
+      background: #e53e3e;
+      color: #fff;
+      border-radius: 8px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .chat-container {
+      display: flex;
+      height: calc(100vh - 160px);
+      min-height: 400px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .chat-peers {
+      width: 220px;
+      min-width: 180px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .chat-peers-header {
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    .chat-peers-empty {
+      padding: 20px 16px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .chat-peer-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .chat-peer-item:hover { background: var(--bg); }
+    .chat-peer-item:active { background: rgba(99,102,241,0.08); }
+    .chat-peer-item.active { background: var(--bg); border-left: 3px solid var(--accent); }
+    .chat-peer-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .chat-peer-preview {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chat-peer-badge {
+      display: inline-block;
+      min-width: 14px;
+      height: 14px;
+      padding: 0 4px;
+      font-size: 0.55rem;
+      font-weight: 800;
+      line-height: 14px;
+      text-align: center;
+      background: #e53e3e;
+      color: #fff;
+      border-radius: 7px;
+      float: right;
+      margin-top: 2px;
+    }
+    .chat-thread {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .chat-thread-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      padding: 40px;
+      text-align: center;
+    }
+    .chat-thread-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      gap: 12px;
+    }
+    .chat-thread-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chat-lock-btn {
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .chat-lock-btn:hover { background: var(--surface); }
+    .chat-lock-btn[data-locked="true"] { border-color: var(--accent); color: var(--accent); }
+    .chat-locked-notice {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(99, 102, 241, 0.06);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      line-height: 1.35;
+    }
+    .chat-unlock-btn-inline {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .chat-unlock-btn-inline:hover { opacity: 0.9; }
+    .chat-msg-cipher {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+      opacity: 0.9;
+      user-select: text;
+      -webkit-user-select: text;
+      word-break: break-all;
+    }
+    .chat-msg-copy {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 0.62rem;
+      padding: 2px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: 0.85;
+    }
+    .chat-msg-in .chat-msg-copy {
+      border-color: var(--border);
+    }
+    .chat-msg-copy:hover { opacity: 1; }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-msg {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .chat-msg-out {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg-in {
+      align-self: flex-start;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg-time {
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      text-align: right;
+    }
+    .chat-msg-in .chat-msg-time { text-align: left; }
+    .chat-msg-status {
+      font-size: 0.58rem;
+      opacity: 0.7;
+      margin-left: 6px;
+    }
+    .chat-input-bar {
+      display: none;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      align-items: flex-end;
+    }
+    .chat-input-bar.chat-input-bar-visible {
+      display: flex;
+    }
+    .chat-input-bar textarea {
+      flex: 1;
+      min-height: 40px;
+      max-height: 120px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--bg);
+      color: var(--text);
+      resize: none;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .chat-input-bar textarea:focus { outline: none; border-color: var(--accent); }
+    .chat-send-btn {
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.1s;
+    }
+    .chat-send-btn:hover { opacity: 0.9; }
+    .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .chat-phrase-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 9999; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .chat-phrase-overlay.chat-phrase-visible {
+      display: flex;
+    }
+    .chat-phrase-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px; max-width: 420px; width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .chat-phrase-card h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+    .chat-phrase-hint { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; margin: 0 0 16px; }
+    .chat-phrase-field {
+      width: 100%; padding: 12px 14px; font-size: 1rem; border: 1px solid var(--border);
+      border-radius: 6px; background: var(--surface); color: var(--text);
+      font-family: inherit; box-sizing: border-box;
+    }
+    .chat-phrase-field:focus { outline: none; border-color: var(--accent); }
+
+    /* Chat: back button only shown on mobile when a peer is active */
+    .chat-thread-back {
+      display: none;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      margin-right: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .chat-thread-back:hover { background: var(--surface); }
+
+    /* Taller tap targets + better active state on all sizes */
+    .chat-peer-item { padding: 14px 16px; }
+    .chat-peer-item.active {
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+      padding-left: 13px;
+    }
+    .chat-peer-name { font-size: 0.9rem; }
+
+    /* Mobile: phone-style stack. Either peer list OR thread visible, never both. */
+    @media (max-width: 700px) {
+      .chat-container { flex-direction: column; height: calc(100vh - 130px); }
+      .chat-peers {
+        width: 100%;
+        max-height: none;
+        border-right: none;
+        border-bottom: none;
+        overflow-y: auto;
+      }
+      .chat-peer-item {
+        display: block;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        border-right: none;
+        min-height: 54px;
+      }
+      .chat-peer-name { font-size: 1rem; }
+      .chat-peer-preview { font-size: 0.78rem; margin-top: 4px; }
+
+      .chat-thread { display: none; }
+      .chat-container.chat-mobile-threaded .chat-peers { display: none; }
+      .chat-container.chat-mobile-threaded .chat-thread { display: flex; }
+
+      .chat-thread-back { display: inline-flex; align-items: center; gap: 4px; }
+      .chat-thread-header { padding: 12px 14px; }
+      .chat-msg { max-width: 85%; font-size: 0.92rem; padding: 12px 16px; }
+      .chat-locked-notice { padding: 10px 14px; font-size: 0.8rem; }
+      .chat-input-bar { padding: 10px 12px; }
+      .chat-input-bar textarea { font-size: 1rem; }
+    }
+
     /* Hidden elements that chat.js wires to but that we do not display
        in the app UI (nonce/salt knobs, mode headline, mode helper).
        They must exist in the DOM so chat.js can set their values
@@ -468,6 +813,64 @@
       margin: 0 0 14px;
       line-height: 1.5;
     }
+
+    /* ---- Identity-at-risk banner ---- */
+    .identity-risk-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      margin: 0 0 14px;
+      background: rgba(230, 162, 60, 0.14);
+      border: 1px solid rgba(230, 162, 60, 0.4);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    /* HTML5 `hidden` attribute is overridden by the class's explicit
+       `display: flex` above — reassert `display: none` at the same
+       specificity + !important so toggling `hidden` actually hides
+       the banner. Without this the JS's hidden=true has no effect
+       and the banner always shows with its HTML-default "0" peer
+       count text. */
+    .identity-risk-banner[hidden] {
+      display: none !important;
+    }
+    .identity-risk-banner-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .identity-risk-banner-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .identity-risk-banner-body strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+    .identity-risk-banner-body span {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    .identity-risk-banner .app-btn-small {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .identity-risk-banner-close {
+      background: transparent;
+      border: 0;
+      color: var(--text-dim);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    .identity-risk-banner-close:hover { color: var(--text); }
     .pair-qr-box {
       margin-top: 14px;
       padding: 14px;
@@ -937,10 +1340,31 @@
   <div id="vault-load-status" class="app-load-badge">Starting up...</div>
 </div>
 
+<!-- Identity-at-risk banner.
+     Shown when the user has paired peers but has never exported a
+     backup of their identity. A Mac wipe without a backup means the
+     user's private key is gone forever and they'd have to re-pair
+     every device. One click on "Back up now" jumps to the Pair tab's
+     backup section. -->
+<div id="identity-risk-banner" class="identity-risk-banner" hidden>
+  <span class="identity-risk-banner-icon" aria-hidden="true">⚠️</span>
+  <div class="identity-risk-banner-body">
+    <strong>Back up your identity.</strong>
+    <span id="identity-risk-banner-detail">
+      You've paired with <span id="identity-risk-peer-count">0</span> device(s).
+      If this Mac is lost or wiped, your private key goes with it and you'll need
+      to re-pair everything. Takes 10 seconds.
+    </span>
+  </div>
+  <button type="button" id="identity-risk-banner-cta" class="app-btn-small">Back up now</button>
+  <button type="button" id="identity-risk-banner-dismiss" class="identity-risk-banner-close" aria-label="Dismiss for this session">×</button>
+</div>
+
 <div class="app-tabs" role="tablist">
   <button type="button" class="app-tab app-tab-active" data-app-tab="lock">Lock a message</button>
   <button type="button" class="app-tab" data-app-tab="open">Open a vault</button>
   <button type="button" id="app-tab-pair" class="app-tab" data-app-tab="pair">Pair <span class="app-tab-beta">beta</span></button>
+  <button type="button" id="app-tab-chat" class="app-tab" data-app-tab="chat">Chat <span id="chat-badge" class="app-chat-badge" style="display:none;"></span></button>
 </div>
 
 <div class="app-panel-wrap">
@@ -1198,6 +1622,9 @@
 
     <div class="pair-section">
       <h3>Relay inbox</h3>
+
+<!-- NOTE: the rest of the Pair panel continues below... -->
+<!-- The Chat panel is a SEPARATE panel that appears when the Chat tab is clicked. -->
       <p class="pair-hint">
         Check for vaults sent to you via the QEV relay when the sender
         wasn't on the same network. The relay only stores opaque
@@ -1206,12 +1633,119 @@
       <button type="button" id="pair-relay-inbox-btn" class="app-btn-small">Check relay inbox</button>
       <div id="pair-relay-inbox-list" class="pair-inbox-list"></div>
     </div>
+
+    <hr class="pair-divider">
+
+    <!-- Identity backup + restore.
+         This is the ONLY way to survive a Mac wipe / hardware loss
+         without losing the ability to be the same identity your peers
+         know. Without a backup, the private key in the OS keystore
+         dies with the machine and the user has to re-pair every
+         device. -->
+    <div id="identity-backup-section" class="pair-section">
+      <h3>Identity backup &amp; restore</h3>
+      <p class="pair-hint" id="identity-backup-status-line">
+        <span id="identity-backup-status-text">Checking backup status&hellip;</span>
+      </p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <button type="button" id="backup-export-btn" class="app-btn-small">Back up my identity</button>
+        <button type="button" id="backup-import-btn" class="app-btn-small">Restore from a backup</button>
+      </div>
+
+      <!-- ===== Export panel ===== -->
+      <div id="backup-export-panel" class="app-hidden">
+        <p class="pair-hint">
+          Pick a strong passphrase &mdash; this is the ONLY thing protecting
+          your private key in the backup file. Use 4+ random words, or a
+          password manager's random-generator. <strong>If you forget it, the
+          backup is useless.</strong>
+        </p>
+        <div class="app-field">
+          <label for="backup-export-passphrase">Passphrase</label>
+          <input type="password" id="backup-export-passphrase" autocomplete="new-password" placeholder="At least 12 characters">
+        </div>
+        <div class="app-field">
+          <label for="backup-export-passphrase-confirm">Confirm passphrase</label>
+          <input type="password" id="backup-export-passphrase-confirm" autocomplete="new-password">
+        </div>
+        <button type="button" id="backup-export-go-btn" class="app-big-btn">Create backup file</button>
+        <button type="button" id="backup-export-cancel-btn" class="app-btn-small" style="margin-left:6px;">Cancel</button>
+        <div id="backup-export-status" class="app-status"></div>
+      </div>
+
+      <!-- ===== Import panel ===== -->
+      <div id="backup-import-panel" class="app-hidden">
+        <p class="pair-hint">
+          <strong>Warning:</strong> Importing REPLACES this device's current
+          identity with the one in the backup. Existing paired peers are
+          merged with the backup's peer list. Use this when you've wiped
+          your Mac and want to restore.
+        </p>
+        <button type="button" id="backup-import-pick-btn" class="app-btn-small">Choose backup file&hellip;</button>
+        <div id="backup-import-filename" class="app-hidden" style="font-size:0.85rem;color:var(--text-dim);margin:6px 0;"></div>
+        <div class="app-field">
+          <label for="backup-import-passphrase">Passphrase</label>
+          <input type="password" id="backup-import-passphrase" autocomplete="current-password">
+        </div>
+        <button type="button" id="backup-import-go-btn" class="app-big-btn" disabled>Restore identity</button>
+        <button type="button" id="backup-import-cancel-btn" class="app-btn-small" style="margin-left:6px;">Cancel</button>
+        <div id="backup-import-status" class="app-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= CHAT PANEL ======================= -->
+  <div id="app-panel-chat" class="app-panel app-panel-hidden">
+    <div class="chat-container">
+      <!-- Left: peer list -->
+      <div class="chat-peers" id="chat-peer-list">
+        <div class="chat-peers-header">Conversations</div>
+        <div class="chat-peers-empty">
+          No paired peers yet. Go to the <strong>Pair</strong> tab to add someone.
+        </div>
+      </div>
+
+      <!-- Right: message thread -->
+      <div class="chat-thread" id="chat-thread">
+        <div class="chat-thread-empty" id="chat-thread-empty">
+          Select a conversation to start chatting.
+        </div>
+        <div class="chat-thread-header" id="chat-thread-header" style="display:none;">
+          <button type="button" id="chat-thread-back" class="chat-thread-back" title="Back to conversations">&#8592; Back</button>
+          <div class="chat-thread-title" id="chat-thread-title"></div>
+          <button type="button" id="chat-lock-btn" class="chat-lock-btn" title="Lock or unlock this conversation">Lock</button>
+        </div>
+        <div class="chat-locked-notice" id="chat-locked-notice" style="display:none;">
+          <span>&#128274; Ciphertext only &mdash; tap Unlock to read. Or copy a message to decrypt elsewhere (Open a vault tab / secure.imagineqira.com/vault).</span>
+          <button type="button" id="chat-unlock-btn" class="chat-unlock-btn-inline">Unlock</button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-bar" id="chat-input-bar" style="display:none;">
+          <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+          <button type="button" id="chat-send-btn" class="chat-send-btn">Send</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
 
+<!-- Top-level phrase dialog — accessible from both Pair and Chat flows. -->
+<div id="chat-phrase-dialog" class="chat-phrase-overlay" style="display:none;">
+  <div class="chat-phrase-card">
+    <h3 id="chat-phrase-title">Agree on a shared phrase</h3>
+    <p class="chat-phrase-hint" id="chat-phrase-hint">This is the secret phrase both of you pick together in person. It encrypts every message. Type the same phrase on both devices. The phrase never leaves this device.</p>
+    <input type="password" id="chat-phrase-input" class="chat-phrase-field" placeholder="Type the shared phrase..." autocomplete="off" spellcheck="false">
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button type="button" id="chat-phrase-ok" class="chat-send-btn" style="flex:1;">Save phrase</button>
+      <button type="button" id="chat-phrase-cancel" class="app-btn-small" style="flex:0;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="app-footer">
-  QEV v0.28.1 &nbsp;&middot;&nbsp; XChaCha20-Poly1305 + Argon2id &nbsp;&middot;&nbsp; &copy; 2026 Qira LLC
+  QEV v0.29.0 &nbsp;&middot;&nbsp; XChaCha20-Poly1305 + Argon2id &nbsp;&middot;&nbsp; &copy; 2026 Qira LLC
 </div>
 
 <!-- Load order matters:
@@ -1233,6 +1767,8 @@
 <script src="./sodium.js"></script>
 <script src="./chat.js"></script>
 <script src="./vendor/jsQR.js"></script>
+<!-- chat-ui.js must load BEFORE pairing.js so pairing can call window.qev* helpers -->
+<script src="./chat-ui.js"></script>
 <script src="./pairing.js"></script>
 
 </body>

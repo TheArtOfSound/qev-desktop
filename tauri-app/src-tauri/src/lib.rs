@@ -33,6 +33,7 @@ use tokio::sync::oneshot;
 // The pairing crate owns the crypto; this file just wires it into
 // Tauri commands so the UI can drive the flow.
 use qev_pairing::{
+    chat_store::{chat_store_path, new_message_id, now_ms, ChatMessage, ChatStore},
     invite::PairingInvite,
     peer_store::{store_path, PeerStore, StoredPeer, TrustLevel},
     safety_number,
@@ -101,6 +102,50 @@ impl PeerStoreState {
             .store
             .lock()
             .map_err(|e| format!("peer store mutex poisoned: {e}"))?;
+        Ok(guard.clone())
+    }
+}
+
+/// Persistent chat history store. Wraps ChatStore with the same
+/// pattern as PeerStoreState: Mutex-guarded, write-through to disk.
+struct ChatStoreState {
+    path: StdPathBuf,
+    store: Mutex<ChatStore>,
+}
+
+impl ChatStoreState {
+    fn new(path: StdPathBuf) -> Result<Self, String> {
+        let store = ChatStore::load_or_empty(&path)?;
+        Ok(Self {
+            path,
+            store: Mutex::new(store),
+        })
+    }
+
+    fn with_write<F, T>(&self, f: F) -> Result<T, String>
+    where
+        F: FnOnce(&mut ChatStore) -> Result<T, String>,
+    {
+        let result = {
+            let mut guard = self
+                .store
+                .lock()
+                .map_err(|e| format!("chat store mutex poisoned: {e}"))?;
+            f(&mut guard)?
+        };
+        let guard = self
+            .store
+            .lock()
+            .map_err(|e| format!("chat store mutex poisoned: {e}"))?;
+        guard.save(&self.path)?;
+        Ok(result)
+    }
+
+    fn snapshot(&self) -> Result<ChatStore, String> {
+        let guard = self
+            .store
+            .lock()
+            .map_err(|e| format!("chat store mutex poisoned: {e}"))?;
         Ok(guard.clone())
     }
 }
@@ -444,8 +489,10 @@ async fn pairing_show_qr(
     // event that the UI subscribes to.
     let handshake_key = keypair.clone();
     let app_for_task = app.clone();
+    let spawn_name = invite.name.clone();
+    let spawn_device = invite.device.clone();
     tokio::spawn(async move {
-        let result = accept_one_pairing(listener, handshake_key).await;
+        let result = accept_one_pairing(listener, handshake_key, spawn_name, spawn_device).await;
         let event_payload = match result {
             Ok(peer) => {
                 // Persist the new peer (or update the existing
@@ -566,7 +613,19 @@ async fn pairing_accept_invite(
     })?;
 
     let initiator = Initiator::new(&own, peer_pk).map_err(|e| e.to_string())?;
-    let channel = initiator.run(stream).await.map_err(|e| e.to_string())?;
+    let mut channel = initiator.run(stream).await.map_err(|e| e.to_string())?;
+
+    // Identity exchange: order mirrors the responder side.
+    // Responder sends first, initiator reads first, then responds.
+    let their_identity = channel.recv_msg().await.map_err(|e| format!("recv identity: {e}"))?;
+    if !matches!(their_identity, QevMessage::Identity { .. }) {
+        return Err(format!("expected Identity from responder, got {their_identity:?}"));
+    }
+    let our_identity = QevMessage::Identity {
+        name: own_name.clone(),
+        device: own_device.clone(),
+    };
+    channel.send_msg(&our_identity).await.map_err(|e| format!("send identity: {e}"))?;
 
     let sn = safety_number(&own.public, &peer_pk);
     let id = invite.static_pk.iter().fold(String::with_capacity(64), |mut s, b| {
@@ -660,6 +719,49 @@ async fn pairing_unpair(
         }
         Ok(())
     })
+}
+
+/// Return our own static public key hex. Used by the UI to derive
+/// the symmetric chat key: both devices hash sort(own_pk, peer_pk)
+/// with the shared phrase, producing the same AEAD key on each side.
+#[tauri::command]
+async fn pairing_own_public_hex(
+    state: tauri::State<'_, PeerStoreState>,
+) -> Result<String, String> {
+    let own = state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+    let mut s = String::with_capacity(64);
+    for b in &own.public {
+        s.push_str(&format!("{b:02x}"));
+    }
+    Ok(s)
+}
+
+/// Compute the safety number for a peer. Symmetric — both devices
+/// see the same 30-digit string. Users compare out loud in person.
+#[tauri::command]
+async fn pairing_safety_number(
+    state: tauri::State<'_, PeerStoreState>,
+    peer_id: String,
+) -> Result<String, String> {
+    let own = state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+    let peer_pk: [u8; 32] = {
+        let snap = state.snapshot()?;
+        let peer = snap
+            .find(&peer_id)
+            .ok_or_else(|| format!("unknown peer: {peer_id}"))?
+            .clone();
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine;
+        let v = URL_SAFE_NO_PAD
+            .decode(peer.static_pk.as_bytes())
+            .map_err(|e| format!("bad peer static_pk: {e}"))?;
+        v.as_slice().try_into().map_err(|_| "peer static_pk not 32 bytes".to_string())?
+    };
+    Ok(qev_pairing::safety_number(&own.public, &peer_pk))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -805,10 +907,14 @@ fn local_ipv4_addrs(port: u16) -> Vec<SocketAddr> {
 }
 
 /// Run a single Noise XK responder accept on the given listener
-/// and return a [`PairedPeer`] record on success.
+/// and return a [`PairedPeer`] record on success. After the
+/// handshake the responder exchanges an Identity message with the
+/// initiator so both sides learn each other's human-readable name.
 async fn accept_one_pairing(
     listener: TcpListener,
     own: StaticKeypair,
+    own_name: String,
+    own_device: String,
 ) -> std::result::Result<PairedPeer, String> {
     let (stream, _remote) = listener
         .accept()
@@ -816,7 +922,20 @@ async fn accept_one_pairing(
         .map_err(|e| format!("accept: {e}"))?;
 
     let responder = Responder::new(&own).map_err(|e| e.to_string())?;
-    let channel = responder.run(stream).await.map_err(|e| e.to_string())?;
+    let mut channel = responder.run(stream).await.map_err(|e| e.to_string())?;
+
+    // Send our identity over the Noise channel, then read theirs.
+    // The relative send/recv order must mirror the initiator side.
+    let our_identity = QevMessage::Identity {
+        name: own_name.clone(),
+        device: own_device.clone(),
+    };
+    channel.send_msg(&our_identity).await.map_err(|e| format!("send identity: {e}"))?;
+    let their_identity = channel.recv_msg().await.map_err(|e| format!("recv identity: {e}"))?;
+    let (peer_name, peer_device) = match their_identity {
+        QevMessage::Identity { name, device } => (name, device),
+        other => return Err(format!("expected Identity, got {other:?}")),
+    };
 
     let peer_pk = channel.peer_static_pk();
     let sn = safety_number(&own.public, &peer_pk);
@@ -827,8 +946,8 @@ async fn accept_one_pairing(
 
     Ok(PairedPeer {
         id,
-        peer_name: "(unknown)".into(),
-        peer_device: "(unknown)".into(),
+        peer_name,
+        peer_device,
         safety_number: sn,
         peer_addrs: vec![],
     })
@@ -876,15 +995,10 @@ async fn relay_send_to_peer(
         s.ensure_own_identity("", "").map_err(|e| e.to_string())
     })?;
 
-    // Build the relay client against the hardcoded default relay
+    // Build the relay client against the hardcoded default relay.
+    // SocketAddr::parse() only accepts IP:PORT — resolve DNS first.
     let server_pk = relay_defaults::relay_server_public_key_bytes()?;
-    let relay_addr: SocketAddr = format!(
-        "{}:{}",
-        relay_defaults::RELAY_HOST,
-        relay_defaults::RELAY_PORT
-    )
-    .parse()
-    .map_err(|e| format!("bad relay addr: {e}"))?;
+    let relay_addr = relay_defaults::relay_socket_addr().await?;
 
     let client = RelayClient::new(relay_addr, server_pk, own);
 
@@ -947,13 +1061,7 @@ async fn relay_fetch_inbox(
     })?;
 
     let server_pk = relay_defaults::relay_server_public_key_bytes()?;
-    let relay_addr: SocketAddr = format!(
-        "{}:{}",
-        relay_defaults::RELAY_HOST,
-        relay_defaults::RELAY_PORT
-    )
-    .parse()
-    .map_err(|e| format!("bad relay addr: {e}"))?;
+    let relay_addr = relay_defaults::relay_socket_addr().await?;
 
     let client = RelayClient::new(relay_addr, server_pk, own);
     let fetch = client.fetch(50).await.map_err(|e| format!("relay fetch: {e}"))?;
@@ -991,13 +1099,7 @@ async fn relay_ack_envelopes(
     })?;
 
     let server_pk = relay_defaults::relay_server_public_key_bytes()?;
-    let relay_addr: SocketAddr = format!(
-        "{}:{}",
-        relay_defaults::RELAY_HOST,
-        relay_defaults::RELAY_PORT
-    )
-    .parse()
-    .map_err(|e| format!("bad relay addr: {e}"))?;
+    let relay_addr = relay_defaults::relay_socket_addr().await?;
 
     let client = RelayClient::new(relay_addr, server_pk, own);
 
@@ -1055,6 +1157,355 @@ async fn is_sealed_cmd(json_str: String) -> Result<bool, String> {
     Ok(qev_pairing::is_sealed(&json_str))
 }
 
+// ------------ Identity backup commands ------------
+//
+// These wrap the `qev_pairing::identity_backup` module for the
+// UI. Export produces an encrypted blob the user saves externally
+// (1Password, USB, email-to-self); import installs it onto a fresh
+// machine. Without a backup, losing the Mac means losing the
+// private key and needing to re-pair every peer.
+
+/// Summary state the Diagnostics / Onboarding UI uses to decide
+/// whether to show the "back up your identity" nudge.
+#[derive(Debug, Clone, serde::Serialize)]
+struct IdentityBackupStatus {
+    /// True once the user has generated a QEV keypair. False on
+    /// a truly fresh install with no peers yet.
+    has_identity: bool,
+    /// True when `last_backup_at` is None — the user has never
+    /// exported their identity. This is the condition that drives
+    /// the big at-risk banner.
+    has_never_backed_up: bool,
+    /// ISO 8601 of the most recent export, or empty string if none.
+    last_backup_at: String,
+    /// Number of paired peers — used in the banner copy to make
+    /// the stakes tangible ("if you lose this Mac, you'll need to
+    /// re-pair all 3 of your devices").
+    peer_count: u32,
+}
+
+/// Return the current backup state so the UI can decide whether
+/// to nudge the user.
+///
+/// This handler is declared SYNC (not `async`) because the work is
+/// purely CPU — grab a std::sync::Mutex, read four fields, done.
+/// Keeping it sync lets Tauri dispatch it on a worker thread via
+/// its normal sync-command path instead of the async path, which
+/// avoids a subtle deadlock: any other `async` command that holds
+/// `PeerStoreState`'s std::sync::Mutex across an `.await` would
+/// block ALL pending async commands, including this one. A sync
+/// command can't hit that footgun.
+#[tauri::command]
+fn identity_backup_status(
+    state: tauri::State<'_, PeerStoreState>,
+) -> Result<IdentityBackupStatus, String> {
+    let snap = state.snapshot()?;
+    Ok(IdentityBackupStatus {
+        has_identity: snap.own_identity.is_some(),
+        has_never_backed_up: snap.last_backup_at.is_none(),
+        last_backup_at: snap.last_backup_at.unwrap_or_default(),
+        peer_count: snap.peers.len() as u32,
+    })
+}
+
+/// Export the full identity (own keypair + paired-peer list) as
+/// a passphrase-locked JSON blob. Returns the blob text so the UI
+/// can hand it to `save_vault_file` with a suggested filename.
+///
+/// Updates `last_backup_at` on success so the at-risk banner can
+/// stop nagging.
+///
+/// On macOS this triggers a Keychain-access prompt the first time
+/// QEV tries to read its own secret (it's added itself to the ACL
+/// during pairing, but some older installs or migrations may
+/// require a re-approval). That prompt is benign.
+#[tauri::command]
+async fn export_identity_backup(
+    state: tauri::State<'_, PeerStoreState>,
+    passphrase: String,
+) -> Result<String, String> {
+    // Pull the current state.
+    let snap = state.snapshot()?;
+    let own = snap
+        .own_identity
+        .clone()
+        .ok_or_else(|| "no identity yet — pair a device first".to_string())?;
+
+    // Resolve the secret (from Keychain if needed) — this is the
+    // only place where the raw private key touches memory outside
+    // the handshake path.
+    let own_with_secret = own.with_unwrapped_secret().map_err(|e| e.to_string())?;
+
+    let envelope =
+        qev_pairing::identity_backup::export_backup(own_with_secret, snap.peers, &passphrase)
+            .map_err(|e| e.to_string())?;
+
+    // Record that a backup exists.
+    let now_iso = {
+        use time::format_description::well_known::Iso8601;
+        use time::OffsetDateTime;
+        let odt: OffsetDateTime = std::time::SystemTime::now().into();
+        odt.format(&Iso8601::DEFAULT)
+            .unwrap_or_else(|_| "1970-01-01T00:00:00.000000000Z".to_string())
+    };
+    state.with_write(|s| {
+        s.last_backup_at = Some(now_iso);
+        Ok(())
+    })?;
+
+    Ok(envelope)
+}
+
+/// Result of an `import_identity_backup` call — the UI uses this
+/// to show a confirmation banner ("Restored 3 peers from
+/// 2026-04-15 backup").
+#[derive(Debug, Clone, serde::Serialize)]
+struct ImportIdentityBackupResult {
+    /// 64-char hex of the restored own-public-key.
+    own_public_hex: String,
+    /// Display name from the restored identity.
+    name: String,
+    /// Device label from the restored identity.
+    device: String,
+    /// How many peers were installed (includes union with existing).
+    peers_restored: u32,
+    /// ISO 8601 from the backup's `created_at`.
+    backup_created_at: String,
+}
+
+/// Import a passphrase-locked identity backup and install it onto
+/// this machine's PeerStore.
+///
+/// WARNING: this REPLACES the local own-identity. Any keypair this
+/// machine already generated is discarded — the user becomes the
+/// identity encoded in the backup. Peers are unioned (existing
+/// peers not in the backup are kept).
+///
+/// On macOS the restored secret is written into the Keychain via
+/// the normal migration path, so subsequent launches behave
+/// identically to a natively-paired install.
+#[tauri::command]
+async fn import_identity_backup(
+    state: tauri::State<'_, PeerStoreState>,
+    envelope_json: String,
+    passphrase: String,
+) -> Result<ImportIdentityBackupResult, String> {
+    let payload = qev_pairing::identity_backup::import_backup(&envelope_json, &passphrase)
+        .map_err(|e| e.to_string())?;
+
+    let name = payload.own_identity.name.clone();
+    let device = payload.own_identity.device.clone();
+    let backup_created_at = payload.own_identity.created_at.clone();
+
+    // Decode own-public-hex for the UI's confirmation blurb.
+    use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+    use base64::Engine;
+    let pub_bytes = URL_SAFE_NO_PAD
+        .decode(payload.own_identity.public.as_bytes())
+        .map_err(|e| format!("decode own_identity.public: {e}"))?;
+    let own_public_hex = pub_bytes
+        .iter()
+        .fold(String::with_capacity(64), |mut s, b| {
+            s.push_str(&format!("{b:02x}"));
+            s
+        });
+
+    // Install the payload into the live store.
+    let peers_restored = state.with_write(|store| {
+        let incoming_count = payload.peers.len() as u32;
+        qev_pairing::identity_backup::apply_backup(store, payload);
+        // Migrate the just-installed plaintext secret into the OS
+        // keystore so subsequent launches don't need the file copy.
+        if let Some(id) = store.own_identity.as_mut() {
+            id.migrate_to_keystore();
+        }
+        Ok(incoming_count)
+    })?;
+
+    Ok(ImportIdentityBackupResult {
+        own_public_hex,
+        name,
+        device,
+        peers_restored,
+        backup_created_at,
+    })
+}
+
+// ------------ Chat commands ------------
+//
+// Messages are encrypted in the UI with a shared phrase and passed
+// to the relay as opaque bytes. The Rust side never sees plaintext;
+// it persists the encrypted envelope strings to chat-messages.json
+// and ships them through relay_send_to_peer with a JSON envelope
+// tagged "chat-v1" so the receiver knows how to route them.
+
+#[tauri::command]
+async fn chat_send(
+    peer_state: tauri::State<'_, PeerStoreState>,
+    chat_state: tauri::State<'_, ChatStoreState>,
+    peer_id: String,
+    text: String,
+) -> Result<String, String> {
+    let msg_id = new_message_id();
+    let ts = now_ms();
+
+    // 1. Store locally as "sending".
+    let local = ChatMessage {
+        id: msg_id.clone(),
+        direction: "outgoing".into(),
+        text: text.clone(),
+        timestamp: ts,
+        status: "sending".into(),
+    };
+    chat_state.with_write(|s| {
+        s.add_message(&peer_id, local);
+        Ok(())
+    })?;
+
+    // 2. Look up peer pk, build relay client, deliver.
+    let peer_pk: [u8; 32] = {
+        let snap = peer_state.snapshot()?;
+        let peer = snap
+            .find(&peer_id)
+            .ok_or_else(|| format!("unknown peer: {peer_id}"))?
+            .clone();
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine;
+        let v = URL_SAFE_NO_PAD
+            .decode(peer.static_pk.as_bytes())
+            .map_err(|e| format!("bad peer static_pk: {e}"))?;
+        v.as_slice().try_into().map_err(|_| "peer static_pk not 32 bytes".to_string())?
+    };
+
+    let own = peer_state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+
+    let server_pk = relay_defaults::relay_server_public_key_bytes()?;
+    let relay_addr = relay_defaults::relay_socket_addr().await?;
+    let client = RelayClient::new(relay_addr, server_pk, own);
+
+    let envelope = serde_json::to_vec(&serde_json::json!({
+        "type": "chat-v1",
+        "msg_id": msg_id,
+        "text": text,
+        "timestamp": ts,
+    }))
+    .map_err(|e| format!("envelope encode: {e}"))?;
+
+    let send_result = client.deliver(&peer_pk, envelope).await;
+
+    // 3. Update status based on delivery outcome.
+    let status = match &send_result {
+        Ok(_) => "sent",
+        Err(_) => "failed",
+    };
+    chat_state.with_write(|s| {
+        s.update_status(&peer_id, &msg_id, status);
+        Ok(())
+    })?;
+
+    send_result.map_err(|e| format!("relay deliver: {e}"))?;
+    Ok(msg_id)
+}
+
+#[tauri::command]
+async fn chat_get_history(
+    chat_state: tauri::State<'_, ChatStoreState>,
+    peer_id: String,
+) -> Result<Vec<ChatMessage>, String> {
+    let store = chat_state.snapshot()?;
+    Ok(store.get_messages(&peer_id))
+}
+
+#[tauri::command]
+async fn chat_mark_read(
+    chat_state: tauri::State<'_, ChatStoreState>,
+    peer_id: String,
+) -> Result<(), String> {
+    chat_state.with_write(|s| {
+        s.mark_all_read(&peer_id);
+        Ok(())
+    })
+}
+
+#[tauri::command]
+async fn chat_unread_counts(
+    chat_state: tauri::State<'_, ChatStoreState>,
+) -> Result<std::collections::HashMap<String, usize>, String> {
+    let store = chat_state.snapshot()?;
+    let mut out = std::collections::HashMap::new();
+    for peer_id in store.conversations.keys() {
+        out.insert(peer_id.clone(), store.unread_count(peer_id));
+    }
+    Ok(out)
+}
+
+/// Fetch pending chat-v1 envelopes from the relay, decode, append
+/// to history, ack to the relay. Returns the count of new messages.
+#[tauri::command]
+async fn chat_fetch_relay_messages(
+    peer_state: tauri::State<'_, PeerStoreState>,
+    chat_state: tauri::State<'_, ChatStoreState>,
+) -> Result<u32, String> {
+    let own = peer_state.with_write(|s| {
+        s.ensure_own_identity("", "").map_err(|e| e.to_string())
+    })?;
+    let server_pk = relay_defaults::relay_server_public_key_bytes()?;
+    let relay_addr = relay_defaults::relay_socket_addr().await?;
+    let client = RelayClient::new(relay_addr, server_pk, own);
+    let fetch = client.fetch(50).await.map_err(|e| format!("relay fetch: {e}"))?;
+
+    let mut chat_ids_to_ack: Vec<[u8; 16]> = Vec::new();
+    let mut new_count: u32 = 0;
+
+    for env in fetch.envelopes {
+        // Attempt to parse as a chat-v1 envelope. Any other type is
+        // left in the inbox for a different handler (e.g. vault-transfer).
+        let payload_str = String::from_utf8_lossy(&env.bytes);
+        let Ok(v) = serde_json::from_str::<serde_json::Value>(&payload_str) else {
+            continue;
+        };
+        if v.get("type").and_then(|t| t.as_str()) != Some("chat-v1") {
+            continue;
+        }
+        let text = v.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string();
+        let msg_id = v
+            .get("msg_id")
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(new_message_id);
+        let timestamp = v.get("timestamp").and_then(|t| t.as_u64()).unwrap_or_else(now_ms);
+
+        let from_hex = env.from.iter().fold(String::with_capacity(64), |mut s, b| {
+            s.push_str(&format!("{b:02x}"));
+            s
+        });
+
+        chat_state.with_write(|s| {
+            s.add_message(
+                &from_hex,
+                ChatMessage {
+                    id: msg_id,
+                    direction: "incoming".into(),
+                    text,
+                    timestamp,
+                    status: "delivered".into(),
+                },
+            );
+            Ok(())
+        })?;
+        chat_ids_to_ack.push(env.id);
+        new_count += 1;
+    }
+
+    if !chat_ids_to_ack.is_empty() {
+        let _ = client.ack(&chat_ids_to_ack).await;
+    }
+
+    Ok(new_count)
+}
+
 fn hex_to_32(hex: &str) -> std::result::Result<[u8; 32], String> {
     if hex.len() != 64 {
         return Err(format!("public_hex wrong length: {} (expected 64)", hex.len()));
@@ -1089,12 +1540,22 @@ pub fn run() {
             pairing_peers_list,
             pairing_verify_peer,
             pairing_unpair,
+            pairing_own_public_hex,
+            pairing_safety_number,
             relay_send_to_peer,
             relay_fetch_inbox,
             relay_ack_envelopes,
             seal_vault_cmd,
             unseal_vault_cmd,
             is_sealed_cmd,
+            identity_backup_status,
+            export_identity_backup,
+            import_identity_backup,
+            chat_send,
+            chat_get_history,
+            chat_mark_read,
+            chat_unread_counts,
+            chat_fetch_relay_messages,
         ])
         .setup(|app| {
             #[cfg(desktop)]
@@ -1115,6 +1576,12 @@ pub fn run() {
             let state = PeerStoreState::new(path)
                 .map_err(|e| format!("peer store init: {e}"))?;
             app.manage(state);
+
+            // Chat store sits alongside the peer store.
+            let chat_path = chat_store_path(&data_dir);
+            let chat_state = ChatStoreState::new(chat_path)
+                .map_err(|e| format!("chat store init: {e}"))?;
+            app.manage(chat_state);
 
             Ok(())
         })

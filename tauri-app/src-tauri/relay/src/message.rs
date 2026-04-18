@@ -7,7 +7,7 @@
 //! server-push in phase 3.0.
 
 use crate::error::{Error, Result};
-use crate::{ENVELOPE_ID_BYTES, MAX_ENVELOPE_BYTES, PROTOCOL_VERSION};
+use crate::{ENVELOPE_ID_BYTES, MAX_ENVELOPE_BYTES, MAX_LINK_PAYLOAD_BYTES, PROTOCOL_VERSION};
 use serde::{Deserialize, Serialize};
 
 /// Envelope as it appears on the wire inside a `FetchResult`
@@ -123,22 +123,115 @@ pub enum RelayMessage {
         /// Maximum envelope bytes the server will accept.
         max_envelope_bytes: u32,
     },
+
+    // ---- Qira Link live-relay extensions (v1) ----
+    //
+    // These variants support the Qira Link VPN product: a live
+    // bidirectional packet-forwarding mode layered on the same
+    // Noise XK channel. Orthogonal to the existing store-and-
+    // forward Deliver/Fetch variants — a single session is
+    // EITHER in one-shot mode (Deliver/Fetch/Ack) OR in live
+    // mode (LinkAttach → LinkTunnel ↔ LinkInbound), never both.
+    //
+    // The server distinguishes modes by the first message:
+    //   - LinkAttach → live mode, connection stays open
+    //   - anything else → one-shot mode (legacy QEV behaviour)
+
+    /// Client → server: enter live mode. The server registers
+    /// this session as the live delivery endpoint for the
+    /// client's pk (learned from the Noise handshake), and
+    /// starts accepting subsequent `LinkTunnel` messages.
+    /// At most one live session per pk — if the pk is already
+    /// attached, the server returns an `Error { code: "already_attached" }`
+    /// and keeps the existing attachment.
+    #[serde(rename = "link-attach-v1")]
+    LinkAttach {},
+
+    /// Server → client: live mode confirmed.
+    /// Sent exactly once, immediately after a successful
+    /// `LinkAttach`. After this the client may begin sending
+    /// `LinkTunnel` messages.
+    #[serde(rename = "link-attach-ack-v1")]
+    LinkAttachAck {
+        /// Protocol version the server is speaking.
+        version: String,
+        /// Max bytes per LinkTunnel payload. Much smaller than
+        /// MAX_ENVELOPE_BYTES because these are wire-speed
+        /// UDP-sized packets, not large envelopes.
+        max_payload_bytes: u32,
+    },
+
+    /// Client → server (live mode only): forward a Qira Link
+    /// UDP payload to the recipient pk. The payload is opaque
+    /// to the relay — in practice it's a
+    /// `qira_link_core::MessageTransport`-encoded WG-shaped
+    /// ciphertext packet, but the relay never looks inside.
+    ///
+    /// Ephemeral: the relay does NOT persist these. If the
+    /// recipient is not currently attached the server returns
+    /// `LinkUnreachable { to }` (not Error) so a briefly
+    /// disconnected peer just drops one packet, not the whole
+    /// session.
+    #[serde(rename = "link-tunnel-v1")]
+    LinkTunnel {
+        /// 32-byte recipient pk.
+        #[serde(with = "serde_bytes")]
+        to: Vec<u8>,
+        /// Opaque packet bytes.
+        #[serde(with = "serde_bytes")]
+        payload: Vec<u8>,
+    },
+
+    /// Server → client (live mode only): a `LinkTunnel` payload
+    /// forwarded from another attached peer.
+    #[serde(rename = "link-inbound-v1")]
+    LinkInbound {
+        /// 32-byte sender pk (the peer that sent the payload).
+        #[serde(with = "serde_bytes")]
+        from: Vec<u8>,
+        /// Opaque packet bytes, as received.
+        #[serde(with = "serde_bytes")]
+        payload: Vec<u8>,
+    },
+
+    /// Server → client (live mode only): the peer named in a
+    /// previous `LinkTunnel { to }` is not currently attached.
+    /// Soft failure — the session stays open; the client may
+    /// back off and retry later.
+    #[serde(rename = "link-unreachable-v1")]
+    LinkUnreachable {
+        /// 32-byte pk of the peer we tried to reach.
+        #[serde(with = "serde_bytes")]
+        to: Vec<u8>,
+    },
 }
 
 impl RelayMessage {
     /// CBOR-encode the message to bytes. Enforces the
-    /// `MAX_ENVELOPE_BYTES` cap on Deliver payloads before
-    /// encoding.
+    /// `MAX_ENVELOPE_BYTES` cap on Deliver payloads and the
+    /// `MAX_LINK_PAYLOAD_BYTES` cap on LinkTunnel payloads
+    /// before encoding.
     pub fn encode(&self) -> Result<Vec<u8>> {
-        // Pre-flight size check on Deliver so the client catches
-        // oversize payloads before they hit the wire.
-        if let RelayMessage::Deliver { envelope, .. } = self {
-            if envelope.len() > MAX_ENVELOPE_BYTES {
-                return Err(Error::TooLarge {
-                    size: envelope.len(),
-                    max: MAX_ENVELOPE_BYTES,
-                });
+        // Pre-flight size checks so the client catches oversize
+        // payloads before they hit the wire.
+        match self {
+            RelayMessage::Deliver { envelope, .. } => {
+                if envelope.len() > MAX_ENVELOPE_BYTES {
+                    return Err(Error::TooLarge {
+                        size: envelope.len(),
+                        max: MAX_ENVELOPE_BYTES,
+                    });
+                }
             }
+            RelayMessage::LinkTunnel { payload, .. } => {
+                if payload.len() > MAX_LINK_PAYLOAD_BYTES {
+                    return Err(Error::TooLarge {
+                        size: payload.len(),
+                        max: MAX_LINK_PAYLOAD_BYTES,
+                    });
+                }
+            }
+            _ => {}
         }
         let mut buf = Vec::with_capacity(256);
         ciborium::ser::into_writer(self, &mut buf)?;
@@ -291,5 +384,79 @@ mod tests {
         assert!(check_id_bytes("id", &[0u8; 16]).is_ok());
         assert!(check_id_bytes("id", &[0u8; 15]).is_err());
         assert!(check_id_bytes("id", &[0u8; 17]).is_err());
+    }
+
+    // ---- Qira Link live-mode variants ----
+
+    #[test]
+    fn link_attach_round_trip() {
+        let m = RelayMessage::LinkAttach {};
+        let bytes = m.encode().unwrap();
+        assert_eq!(RelayMessage::decode(&bytes).unwrap(), m);
+    }
+
+    #[test]
+    fn link_attach_ack_round_trip() {
+        let m = RelayMessage::LinkAttachAck {
+            version: PROTOCOL_VERSION.to_string(),
+            max_payload_bytes: MAX_LINK_PAYLOAD_BYTES as u32,
+        };
+        let bytes = m.encode().unwrap();
+        assert_eq!(RelayMessage::decode(&bytes).unwrap(), m);
+    }
+
+    #[test]
+    fn link_tunnel_round_trip() {
+        let m = RelayMessage::LinkTunnel {
+            to: vec![0xABu8; 32],
+            payload: b"ciphertext goes here".to_vec(),
+        };
+        let bytes = m.encode().unwrap();
+        assert_eq!(RelayMessage::decode(&bytes).unwrap(), m);
+    }
+
+    #[test]
+    fn link_tunnel_rejects_oversize_payload() {
+        let m = RelayMessage::LinkTunnel {
+            to: vec![0xABu8; 32],
+            payload: vec![0u8; MAX_LINK_PAYLOAD_BYTES + 1],
+        };
+        let err = m.encode().unwrap_err();
+        assert!(matches!(err, Error::TooLarge { .. }));
+    }
+
+    #[test]
+    fn link_inbound_round_trip() {
+        let m = RelayMessage::LinkInbound {
+            from: vec![0x42u8; 32],
+            payload: b"forwarded".to_vec(),
+        };
+        let bytes = m.encode().unwrap();
+        assert_eq!(RelayMessage::decode(&bytes).unwrap(), m);
+    }
+
+    #[test]
+    fn link_unreachable_round_trip() {
+        let m = RelayMessage::LinkUnreachable {
+            to: vec![0x77u8; 32],
+        };
+        let bytes = m.encode().unwrap();
+        assert_eq!(RelayMessage::decode(&bytes).unwrap(), m);
+    }
+
+    #[test]
+    fn link_tunnel_tag_is_stable() {
+        // Wire-format guard: CBOR-encoding of the type tag must
+        // be exactly "link-tunnel-v1" so future forks can't drift.
+        let m = RelayMessage::LinkTunnel {
+            to: vec![0u8; 32],
+            payload: b"x".to_vec(),
+        };
+        let bytes = m.encode().unwrap();
+        let hay = String::from_utf8_lossy(&bytes);
+        assert!(
+            hay.contains("link-tunnel-v1"),
+            "tag must be 'link-tunnel-v1' in CBOR-encoded form; got {hay:?}"
+        );
     }
 }

@@ -40,6 +40,22 @@ pub const RELAY_PORT: u16 = 7892;
 pub const RELAY_SERVER_PUBLIC_KEY_HEX: &str =
     "b6b77291e633e4ed98918a5ac90e4b2e5083da2a787497785677150d9fcf3749";
 
+/// Resolve the relay's DNS name to a SocketAddr. `SocketAddr::parse`
+/// only accepts IP:PORT — it cannot resolve DNS names. We use DNS
+/// lookup to resolve `secure.imagineqira.com` to an IP and return
+/// the first resolved address. This is the critical fix — without
+/// it, every relay command fails with "bad relay addr".
+pub async fn relay_socket_addr() -> Result<std::net::SocketAddr, String> {
+    use tokio::net::lookup_host;
+    let host_port = format!("{}:{}", RELAY_HOST, RELAY_PORT);
+    let mut addrs = lookup_host(&host_port)
+        .await
+        .map_err(|e| format!("DNS lookup failed for {host_port}: {e}"))?;
+    addrs
+        .next()
+        .ok_or_else(|| format!("no addresses resolved for {host_port}"))
+}
+
 /// Convert [`RELAY_SERVER_PUBLIC_KEY_HEX`] to its 32-byte
 /// binary representation. Returns an error if the constant is
 /// malformed — which would be a bug caught at compile/run time

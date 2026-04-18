@@ -19,7 +19,7 @@
 use crate::error::{Error, Result};
 use crate::message::{check_id_bytes, check_pk_bytes, RelayMessage, WireEnvelope};
 use crate::store::{Envelope, EnvelopeStore};
-use crate::{ENVELOPE_ID_BYTES, MAX_ENVELOPE_BYTES};
+use crate::{ENVELOPE_ID_BYTES, MAX_ENVELOPE_BYTES, MAX_LINK_PAYLOAD_BYTES, PROTOCOL_VERSION};
 
 use qev_pairing::{Responder, StaticKeypair};
 use std::collections::HashMap;
@@ -28,8 +28,14 @@ use std::sync::Arc;
 use std::time::Instant;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpListener;
-use tokio::sync::Mutex;
-use tracing::{error, info, warn};
+use tokio::sync::{mpsc, Mutex};
+use tracing::{debug, error, info, trace, warn};
+
+/// In-memory registry of currently-attached Qira Link live
+/// sessions, keyed by the session's pk (learned from the Noise
+/// handshake). Maps to an mpsc sender that the forwarding path
+/// uses to deliver inbound packets to that session's writer loop.
+type LiveSessions = Arc<Mutex<HashMap<[u8; 32], mpsc::UnboundedSender<RelayMessage>>>>;
 
 /// Per-client rate limiter using a sliding-window counter.
 /// Tokens refill at `max_per_minute / 60` per second.
@@ -101,6 +107,10 @@ where
     deliver_limiter: RateLimiter,
     /// Per-recipient fetch rate limiter.
     fetch_limiter: RateLimiter,
+    /// Currently-attached Qira Link live sessions. Shared across
+    /// every spawned connection task so one peer's LinkTunnel
+    /// message can reach another peer's live session.
+    live_sessions: LiveSessions,
 }
 
 impl<S> RelayService<S>
@@ -124,6 +134,7 @@ where
             store,
             deliver_limiter: RateLimiter::new(deliver_per_min),
             fetch_limiter: RateLimiter::new(fetch_per_min),
+            live_sessions: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -166,8 +177,16 @@ where
         Ok(())
     }
 
-    /// Handle one inbound connection: Noise XK handshake, one
-    /// request, one response, close.
+    /// Handle one inbound connection.
+    ///
+    /// After the Noise XK handshake, the first client message
+    /// selects the session mode:
+    ///
+    /// - `LinkAttach` → live mode (Qira Link). The connection
+    ///   stays open and the server forwards `LinkTunnel` messages
+    ///   between this session and other attached sessions.
+    /// - anything else → one-shot mode (legacy QEV vault
+    ///   Deliver/Fetch/Ack). One request, one response, close.
     async fn handle_connection<T>(
         &self,
         stream: T,
@@ -185,11 +204,17 @@ where
             "handshake completed"
         );
 
-        // Read one framed Noise message from the channel, decode
-        // it as a RelayMessage, dispatch, and respond.
         let request_bytes = channel.recv().await?;
         let request = RelayMessage::decode(&request_bytes)?;
 
+        // Branch on mode. LinkAttach opens a live-mode loop that
+        // doesn't return until the connection closes.
+        if matches!(request, RelayMessage::LinkAttach {}) {
+            return self.handle_live_session(peer_pk, channel).await;
+        }
+
+        // One-shot mode: dispatch the first request, send one
+        // response, close.
         let response = match self.dispatch(&peer_pk, request).await {
             Ok(r) => r,
             Err(e) => {
@@ -204,6 +229,189 @@ where
 
         let response_bytes = response.encode()?;
         channel.send(&response_bytes).await?;
+        Ok(())
+    }
+
+    /// Run a Qira Link live session.
+    ///
+    /// Registers `peer_pk` in the live-session registry so other
+    /// attached peers can target it. Enters a select loop that:
+    ///
+    /// 1. Reads `LinkTunnel` messages from the client and forwards
+    ///    them to the recipient's mpsc (or replies `LinkUnreachable`
+    ///    if no such recipient is attached).
+    /// 2. Drains inbound `LinkInbound` messages from other sessions
+    ///    and writes them out on this Noise channel.
+    ///
+    /// Exits cleanly on connection close or any write/read error.
+    /// Always unregisters on exit.
+    async fn handle_live_session<T>(
+        &self,
+        peer_pk: [u8; 32],
+        mut channel: qev_pairing::Channel<T>,
+    ) -> Result<()>
+    where
+        T: AsyncRead + AsyncWrite + Unpin,
+    {
+        // Create the mailbox the server-side forwarding path uses
+        // to deliver inbound packets to this session.
+        let (tx, mut rx) = mpsc::unbounded_channel::<RelayMessage>();
+
+        // Register, atomically, refusing duplicates.
+        {
+            let mut map = self.live_sessions.lock().await;
+            if map.contains_key(&peer_pk) {
+                // Another live session already owns this pk.
+                // Tell the new client and close the connection.
+                drop(map);
+                let err = RelayMessage::error(
+                    "already_attached",
+                    "another live session is already attached for this pk",
+                );
+                let _ = channel.send(&err.encode()?).await;
+                return Ok(());
+            }
+            map.insert(peer_pk, tx);
+        }
+
+        // Acknowledge the attach.
+        let ack = RelayMessage::LinkAttachAck {
+            version: PROTOCOL_VERSION.to_string(),
+            max_payload_bytes: MAX_LINK_PAYLOAD_BYTES as u32,
+        };
+        if let Err(e) = channel.send(&ack.encode()?).await {
+            warn!(peer_pk = %hex32(&peer_pk), error = %e, "attach ack write failed");
+            self.live_sessions.lock().await.remove(&peer_pk);
+            return Err(e.into());
+        }
+
+        info!(peer_pk = %hex32(&peer_pk), "link live session attached");
+
+        // Select loop: read-from-client OR deliver-from-mpsc.
+        // `biased` drains outbound first when both are ready — this
+        // keeps our latency low for the typical "many packets flowing"
+        // case where mpsc is rarely idle.
+        let result: Result<()> = loop {
+            tokio::select! {
+                biased;
+                // Inbound from other sessions → write out to this client.
+                maybe_msg = rx.recv() => {
+                    let Some(msg) = maybe_msg else { break Ok(()); };
+                    match msg.encode() {
+                        Ok(bytes) => {
+                            if let Err(e) = channel.send(&bytes).await {
+                                debug!(peer_pk = %hex32(&peer_pk), error = %e, "live session send failed");
+                                break Err(e.into());
+                            }
+                        }
+                        Err(e) => {
+                            warn!(peer_pk = %hex32(&peer_pk), error = %e, "encoding outbound LinkInbound failed");
+                        }
+                    }
+                }
+                // From-client → forward or respond LinkUnreachable.
+                recv = channel.recv() => {
+                    let bytes = match recv {
+                        Ok(b) => b,
+                        Err(e) => {
+                            debug!(peer_pk = %hex32(&peer_pk), error = %e, "live session recv ended");
+                            break Ok(());
+                        }
+                    };
+                    match RelayMessage::decode(&bytes) {
+                        Ok(RelayMessage::LinkTunnel { to, payload }) => {
+                            if let Err(e) = self
+                                .forward_link_tunnel(&peer_pk, to, payload)
+                                .await
+                            {
+                                // Delivery failure → tell the sender.
+                                match e {
+                                    ForwardError::Unreachable(to_bytes) => {
+                                        let reply = RelayMessage::LinkUnreachable { to: to_bytes };
+                                        if let Err(e2) = channel.send(&reply.encode()?).await {
+                                            break Err(e2.into());
+                                        }
+                                    }
+                                    ForwardError::InvalidTo => {
+                                        let reply = RelayMessage::error(
+                                            "invalid_to",
+                                            "LinkTunnel.to must be a 32-byte pk",
+                                        );
+                                        if let Err(e2) = channel.send(&reply.encode()?).await {
+                                            break Err(e2.into());
+                                        }
+                                    }
+                                    ForwardError::TooLarge(sz) => {
+                                        let reply = RelayMessage::error(
+                                            "too_large",
+                                            format!("LinkTunnel payload {sz} bytes exceeds cap {MAX_LINK_PAYLOAD_BYTES}"),
+                                        );
+                                        if let Err(e2) = channel.send(&reply.encode()?).await {
+                                            break Err(e2.into());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Ok(RelayMessage::LinkAttach {}) => {
+                            // Duplicate attach on same session; ignore.
+                            trace!(peer_pk = %hex32(&peer_pk), "duplicate LinkAttach in live session, ignored");
+                        }
+                        Ok(_other) => {
+                            // Any other variant is invalid in live mode.
+                            let reply = RelayMessage::error(
+                                "protocol",
+                                "live session only accepts LinkTunnel messages",
+                            );
+                            if let Err(e) = channel.send(&reply.encode()?).await {
+                                break Err(e.into());
+                            }
+                        }
+                        Err(e) => {
+                            warn!(peer_pk = %hex32(&peer_pk), error = %e, "malformed live-mode message");
+                        }
+                    }
+                }
+            }
+        };
+
+        // Unregister on exit, regardless of outcome.
+        self.live_sessions.lock().await.remove(&peer_pk);
+        info!(peer_pk = %hex32(&peer_pk), "link live session detached");
+
+        result
+    }
+
+    /// Try to deliver a LinkTunnel payload to the recipient's
+    /// attached mpsc sender.
+    async fn forward_link_tunnel(
+        &self,
+        from: &[u8; 32],
+        to: Vec<u8>,
+        payload: Vec<u8>,
+    ) -> std::result::Result<(), ForwardError> {
+        if payload.len() > MAX_LINK_PAYLOAD_BYTES {
+            return Err(ForwardError::TooLarge(payload.len()));
+        }
+        if to.len() != 32 {
+            return Err(ForwardError::InvalidTo);
+        }
+        let mut to_pk = [0u8; 32];
+        to_pk.copy_from_slice(&to);
+
+        let map = self.live_sessions.lock().await;
+        let Some(sender) = map.get(&to_pk) else {
+            return Err(ForwardError::Unreachable(to));
+        };
+        let inbound = RelayMessage::LinkInbound {
+            from: from.to_vec(),
+            payload,
+        };
+        // If the send fails the recipient's session is shutting
+        // down — treat as unreachable so the sender is notified.
+        sender
+            .send(inbound)
+            .map_err(|_| ForwardError::Unreachable(to))?;
         Ok(())
     }
 
@@ -284,11 +492,40 @@ where
             | RelayMessage::FetchResult { .. }
             | RelayMessage::AckResult { .. }
             | RelayMessage::Error { .. }
-            | RelayMessage::Hello { .. } => Err(Error::Protocol(
+            | RelayMessage::Hello { .. }
+            | RelayMessage::LinkAttachAck { .. }
+            | RelayMessage::LinkInbound { .. }
+            | RelayMessage::LinkUnreachable { .. } => Err(Error::Protocol(
                 "client sent a server-only message variant".into(),
+            )),
+
+            // LinkAttach is handled earlier by `handle_connection`
+            // before it reaches `dispatch` — if it slips through
+            // here something is wrong.
+            RelayMessage::LinkAttach {} => Err(Error::Protocol(
+                "LinkAttach must be the first message on a session".into(),
+            )),
+
+            // LinkTunnel outside a live session has no context.
+            RelayMessage::LinkTunnel { .. } => Err(Error::Protocol(
+                "LinkTunnel only valid inside a live session".into(),
             )),
         }
     }
+}
+
+/// Error from `forward_link_tunnel`. Distinguished from the main
+/// `Error` type because unreachable recipients aren't a fatal
+/// problem for the live session — we just tell the sender and
+/// keep going.
+#[derive(Debug)]
+enum ForwardError {
+    /// The recipient is not currently attached.
+    Unreachable(Vec<u8>),
+    /// The `to` field wasn't 32 bytes.
+    InvalidTo,
+    /// The payload exceeded the max per-packet cap.
+    TooLarge(usize),
 }
 
 // ---- Helpers ----

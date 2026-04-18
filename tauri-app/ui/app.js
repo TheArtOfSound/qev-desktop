@@ -379,10 +379,9 @@
     var panels = {
       lock: document.getElementById("app-panel-lock"),
       open: document.getElementById("app-panel-open"),
-      // Phase 2 pair panel — optional: only present on builds
-      // that have the pairing UI markup. Older builds of the
-      // tauri-app HTML don't include it, so we tolerate null.
+      // Phase 2 pair panel + Phase 5 chat panel — optional.
       pair: document.getElementById("app-panel-pair"),
+      chat: document.getElementById("app-panel-chat"),
     };
     if (tabs.length === 0 || !panels.lock || !panels.open) {
       console.error("QEV: tab switcher DOM not found");

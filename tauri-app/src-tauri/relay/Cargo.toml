@@ -69,3 +69,8 @@ sqlite = ["dep:rusqlite"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "sync", "test-util"] }
+# Extra crypto for the inject_chat_to_mac integration test — mirrors
+# the AEAD path the UI uses so we can simulate encrypted chat.
+blake2 = "0.10"
+chacha20poly1305 = "0.10"
+rand = "0.8"

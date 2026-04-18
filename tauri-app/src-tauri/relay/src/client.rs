@@ -207,5 +207,10 @@ fn discriminant(m: &RelayMessage) -> &'static str {
         RelayMessage::AckResult { .. } => "AckResult",
         RelayMessage::Error { .. } => "Error",
         RelayMessage::Hello { .. } => "Hello",
+        RelayMessage::LinkAttach { .. } => "LinkAttach",
+        RelayMessage::LinkAttachAck { .. } => "LinkAttachAck",
+        RelayMessage::LinkTunnel { .. } => "LinkTunnel",
+        RelayMessage::LinkInbound { .. } => "LinkInbound",
+        RelayMessage::LinkUnreachable { .. } => "LinkUnreachable",
     }
 }
