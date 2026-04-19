@@ -53,13 +53,35 @@ use std::time::{Duration, SystemTime};
 use time::format_description::well_known::Iso8601;
 use time::OffsetDateTime;
 
-/// Default invite expiry — 10 minutes from creation.
+/// Default invite expiry — 60 minutes from creation.
 ///
 /// The static key in the invite is long-lived, but the network
 /// addresses and the pairing session itself have a short window.
 /// An invite that's been lying around for hours is probably not
 /// a legitimate pairing request.
-pub const DEFAULT_EXPIRY: Duration = Duration::from_secs(10 * 60);
+///
+/// Was 10 minutes through v0.29.0. Bumped to 60 because users
+/// kept hitting `InviteExpired` on fresh invites when the two
+/// devices' clocks differed by even a few minutes — a common
+/// case on Android phones (which drift when asleep) and on Macs
+/// where NTP is slow to sync after a sleep/wake cycle. The real
+/// security comes from the Noise XK handshake + in-person
+/// safety-number verification, not from a tight expiry window.
+pub const DEFAULT_EXPIRY: Duration = Duration::from_secs(60 * 60);
+
+/// Tolerance for device-to-device clock skew when checking expiry.
+///
+/// Given a peer-provided `expires_at` (as wall-clock time on the
+/// peer's device) and our local `now`, we accept the invite if
+/// `now <= expires_at + CLOCK_SKEW_TOLERANCE`. 15 minutes covers
+/// nearly all real-world device drift — anything worse than that
+/// is a misconfigured device the user should notice (e.g. the
+/// lock screen says the wrong time).
+///
+/// This tolerance is ONLY applied to expiry checks. The invite's
+/// static public key (the actual trust anchor) is unconditionally
+/// pinned; clock skew can't compromise identity.
+pub const CLOCK_SKEW_TOLERANCE: Duration = Duration::from_secs(15 * 60);
 
 /// Maximum length of the display `name` field (user-chosen label).
 pub const NAME_MAX_LEN: usize = 32;
@@ -211,7 +233,14 @@ impl PairingInvite {
         let expires = parse_iso8601(&self.expires_at).map_err(|_| {
             Error::Invite(format!("bad expires_at: {:?}", self.expires_at))
         })?;
-        if now >= expires {
+        // Tolerate up to CLOCK_SKEW_TOLERANCE of drift between the
+        // creator's and accepter's device clocks. Without this
+        // grace, any device that's even a few minutes behind would
+        // reject freshly-generated invites from its peer — a
+        // UX-killer for Android phones in particular (their clocks
+        // drift noticeably when the phone is asleep).
+        let effective_deadline = expires + CLOCK_SKEW_TOLERANCE;
+        if now >= effective_deadline {
             return Err(Error::InviteExpired(self.expires_at.clone()));
         }
         Ok(())
@@ -582,8 +611,46 @@ mod tests {
         )
         .unwrap();
         // Ask "is this invite still valid 1 hour from now?"
+        // 1h past creation is well beyond 1s expiry + 15min skew
+        // tolerance, so this must reject.
         let future = SystemTime::now() + Duration::from_secs(3600);
         let err = inv.check_expiry(future).unwrap_err();
+        assert!(matches!(err, Error::InviteExpired(_)));
+    }
+
+    #[test]
+    fn check_expiry_tolerates_clock_skew() {
+        // Regression test for the "invite expired seconds after
+        // creation" bug. With a 1s expiry + our 15min skew
+        // tolerance, asking "is this valid 10 minutes from now"
+        // should SUCCEED — the invite's stated deadline has passed
+        // but within tolerance.
+        let inv = PairingInvite::new_with_expiry(
+            sample_pk(),
+            "alice".into(),
+            "alice-phone".into(),
+            sample_addrs(),
+            Duration::from_secs(1),
+        )
+        .unwrap();
+        let skewed_now = SystemTime::now() + Duration::from_secs(10 * 60);
+        inv.check_expiry(skewed_now).expect("10-min skew should be tolerated");
+    }
+
+    #[test]
+    fn check_expiry_rejects_beyond_tolerance() {
+        // 20 minutes past a 1-second invite is 4 min past the
+        // (1s + 15min) effective deadline, so it must reject.
+        let inv = PairingInvite::new_with_expiry(
+            sample_pk(),
+            "alice".into(),
+            "alice-phone".into(),
+            sample_addrs(),
+            Duration::from_secs(1),
+        )
+        .unwrap();
+        let far_future = SystemTime::now() + Duration::from_secs(20 * 60);
+        let err = inv.check_expiry(far_future).unwrap_err();
         assert!(matches!(err, Error::InviteExpired(_)));
     }
 
