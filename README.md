@@ -2,12 +2,9 @@
 
 **Lock proof into a file. Verify it later.**
 
-Proof Lock Labs is the public home for **QEV — Qira Encryption Vault**, a
-local-first vault workflow for encrypted, tamper-evident message envelopes.
+Proof Lock Labs is a Qira LLC public utility surface for **QEV — Qira Encryption Vault**, a local-first vault workflow for encrypted, tamper-evident message envelopes.
 
-QEV is not a new encryption algorithm. It is a practical vault format and tool
-chain built on established cryptographic primitives: XChaCha20-Poly1305,
-Argon2id, deterministic associated-data binding, and a small offline CLI.
+QEV is not a new encryption algorithm. It is a practical vault format and tool chain built on established cryptographic primitives: XChaCha20-Poly1305, Argon2id, deterministic associated-data binding, and a small offline CLI.
 
 ```sh
 npm install -g @bryan237l/qev-cli
@@ -19,8 +16,7 @@ qev unlock proof.vault
 
 ## Why this exists
 
-Normal text files, screenshots, logs, AI outputs, and research notes are easy to
-edit silently. QEV gives users a simple local workflow:
+Normal text files, screenshots, logs, AI outputs, and research notes are easy to edit silently. QEV gives users a simple local workflow:
 
 ```text
 your data -> passphrase -> encrypted vault -> later verification/decryption
@@ -69,13 +65,17 @@ npx @bryan237l/qev-cli self-test
 
 ## What QEV protects
 
-QEV protects the confidentiality and integrity of a vault artifact when the
-passphrase remains secret and the device used to create/open the vault is
-trusted.
+QEV protects the confidentiality and integrity of a vault artifact when the passphrase remains secret and the device used to create/open the vault is trusted.
 
-It does not protect against a weak passphrase, a forgotten phrase, or a
-compromised device. Read the threat model before relying on it for anything
-sensitive.
+It does not protect against a weak passphrase, a forgotten phrase, or a compromised device. Read the threat model before relying on it for anything sensitive.
+
+## What QEV is not
+
+- It is not a password manager.
+- It is not a messenger.
+- It is not a cloud storage encryption service.
+- It is not a new encryption algorithm.
+- It is not a replacement for a professional security audit.
 
 ## Technical model
 
@@ -91,12 +91,12 @@ sensitive.
 - [Threat model](./docs/THREAT_MODEL.md)
 - [Vault format](./docs/VAULT_FORMAT.md)
 - [Security policy](./SECURITY.md)
+- [Security disclaimer](./DISCLAIMER.md)
 - [QEV CLI README](./qev-cli/README.md)
 
 ## GitHub Pages site
 
-This repo includes a static site in `docs/`. Enable GitHub Pages from the `docs/`
-folder on the `main` branch to publish it.
+This repo includes a static site in `docs/`. Enable GitHub Pages from the `docs/` folder on the `main` branch to publish it.
 
 Expected URL after enabling Pages:
 
@@ -106,4 +106,4 @@ https://theartofsound.github.io/qev-desktop/
 
 ## License
 
-MIT © Bryan Leonard / Qira LLC.
+MIT © Bryan Leonard / Qira LLC. Libsodium is distributed under the ISC License.
