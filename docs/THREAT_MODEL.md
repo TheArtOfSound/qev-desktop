@@ -1,199 +1,98 @@
-# BRY-NFET-SX Threat Model
+# QEV threat model
 
-## Purpose
+QEV is a local encrypted vault workflow. It is designed to protect small text or
+file-like artifacts after they have been exported into a vault file.
 
-This document defines the current threat model for BRY-NFET-SX as a local secure packaging and session-envelope system.
+QEV is not a new encryption algorithm. It is a vault format and toolchain built
+on established primitives.
 
-## Security objective
+## Assets protected
 
-BRY-NFET-SX aims to protect the confidentiality and integrity of structured message artifacts while preserving explicit routing policy, deterministic evaluation, and artifact comparison capabilities.
+QEV is designed to protect:
 
-## Protected assets
+- plaintext message content
+- small private notes
+- AI output receipts
+- research notes
+- operational logs
+- portable sensitive records
 
-Primary assets:
+## Primary security goals
 
-- plaintext messages before encryption
-- encrypted packet payloads
-- encrypted multi-message envelope artifacts
-- routing-policy outputs
-- artifact provenance
-- session structure metadata
-- master keys and any derived operational keys
+### Confidentiality
 
-## Security properties targeted
+A vault should not reveal plaintext content to someone who only has the vault
+file and does not know the passphrase.
 
-BRY-NFET-SX currently targets:
+### Integrity
 
-- confidentiality of encrypted payloads
-- integrity and authenticity of encrypted packets
-- integrity of envelope structure
-- reproducibility of evaluation in audit mode
-- traceability of policy choice and artifact differences
-- structured comparison of artifacts produced under different routing policies
+A vault should fail to open if protected fields are changed after creation.
+This includes ciphertext, nonces, KDF parameters, algorithm identifiers, schema,
+version, mode, and creation metadata bound into associated data.
 
-## Out-of-scope claims
+### Portability
 
-BRY-NFET-SX does not currently claim:
+A vault created by the CLI should be readable by compatible QEV implementations
+using the same passphrase and schema version.
 
-- anonymity
-- deniability
-- traffic analysis resistance
-- endpoint compromise resistance
-- secure multi-party key exchange
+### Local-first operation
+
+The CLI works without a network connection. It does not require an account or a
+hosted service.
+
+## Out of scope
+
+QEV does not attempt to provide:
+
+- identity verification
 - forward secrecy
-- post-compromise recovery
-- secure cloud key custody
-- formal resistance under all hostile deployment conditions
+- group messaging
+- password-manager autofill
+- cloud file synchronization
+- legal notarization
+- recovery if the passphrase is lost
+- protection from a compromised device
 
-## Assumed environment
+## Assumptions
 
-Current assumed environment:
+QEV assumes:
 
-- trusted local execution environment
-- developer/operator controls master keys
-- artifacts are generated and opened within a trusted local lab or controlled service boundary
-- standard Python and local OS process security assumptions apply
+- the user chooses a passphrase with enough strength for their risk level
+- the device used to create/open the vault is trusted at that moment
+- the installed package has not been altered by the local environment
+- the user stores or shares the passphrase separately from the vault file
 
-## Adversaries considered
+## Known limitations
 
-### Adversary A: passive artifact observer
-Capabilities:
+### Weak passphrases
 
-- can read stored packets/envelopes
-- can inspect exported artifacts
-- does not control keys
+Argon2id makes guessing more expensive, but it cannot make a weak phrase strong.
+A short or predictable phrase can still be guessed.
 
-Goal:
+### Compromised devices
 
-- recover plaintext or infer message contents from encrypted artifacts
+If the device is compromised while the user creates or opens a vault, plaintext
+and passphrases may be exposed. QEV is not a replacement for endpoint security.
 
-Current defense:
+### Forgotten phrases
 
-- authenticated encryption of packet payloads
-- structured envelope packaging rather than plaintext storage
+There is no recovery service, reset link, or backdoor. If the passphrase is
+lost, the vault should be treated as unrecoverable.
 
-### Adversary B: active artifact tamperer
-Capabilities:
+### Metadata outside the vault
 
-- can modify packet JSON or envelope JSON
-- can replay or corrupt artifact fields
+The transfer channel may still reveal who sent a vault, when it was sent, and to
+whom. QEV protects the vault content, not surrounding communication metadata.
 
-Goal:
+### Supply chain
 
-- alter messages without detection
-- alter packet/envelope structure to induce incorrect open behavior
+The CLI depends on `libsodium-wrappers-sumo`. Users with strict requirements
+should pin versions, audit dependencies, and install from a trusted environment.
 
-Current defense:
+## Safe operating guidance
 
-- authenticated packet encryption
-- packet ID validation
-- schema validation
-- envelope content validation
-- consistency checks across embedded packets and envelope fields
-
-### Adversary C: policy observer
-Capabilities:
-
-- can inspect policy outputs and comparisons
-- can observe which family was selected
-
-Goal:
-
-- infer system behavior or routing triggers
-
-Current defense:
-
-- none beyond normal artifact confidentiality boundaries
-- policy visibility is intentionally part of the system design for explainability
-
-This is a design tradeoff, not a bug.
-
-### Adversary D: local machine compromise
-Capabilities:
-
-- can read process memory
-- can read local files and keys
-- can observe plaintext before encryption or after decryption
-
-Goal:
-
-- fully compromise confidentiality and integrity
-
-Current defense:
-
-- effectively none at the software-only application layer
-- this adversary defeats the current trust boundary
-
-This is currently out of scope.
-
-## Key trust assumptions
-
-The current trust boundary assumes:
-
-- master keys are not exposed
-- the local runtime is not malicious
-- the code being executed is the intended code
-- the operator is trusted to manage secrets correctly
-
-## Attack surfaces
-
-Primary current attack surfaces:
-
-- key handling
-- artifact storage/export
-- malformed packet inputs
-- malformed envelope inputs
-- policy misuse or operator misunderstanding
-- stale or incorrect provenance interpretation
-
-## Known weak areas
-
-Current weak areas from a product-security standpoint:
-
-- no production-grade key management layer
-- no formal HSM/KMS integration
-- no tenant isolation model
-- no formal secret rotation or revocation layer
-- no signed report artifact model yet
-- no formal external audit yet
-- no hardened deployment guidance yet
-
-## Misuse risks
-
-The biggest realistic misuse risks are:
-
-- overselling policy-routing as novel cryptography
-- assuming deterministic evaluation implies operational determinism everywhere
-- treating the local trust model as if it were hostile-environment safe
-- failing to separate lab-mode features from production-safe deployment posture
-
-## Security posture summary
-
-BRY-NFET-SX is currently best understood as:
-
-- a local secure artifact packaging lab
-- with authenticated encryption
-- structured envelopes
-- explainable policy routing
-- deterministic evaluation
-- artifact comparison
-
-It is not yet a production-hardened end-to-end security platform.
-
-## Immediate hardening priorities
-
-1. ~~key management architecture~~ -- done (key provider abstraction)
-2. ~~signed artifact/export design~~ -- done (manifest + HMAC signing)
-3. deployment trust-boundary guidance
-4. secret storage and rotation model
-5. ~~adversarial testing~~ -- done (April 2026 audit, 11 findings)
-
-## Findings from adversarial audit (April 2026)
-
-An adversarial security review confirmed 11 issues (2 critical, 4 high, 5 medium):
-
-- **Critical:** arbitrary file read via file key provider; bundle tampering via manifest+artifact replacement
-- **High:** env var exfiltration via key provider; nonce TOCTOU race; index integrity; artifact-on-disk tampering
-- **Medium:** signature key_version mismatch; provenance spoofing; dashboard replay bug; arbitrary bundle_dir; ambiguous verification tri-state
-
-These findings define the current trust boundary. The system is designed for local/controlled use; it is not hardened for hostile multi-tenant deployment.
+- Use a long passphrase.
+- Do not send the passphrase in the same message as the vault.
+- Run `qev self-test` after install or upgrade.
+- Keep vaults and receipts separate when using receipts for evidence tracking.
+- Treat any device compromise as compromise of recently opened vault content.
