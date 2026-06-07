@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { DragEvent } from "react";
 import {
   QevVault,
   decryptVaultV2,
@@ -7,6 +8,7 @@ import {
 } from "./qev";
 
 type Status = { kind: "idle" | "ok" | "bad"; text: string };
+type Page = "start" | "tool" | "uses" | "cli" | "security";
 
 type Template = {
   id: string;
@@ -14,6 +16,14 @@ type Template = {
   help: string;
   text: string;
 };
+
+const pages: { id: Page; label: string }[] = [
+  { id: "start", label: "Start" },
+  { id: "tool", label: "Tool" },
+  { id: "uses", label: "Use cases" },
+  { id: "cli", label: "CLI" },
+  { id: "security", label: "Security" }
+];
 
 const templates: Template[] = [
   {
@@ -67,6 +77,15 @@ Notes:`
 
 const defaultText = templates[0].text;
 
+function getPageFromHash(): Page {
+  const raw = window.location.hash.replace(/^#\/?/, "");
+  return pages.some((page) => page.id === raw) ? (raw as Page) : "start";
+}
+
+function go(page: Page) {
+  window.location.hash = `/${page}`;
+}
+
 function download(name: string, text: string) {
   const blob = new Blob([text], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -91,7 +110,139 @@ function Help({ text }: { text: string }) {
   );
 }
 
-export default function App() {
+function StartPage() {
+  return (
+    <section className="page start-page">
+      <p className="eyebrow">QEV local vault utility</p>
+      <h1>Write it. Lock it. Prove it later.</h1>
+      <p className="lead">
+        Proof Lock turns a text record into a downloadable <code>.vault</code> file.
+        Keep the passphrase. If someone edits the vault, it will not open.
+      </p>
+
+      <div className="quick-strip" aria-label="Quick walkthrough">
+        <div><b>1</b><span>Write or paste a record.</span></div>
+        <div><b>2</b><span>Lock it with a passphrase.</span></div>
+        <div><b>3</b><span>Download the vault.</span></div>
+        <div><b>4</b><span>Drop it back in to verify.</span></div>
+      </div>
+
+      <div className="start-actions">
+        <button className="black" onClick={() => go("tool")}>Open the tool</button>
+        <button onClick={() => go("uses")}>See use cases</button>
+      </div>
+
+      <div className="walkthrough">
+        <h2>Understand it in 10 seconds</h2>
+        <div className="walk-grid">
+          <article>
+            <h3>The vault is the proof file.</h3>
+            <p>It contains encrypted text plus authenticated metadata.</p>
+          </article>
+          <article>
+            <h3>The passphrase is the key.</h3>
+            <p>Save it somewhere safe. There is no recovery button.</p>
+          </article>
+          <article>
+            <h3>Verification is the test.</h3>
+            <p>If the vault or password is wrong, opening fails.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function UsesPage() {
+  const normalUses = [
+    ["AI receipts", "Save prompts, outputs, edits, and final decisions before sharing or publishing."],
+    ["Client or work handoffs", "Lock scope notes, delivered instructions, job summaries, or approval records."],
+    ["Repair records", "Save what a mechanic, contractor, or support person said and when they said it."],
+    ["Private agreements", "Keep a dated text record of a roommate, family, or small business agreement."],
+    ["Incident timelines", "Write what happened, who was involved, and what action was taken."],
+    ["Personal notes", "Store sensitive notes in a file that detects edits later."],
+    ["School or research notes", "Lock citations, drafts, observations, or study notes after a session."],
+    ["Pet, home, or vehicle logs", "Keep dated plain-text records for everyday things that still matter."],
+    ["Before/after summaries", "Write a short record of condition, work done, and next steps."],
+  ];
+
+  return (
+    <section className="page">
+      <p className="eyebrow">Use cases</p>
+      <h1>For records that need to stay honest.</h1>
+      <p className="lead">Proof Lock is not just for developers. It is for any text record you may need to trust later.</p>
+
+      <div className="use-list">
+        {normalUses.map(([title, body]) => (
+          <article key={title}>
+            <h3>{title}</h3>
+            <p>{body}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="note-box">
+        <b>Best fit:</b> notes, logs, receipts, AI outputs, decisions, instructions, and handoffs.
+        <br />
+        <b>Not a fit:</b> password recovery, legal notarization, cloud backup, or large file storage.
+      </div>
+    </section>
+  );
+}
+
+function CliPage() {
+  return (
+    <section className="page cli-page">
+      <p className="eyebrow">Command line</p>
+      <h1>Use QEV from terminal.</h1>
+      <p className="lead">The browser tool is for quick vaults. The CLI is for repeatable local workflows.</p>
+      <pre>npm i -g @bryan237l/qev-cli</pre>
+      <div className="terminal-grid">
+        <article>
+          <h3>Check install</h3>
+          <pre>qev self-test</pre>
+        </article>
+        <article>
+          <h3>Create vault</h3>
+          <pre>{`echo "important record" | qev lock --out proof.vault`}</pre>
+        </article>
+        <article>
+          <h3>Open vault</h3>
+          <pre>qev unlock proof.vault</pre>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function SecurityPage() {
+  return (
+    <section className="page security-page">
+      <p className="eyebrow">Security model</p>
+      <h1>Local first. Passphrase required. No account.</h1>
+      <div className="rule-list">
+        <article>
+          <h3>No upload</h3>
+          <p>The browser workflow runs locally. The vault text is processed in your browser.</p>
+        </article>
+        <article>
+          <h3>No recovery</h3>
+          <p>If the passphrase is lost, the vault cannot be opened from this page.</p>
+        </article>
+        <article>
+          <h3>Tamper detection</h3>
+          <p>If encrypted content or protected metadata is changed, opening fails.</p>
+        </article>
+        <article>
+          <h3>Use a trusted device</h3>
+          <p>This does not protect you from malware, screenshots, keyloggers, or weak passphrases.</p>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function ToolPage() {
   const [plain, setPlain] = useState(defaultText);
   const [lockPhrase, setLockPhrase] = useState("demo-passphrase-change-me");
   const [openPhrase, setOpenPhrase] = useState("demo-passphrase-change-me");
@@ -161,7 +312,7 @@ export default function App() {
     }
   }
 
-  function dropVault(event: React.DragEvent<HTMLLabelElement>) {
+  function dropVault(event: DragEvent<HTMLLabelElement>) {
     event.preventDefault();
     setDragging(false);
     const file = event.dataTransfer.files?.[0] ?? null;
@@ -192,27 +343,18 @@ export default function App() {
   }
 
   return (
-    <main>
-      <nav>
-        <div className="brand">Proof Lock</div>
-        <div className="links">
-          <a href="#tool">Tool</a>
-          <a href="#uses">Uses</a>
-          <a href="#npm">CLI</a>
-          <a href="https://github.com/TheArtOfSound/qev-desktop">GitHub</a>
+    <section className="page tool-page">
+      <div className="tool-head">
+        <div>
+          <p className="eyebrow">Tool</p>
+          <h1>Create or open a vault.</h1>
         </div>
-      </nav>
+        <div className="mini-how">
+          <span>Write</span><span>Lock</span><span>Download</span><span>Open</span>
+        </div>
+      </div>
 
-      <section className="hero">
-        <p className="eyebrow">QEV local vault utility</p>
-        <h1>Make a locked record. Verify it later.</h1>
-        <p className="lead">
-          Use this page to turn notes, AI outputs, handoffs, and logs into a downloadable
-          <code>.vault</code> file. Nothing is uploaded. If the vault is edited later, it will not open.
-        </p>
-      </section>
-
-      <section id="tool" className="tool">
+      <section className="tool">
         <div className="column write-column">
           <div className="section-title">
             <span>1</span>
@@ -228,28 +370,12 @@ export default function App() {
             ))}
           </div>
 
-          <label htmlFor="plain">
-            Record text
-            <Help text="Write or paste the exact content you want locked into the vault file." />
-          </label>
-          <textarea
-            id="plain"
-            value={plain}
-            onChange={(e) => setPlain(e.target.value)}
-            spellCheck={false}
-          />
+          <label htmlFor="plain">Record text <Help text="Write or paste the exact content you want locked into the vault file." /></label>
+          <textarea id="plain" value={plain} onChange={(e) => setPlain(e.target.value)} spellCheck={false} />
 
-          <label htmlFor="lockPhrase">
-            Locking passphrase
-            <Help text="This passphrase creates the vault. Save it. Without it, the vault cannot be opened." />
-          </label>
+          <label htmlFor="lockPhrase">Locking passphrase <Help text="This passphrase creates the vault. Save it. Without it, the vault cannot be opened." /></label>
           <div className="phrase-row">
-            <input
-              id="lockPhrase"
-              value={lockPhrase}
-              onChange={(e) => setLockPhrase(e.target.value)}
-              spellCheck={false}
-            />
+            <input id="lockPhrase" value={lockPhrase} onChange={(e) => setLockPhrase(e.target.value)} spellCheck={false} />
             <button onClick={newPhrase}>Generate</button>
           </div>
 
@@ -268,46 +394,20 @@ export default function App() {
           <label
             htmlFor="file"
             className={`dropzone ${dragging ? "dragging" : ""}`}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragging(true);
-            }}
+            onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={dropVault}
           >
             <strong>Drop .vault file here</strong>
             <em>or click to choose a file</em>
-            <input
-              id="file"
-              type="file"
-              accept=".vault,application/json,.json,text/plain"
-              onChange={(e) => loadVaultFile(e.target.files?.[0] ?? null)}
-            />
+            <input id="file" type="file" accept=".vault,application/json,.json,text/plain" onChange={(e) => loadVaultFile(e.target.files?.[0] ?? null)} />
           </label>
 
-          <label htmlFor="openPhrase">
-            Opening passphrase
-            <Help text="Use the passphrase that was used when the vault was created. This can be different from the left side." />
-          </label>
-          <input
-            id="openPhrase"
-            value={openPhrase}
-            onChange={(e) => setOpenPhrase(e.target.value)}
-            spellCheck={false}
-          />
+          <label htmlFor="openPhrase">Opening passphrase <Help text="Use the passphrase that was used when the vault was created." /></label>
+          <input id="openPhrase" value={openPhrase} onChange={(e) => setOpenPhrase(e.target.value)} spellCheck={false} />
 
-          <label htmlFor="vault">
-            Vault JSON
-            <Help text="Paste vault JSON here, edit it for tamper testing, or load it by dropping a .vault file above." />
-          </label>
-          <textarea
-            id="vault"
-            className="vault-area"
-            value={vaultText}
-            onChange={(e) => setVaultText(e.target.value)}
-            spellCheck={false}
-            placeholder="Paste vault JSON here or drop a .vault file above."
-          />
+          <label htmlFor="vault">Vault JSON <Help text="Paste vault JSON here, edit it for tamper testing, or load it by dropping a .vault file above." /></label>
+          <textarea id="vault" className="vault-area" value={vaultText} onChange={(e) => setVaultText(e.target.value)} spellCheck={false} placeholder="Paste vault JSON here or drop a .vault file above." />
 
           <div className="actions">
             <button className="black" onClick={openVault}>Open</button>
@@ -325,30 +425,46 @@ export default function App() {
           )}
         </div>
       </section>
+    </section>
+  );
+}
 
-      <section id="uses" className="uses">
-        <h2>Use it when the record matters</h2>
-        <div className="use-grid">
-          <article>
-            <h3>AI work receipts <Help text="Useful for saving prompts, generated outputs, revisions, and decisions." /></h3>
-            <p>Lock prompts, outputs, edits, and decisions into a file you can verify later.</p>
-          </article>
-          <article>
-            <h3>Client handoffs <Help text="Useful for scope notes, delivered instructions, records, and approvals." /></h3>
-            <p>Seal handoffs, instructions, scope notes, and records before sending or archiving.</p>
-          </article>
-          <article>
-            <h3>Private records <Help text="Useful for private notes, incident timelines, and dated decision logs." /></h3>
-            <p>Keep a private note, incident timeline, or decision log in a tamper-evident file.</p>
-          </article>
+export default function App() {
+  const [page, setPage] = useState<Page>(getPageFromHash);
+
+  useEffect(() => {
+    const onHash = () => setPage(getPageFromHash());
+    window.addEventListener("hashchange", onHash);
+    if (!window.location.hash) window.location.hash = "/start";
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  return (
+    <main>
+      <nav className="topbar">
+        <a className="brand" href="#/start">Proof Lock</a>
+        <div className="top-links">
+          <a href="#/tool">Open Tool</a>
+          <a href="https://github.com/TheArtOfSound/qev-desktop">GitHub</a>
         </div>
-      </section>
+      </nav>
 
-      <section id="npm" className="cli">
-        <h2>Command line</h2>
-        <pre>npm i -g @bryan237l/qev-cli</pre>
-        <p>Use the CLI when you want the same vault workflow outside the browser.</p>
-      </section>
+      <div className="docs-layout">
+        <aside className="sidebar">
+          <div className="side-label">Docs</div>
+          {pages.map((item) => (
+            <a key={item.id} className={page === item.id ? "active" : ""} href={`#/${item.id}`}>{item.label}</a>
+          ))}
+        </aside>
+
+        <div className="content">
+          {page === "start" && <StartPage />}
+          {page === "tool" && <ToolPage />}
+          {page === "uses" && <UsesPage />}
+          {page === "cli" && <CliPage />}
+          {page === "security" && <SecurityPage />}
+        </div>
+      </div>
 
       <footer>
         Local browser workflow. No account. No upload. Keep your passphrase; no one can recover it for you.
