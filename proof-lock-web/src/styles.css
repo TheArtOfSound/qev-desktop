@@ -32,13 +32,20 @@ a {
   text-underline-offset: 4px;
 }
 
+code {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid var(--ink);
   padding-bottom: 18px;
-  margin-bottom: 58px;
+  margin-bottom: 54px;
 }
 
 .brand {
@@ -54,29 +61,29 @@ nav {
 }
 
 .hero {
-  max-width: 870px;
-  margin-bottom: 38px;
+  max-width: 920px;
+  margin-bottom: 34px;
 }
 
 .eyebrow {
   color: var(--muted);
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: .08em;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .09em;
   text-transform: uppercase;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
 }
 
 h1 {
-  font-size: clamp(42px, 7vw, 78px);
-  line-height: .96;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: .98;
   letter-spacing: -.055em;
-  margin: 0 0 18px;
-  max-width: 920px;
+  margin: 0 0 16px;
+  max-width: 900px;
 }
 
 h2 {
-  font-size: 25px;
+  font-size: 24px;
   line-height: 1.1;
   margin: 0;
   letter-spacing: -.035em;
@@ -93,19 +100,19 @@ p {
 }
 
 .lead {
-  font-size: 21px;
-  max-width: 800px;
+  font-size: 20px;
+  max-width: 850px;
 }
 
 .tool {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border: 2px solid var(--ink);
-  margin-bottom: 34px;
+  margin-bottom: 32px;
 }
 
 .column {
-  padding: 24px;
+  padding: 22px;
   min-width: 0;
 }
 
@@ -122,7 +129,7 @@ p {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .section-title span {
@@ -140,7 +147,7 @@ p {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 button {
@@ -151,9 +158,10 @@ button {
   min-height: 42px;
   padding: 10px 13px;
   font: inherit;
-  font-weight: 800;
+  font-weight: 850;
   cursor: pointer;
   border-radius: 0;
+  text-align: center;
 }
 
 button:hover:not(:disabled) {
@@ -176,6 +184,41 @@ button:disabled {
   opacity: .45;
 }
 
+.help {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  width: 17px;
+  height: 17px;
+  margin-left: 6px;
+  border: 1px solid currentColor;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  vertical-align: text-top;
+}
+
+.bubble {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  top: 23px;
+  left: -8px;
+  width: 240px;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  color: var(--ink);
+  padding: 10px;
+  font: 13px/1.35 Inter, ui-sans-serif, system-ui, sans-serif;
+  text-align: left;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.help:hover .bubble,
+.help:focus .bubble {
+  display: block;
+}
+
 label, .small-label {
   display: block;
   color: var(--ink);
@@ -183,7 +226,7 @@ label, .small-label {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: .06em;
-  margin: 16px 0 7px;
+  margin: 15px 0 7px;
 }
 
 textarea, input {
@@ -197,12 +240,12 @@ textarea, input {
 }
 
 textarea {
-  min-height: 210px;
+  min-height: 190px;
   resize: vertical;
 }
 
 .vault-area {
-  min-height: 290px;
+  min-height: 220px;
 }
 
 .phrase-row {
@@ -215,20 +258,47 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .primary-actions button {
-  min-width: 130px;
+  min-width: 124px;
 }
 
-.file-input {
-  font-family: inherit;
-  background: var(--white);
+.dropzone {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  min-height: 88px;
+  border: 2px dashed var(--ink);
+  background: #fafafa;
+  margin: 10px 0 12px;
+  padding: 15px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dropzone.dragging {
+  background: var(--paper);
+  border-style: solid;
+}
+
+.dropzone strong {
+  font-size: 15px;
+}
+
+.dropzone em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 13px;
+}
+
+.dropzone input {
+  display: none;
 }
 
 .status {
-  margin-top: 16px;
+  margin-top: 14px;
   padding: 12px;
   border: 2px solid var(--line);
   background: #fafafa;
@@ -265,7 +335,7 @@ textarea {
 .uses, .cli {
   border-top: 2px solid var(--ink);
   padding-top: 24px;
-  margin-top: 34px;
+  margin-top: 32px;
 }
 
 .use-grid {
@@ -322,5 +392,11 @@ footer {
 
   .phrase-row {
     grid-template-columns: 1fr;
+  }
+
+  .bubble {
+    left: auto;
+    right: -6px;
+    width: min(240px, 70vw);
   }
 }
