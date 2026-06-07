@@ -1,4 +1,4 @@
-import sodium from "libsodium-wrappers-sumo/dist/modules-sumo/libsodium-wrappers.js";
+import sodium from "libsodium-wrappers-sumo";
 
 export const SCHEMA_V2 = "BRY-NFET-SX-VAULT-V2";
 export const VERSION = "0.29.0";
