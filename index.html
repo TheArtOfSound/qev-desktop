@@ -4,314 +4,248 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>QEV — Qira Encryption Vault</title>
-  <meta name="description" content="QEV by Bryan Leonard / Qira LLC is a local-first encrypted vault workflow for tamper-evident notes, AI receipts, research artifacts, logs, and sensitive records." />
+  <meta name="description" content="Use QEV directly from the public index. Lock text into a downloadable .vault file and unlock it locally in the browser." />
   <meta property="og:title" content="QEV — Qira Encryption Vault" />
-  <meta property="og:description" content="Lock proof into a file. Verify it later. Local-first encrypted vault artifacts by Bryan Leonard / Qira LLC." />
+  <meta property="og:description" content="Use the QEV vault directly from the index. Local-first encrypted .vault files by Bryan Leonard / Qira LLC." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#111111" />
   <style>
-    :root{
-      --bg:#f6f3eb;
-      --paper:#fffdf8;
-      --ink:#111111;
-      --muted:#5f5a52;
-      --line:#d6d0c4;
-      --line-strong:#181818;
-      --soft:#ece7db;
-      --accent:#1d4ed8;
-      --warn-bg:#fff7e9;
-      --warn-line:#ebc58a;
-      --radius:10px;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--ink);
-      font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      text-rendering:optimizeLegibility;
-    }
-    a{color:inherit}
-    .site{
-      width:min(1040px,100%);
-      margin:0 auto;
-      padding:18px;
-    }
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:16px;
-      padding:8px 0 16px;
-      border-bottom:1px solid var(--line);
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      text-decoration:none;
-      min-width:0;
-    }
-    .mark{
-      width:34px;height:34px;
-      display:grid;place-items:center;
-      background:var(--ink);
-      color:#fff;
-      border:1px solid var(--line-strong);
-      border-radius:8px;
-      font-size:15px;font-weight:800;
-      letter-spacing:-0.05em;
-      flex:0 0 auto;
-    }
-    .brand strong{display:block;font-size:15px;letter-spacing:-0.02em}
-    .brand span{display:block;color:var(--muted);font-size:12px}
-    .nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-height:36px;padding:8px 12px;
-      border:1px solid var(--line-strong);
-      border-radius:8px;
-      text-decoration:none;
-      font-size:12px;font-weight:700;
-      background:transparent;
-      white-space:nowrap;
-    }
-    .btn.primary{background:var(--ink);color:#fff}
-    .btn.soft{border-color:var(--line);background:rgba(255,255,255,.55)}
-    .hero{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 340px;
-      gap:30px;
-      align-items:start;
-      padding:42px 0 28px;
-    }
-    .eyebrow{
-      margin-bottom:10px;
-      color:var(--accent);
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-    }
-    h1{
-      margin:0 0 12px;
-      font-size:clamp(34px,6vw,56px);
-      line-height:.94;
-      letter-spacing:-0.06em;
-      max-width:720px;
-    }
-    .lede{
-      margin:0;
-      max-width:650px;
-      font-size:18px;
-      line-height:1.38;
-      color:var(--muted);
-      letter-spacing:-0.02em;
-    }
-    .lede code{
-      background:var(--soft);
-      border:1px solid var(--line);
-      border-radius:5px;
-      padding:0 5px;
-      color:var(--ink);
-    }
-    .hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-    .peerlist{display:inline-flex;align-items:center;max-width:100%;margin-top:14px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-    .peerlist img{display:block;height:56px;width:auto;max-width:100%}
-    .card{
-      background:var(--paper);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:16px;
-    }
-    .cli .label,.mini .label{
-      margin-bottom:10px;
-      color:var(--muted);
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-    }
-    .cli pre{
-      margin:0;
-      background:#101827;
-      color:#f8fafc;
-      border-radius:8px;
-      padding:12px;
-      overflow:auto;
-      font-size:12px;
-      line-height:1.55;
-    }
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 28px}
-    .mini b{display:block;font-size:15px;letter-spacing:-0.02em}
-    .mini span{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
-    section{padding:34px 0;border-top:1px solid var(--line)}
-    .section-head{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;align-items:start;margin-bottom:16px}
-    .section-head h2{margin:0;font-size:clamp(24px,4vw,34px);line-height:1;letter-spacing:-0.05em}
-    .section-head p{margin:0;max-width:700px;font-size:14px;color:var(--muted)}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .feature h3{margin:0 0 6px;font-size:16px;letter-spacing:-0.02em}
-    .feature p{margin:0;font-size:13px;color:var(--muted)}
-    .steps{display:grid;gap:8px}
-    .step{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start}
-    .step-num{
-      width:30px;height:30px;
-      display:grid;place-items:center;
-      background:var(--ink);color:#fff;
-      border-radius:7px;
-      font-size:12px;font-weight:800;
-    }
-    .step-body{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-    .step-body b{display:block;font-size:14px;margin-bottom:2px}
-    .step-body span{display:block;font-size:13px;color:var(--muted)}
-    .diagram-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;color:var(--muted);font-size:12px}
-    .diagram-frame{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:hidden}
-    .diagram-frame img{display:block;width:100%;height:auto;border-radius:6px}
-    .scope{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:16px}
-    .scope b{display:block;margin-bottom:6px;font-size:14px}
-    .scope p{margin:0;font-size:13px;color:#5b4320}
-    footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
-
-    @media (max-width: 860px){
-      .hero{grid-template-columns:1fr;gap:20px;padding-top:34px}
-      .stats{grid-template-columns:repeat(2,1fr)}
-      .section-head{grid-template-columns:1fr;gap:8px}
-      .grid-3{grid-template-columns:1fr}
-    }
-    @media (max-width: 560px){
-      .site{padding:14px}
-      .topbar{display:block}
-      .nav{margin-top:12px}
-      .nav .btn{flex:1}
-      .lede{font-size:16px}
-      .stats{grid-template-columns:1fr}
-      .peerlist{width:100%;justify-content:center}
-      .peerlist img{height:50px}
-      .diagram-toolbar{display:block}
-      .diagram-toolbar .btn{width:100%;margin-top:10px}
-      footer{display:block}
-      footer span{display:block;margin-top:6px}
-    }
+    :root{--bg:#f6f3eb;--paper:#fffdf8;--ink:#111;--muted:#5f5a52;--line:#d6d0c4;--strong:#181818;--soft:#ece7db;--blue:#1d4ed8;--green:#15803d;--radius:12px}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit}.site{width:min(1120px,100%);margin:0 auto;padding:18px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0 16px;border-bottom:1px solid var(--line)}.brand{display:flex;gap:10px;align-items:center;text-decoration:none}.mark{width:34px;height:34px;display:grid;place-items:center;background:#111;color:#fff;border-radius:8px;font-weight:900}.brand strong{display:block;font-size:15px}.brand span{display:block;color:var(--muted);font-size:12px}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn,button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 13px;border:1px solid var(--strong);border-radius:8px;background:transparent;color:inherit;text-decoration:none;font:700 13px/1 Inter,system-ui,sans-serif;cursor:pointer}.btn.primary,button.primary{background:#111;color:#fff}.btn.soft,button.soft{border-color:var(--line);background:rgba(255,255,255,.55)}button:disabled{opacity:.55;cursor:not-allowed}.hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start;padding:44px 0 26px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:10px}h1{margin:0 0 12px;font-size:clamp(36px,7vw,64px);line-height:.92;letter-spacing:-.06em}.lede{margin:0;max-width:720px;color:var(--muted);font-size:18px;line-height:1.38}.lede code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--ink)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px}.quick pre{margin:0;background:#101827;color:#f8fafc;border-radius:8px;padding:12px;overflow:auto;font-size:12px}.label{display:block;margin-bottom:8px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}section{padding:34px 0;border-top:1px solid var(--line)}.section-head{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;margin-bottom:16px}.section-head h2{margin:0;font-size:clamp(26px,4vw,38px);line-height:1;letter-spacing:-.05em}.section-head p{margin:0;color:var(--muted)}.vault-app{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px}.panel h3{margin:0 0 8px;font-size:18px}textarea,input{width:100%;border:1px solid var(--line);border-radius:8px;background:#fffdf8;color:#111;padding:10px;font:14px/1.4 ui-sans-serif,system-ui,sans-serif}textarea{min-height:180px;resize:vertical}input[type=file]{background:#fff}small,.hint{color:var(--muted);font-size:12px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.status{margin-top:10px;padding:10px;border-radius:8px;background:#f8fafc;border:1px solid var(--line);font-size:13px;white-space:pre-wrap}.status.ok{border-color:#86efac;background:#f0fdf4;color:#166534}.status.bad{border-color:#fecaca;background:#fef2f2;color:#991b1b}.output{min-height:180px;white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.feature h3{margin:0 0 6px;font-size:16px}.feature p{margin:0;color:var(--muted);font-size:13px}.warning{background:#fff7ed;border:1px solid #fed7aa}.warning b{display:block;margin-bottom:6px;color:#9a3412}footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+    @media(max-width:860px){.hero,.section-head,.vault-app{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}@media(max-width:560px){.site{padding:14px}.topbar{display:block}.nav{margin-top:12px}.nav .btn{flex:1}.lede{font-size:16px}.row .btn,.row button{flex:1}}
   </style>
 </head>
 <body>
-  <div class="site">
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="QEV by Qira LLC">
-        <span class="mark">Q</span>
-        <span>
-          <strong>QEV by Qira LLC</strong>
-          <span>Bryan Leonard / Proof Lock Labs</span>
-        </span>
-      </a>
-      <nav class="nav" aria-label="Primary links">
-        <a class="btn primary" href="https://secure.imagineqira.com/vault">Open Vault</a>
-        <a class="btn soft" href="https://www.npmjs.com/package/@bryan237l/qev-cli">CLI</a>
-        <a class="btn soft" href="https://github.com/TheArtOfSound/qev-desktop">GitHub</a>
-      </nav>
-    </header>
+<div class="site">
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="QEV by Qira LLC"><span class="mark">Q</span><span><strong>QEV by Qira LLC</strong><span>Bryan Leonard / Proof Lock Labs</span></span></a>
+    <nav class="nav" aria-label="Primary links"><a class="btn primary" href="#vault">Use Vault</a><a class="btn soft" href="https://www.npmjs.com/package/@bryan237l/qev-cli">CLI</a><a class="btn soft" href="https://github.com/TheArtOfSound/qev-desktop">GitHub</a></nav>
+  </header>
 
-    <main id="top">
-      <section class="hero" aria-label="QEV introduction" style="border-top:none;padding-bottom:20px">
-        <div>
-          <div class="eyebrow">Qira Encryption Vault</div>
-          <h1>Lock proof. Verify it later.</h1>
-          <p class="lede">QEV turns notes, AI receipts, logs, and research records into a downloadable <code>.vault</code> file. Keep the phrase. If someone edits the vault, it should not open.</p>
-          <div class="hero-actions">
-            <a class="btn primary" href="https://secure.imagineqira.com/vault">Open the web vault</a>
-            <a class="btn" href="https://github.com/TheArtOfSound/qev-desktop/blob/main/docs/THREAT_MODEL.md">Threat model</a>
-            <a class="btn" href="#flow">View encryption flow</a>
-          </div>
-          <a class="peerlist" href="https://peerlist.io/qirabryan/project/proof-lock-labs--qev" target="_blank" rel="noreferrer noopener" aria-label="View Proof Lock Labs — QEV on Peerlist">
-            <img src="https://peerlist.io/api/v1/projects/embed/PRJHLKLAR66NJKL6GCEOANOR77N87P?showUpvote=false&amp;theme=light" alt="Proof Lock Labs — QEV" loading="lazy" />
-          </a>
-        </div>
-
-        <aside class="card cli" aria-label="CLI quick start">
-          <div class="label">CLI quick start</div>
-          <pre><code>npm install -g @bryan237l/qev-cli
+  <main id="top">
+    <section class="hero" style="border-top:none">
+      <div>
+        <div class="eyebrow">Qira Encryption Vault</div>
+        <h1>Use the vault directly here.</h1>
+        <p class="lede">This index is now the live QEV app. Lock text into a downloadable <code>.vault</code> file or unlock a vault locally in your browser. No redirect to the secure subdomain is required.</p>
+        <div class="actions"><a class="btn primary" href="#vault">Open inline vault</a><a class="btn" href="#security">Read scope</a><a class="btn" href="https://github.com/TheArtOfSound/qev-desktop/blob/main/docs/THREAT_MODEL.md">Threat model</a></div>
+      </div>
+      <aside class="card quick"><span class="label">CLI still available</span><pre><code>npm install -g @bryan237l/qev-cli
 qev self-test
 
 echo "important proof" | qev lock --out proof.vault
-qev unlock proof.vault</code></pre>
-        </aside>
-      </section>
+qev unlock proof.vault</code></pre></aside>
+    </section>
 
-      <div class="stats" aria-label="QEV technical summary">
-        <div class="card mini"><div class="label">Mode</div><b>Local-first</b><span>No account required for CLI use.</span></div>
-        <div class="card mini"><div class="label">Cipher</div><b>XChaCha20</b><span>Authenticated encryption.</span></div>
-        <div class="card mini"><div class="label">KDF</div><b>Argon2id</b><span>Passphrase hardening.</span></div>
-        <div class="card mini"><div class="label">License</div><b>MIT</b><span>Open-source Qira utility.</span></div>
+    <section id="vault">
+      <div class="section-head">
+        <h2>Inline vault.</h2>
+        <p>Runs locally in this page. It loads libsodium in the browser and creates QEV-style JSON vault files using Argon2id and XChaCha20-Poly1305.</p>
       </div>
 
-      <section id="product">
-        <div class="section-head">
-          <h2>What QEV is.</h2>
-          <p>A focused encrypted-envelope tool with a narrow, honest security boundary: encrypt one record, keep the phrase, verify later.</p>
+      <div class="vault-app">
+        <div class="panel">
+          <h3>Lock text</h3>
+          <label class="label" for="plainText">Plaintext</label>
+          <textarea id="plainText" placeholder="Paste text, receipt, note, research artifact, or proof here..."></textarea>
+          <label class="label" for="lockPhrase">Phrase</label>
+          <input id="lockPhrase" type="password" autocomplete="new-password" placeholder="Use a long phrase you will remember" />
+          <div class="row">
+            <button class="primary" id="lockBtn">Create .vault</button>
+            <button class="soft" id="clearLockBtn" type="button">Clear</button>
+          </div>
+          <div id="lockStatus" class="status">Loading cryptography...</div>
         </div>
-        <div class="grid-3">
-          <article class="card feature"><h3>Private notes</h3><p>Write or paste a sensitive record and export a portable encrypted envelope.</p></article>
-          <article class="card feature"><h3>AI receipts</h3><p>Lock model outputs, prompts, research notes, or timestamped artifacts into a tamper-evident file.</p></article>
-          <article class="card feature"><h3>Ops logs</h3><p>Use the CLI from a terminal or script when you need a small offline vault workflow.</p></article>
-        </div>
-      </section>
 
-      <section id="how">
-        <div class="section-head">
-          <h2>How it works.</h2>
-          <p>QEV is not new cryptography. It packages established primitives into a local file format and workflow.</p>
+        <div class="panel">
+          <h3>Unlock vault</h3>
+          <label class="label" for="vaultFile">Vault file</label>
+          <input id="vaultFile" type="file" accept=".vault,application/json" />
+          <label class="label" for="unlockPhrase">Phrase</label>
+          <input id="unlockPhrase" type="password" autocomplete="current-password" placeholder="Phrase used to create the vault" />
+          <div class="row">
+            <button class="primary" id="unlockBtn">Unlock</button>
+            <button class="soft" id="downloadPlainBtn" type="button" disabled>Download plaintext</button>
+          </div>
+          <div id="unlockStatus" class="status">Choose a .vault file and enter the phrase.</div>
+          <label class="label" style="margin-top:12px">Plaintext output</label>
+          <div id="plainOutput" class="output"></div>
         </div>
-        <div class="steps">
-          <div class="step"><div class="step-num">1</div><div class="step-body"><b>Write or pipe a record.</b><span>Use the web vault or CLI. The CLI reads plaintext from stdin.</span></div></div>
-          <div class="step"><div class="step-num">2</div><div class="step-body"><b>Choose a phrase.</b><span>The CLI refuses phrase arguments so your phrase does not leak through shell history.</span></div></div>
-          <div class="step"><div class="step-num">3</div><div class="step-body"><b>Export a vault.</b><span>The vault uses XChaCha20-Poly1305, Argon2id, and deterministic metadata binding.</span></div></div>
-          <div class="step"><div class="step-num">4</div><div class="step-body"><b>Verify later.</b><span>Unlock with the phrase. Tampering with bound fields should fail authentication.</span></div></div>
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <section id="flow">
-        <div class="section-head">
-          <h2>Encryption flow.</h2>
-          <p>The on-page diagram is now a cleaner overview built to fit this public page. If you want the raw asset, open the SVG directly.</p>
-        </div>
-        <div class="diagram-toolbar">
-          <span>Compact overview for the public page. Open the SVG directly if you want to zoom into the full asset.</span>
-          <a class="btn" href="assets/qev-encryption-flow.svg" target="_blank" rel="noreferrer">Open SVG</a>
-        </div>
-        <div class="diagram-frame" aria-label="QEV encryption flow diagram">
-          <img src="assets/qev-encryption-flow.svg?v=compact-v2" alt="QEV encryption and decryption overview diagram" loading="lazy" />
-        </div>
-      </section>
+    <section id="security">
+      <div class="section-head"><h2>Honest scope.</h2><p>The inline app is convenient. The CLI remains the cleaner production workflow because browser pages can inherit browser, extension, and CDN risks.</p></div>
+      <div class="card warning"><b>QEV does not protect against a compromised device, weak phrase, malicious extension, CDN compromise, or forgotten phrase.</b><p>Use the CLI for stronger local control. Use this page for fast public demo, simple vault use, and proof-of-workflow.</p></div>
+    </section>
 
-      <section id="security">
-        <div class="section-head">
-          <h2>Honest scope.</h2>
-          <p>Security tools should say what they do not do.</p>
-        </div>
-        <div class="scope">
-          <b>QEV does not protect against a compromised device, weak phrase, forgotten phrase, malicious browser extension, or supply-chain compromise.</b>
-          <p>It is not a password manager, messenger, cloud storage encryption service, or a substitute for a professional security audit. Read the threat model before relying on it for sensitive material.</p>
-        </div>
-      </section>
+    <section>
+      <div class="section-head"><h2>What it creates.</h2><p>A JSON <code>.vault</code> file containing schema, KDF parameters, nonces, wrapped key material, and ciphertext.</p></div>
+      <div class="grid-3">
+        <article class="card feature"><h3>Argon2id</h3><p>Derives a wrap key from your phrase and a random salt.</p></article>
+        <article class="card feature"><h3>XChaCha20-Poly1305</h3><p>Authenticated encryption for key wrapping and content encryption.</p></article>
+        <article class="card feature"><h3>AAD binding</h3><p>Protected metadata is bound into the seal so meaningful tampering should fail.</p></article>
+      </div>
+    </section>
+  </main>
 
-      <section id="company">
-        <div class="section-head">
-          <h2>Built by Bryan Leonard / Qira LLC.</h2>
-          <p>Proof Lock Labs is the public utility surface for QEV: small, direct tools for locking proof into files.</p>
-        </div>
-        <div class="grid-3">
-          <article class="card feature"><h3>Product</h3><p>QEV — Qira Encryption Vault.</p></article>
-          <article class="card feature"><h3>Company</h3><p>Qira LLC, building practical local-first security and proof workflows.</p></article>
-          <article class="card feature"><h3>Support</h3><p>Security reports and product questions: bryanleonard@imagineqira.com.</p></article>
-        </div>
-      </section>
-    </main>
+  <footer><span>MIT © 2026 Bryan Leonard / Qira LLC.</span><span>Inline QEV uses libsodium-wrappers-sumo from jsDelivr.</span></footer>
+</div>
 
-    <footer>
-      <span>MIT © 2026 Bryan Leonard / Qira LLC.</span>
-      <span>QEV uses libsodium through libsodium-wrappers-sumo.</span>
-    </footer>
-  </div>
+<script type="module">
+  import sodium from "https://cdn.jsdelivr.net/npm/libsodium-wrappers-sumo@0.7.15/+esm";
+
+  const SCHEMA = "BRY-NFET-SX-VAULT-V2";
+  const VERSION = 2;
+  const OPS = 3;
+  const MEM = 67108864;
+  const ALG = "XChaCha20-Poly1305";
+  let lastPlaintext = "";
+
+  const $ = (id) => document.getElementById(id);
+  const lockStatus = $("lockStatus");
+  const unlockStatus = $("unlockStatus");
+  const plainOutput = $("plainOutput");
+
+  function setStatus(el, text, cls = "") {
+    el.className = `status ${cls}`.trim();
+    el.textContent = text;
+  }
+
+  function canonical(value) {
+    if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+    if (value && typeof value === "object") {
+      return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
+    }
+    return JSON.stringify(value);
+  }
+
+  function b64(bytes) {
+    return sodium.to_base64(bytes, sodium.base64_variants.ORIGINAL);
+  }
+
+  function unb64(text) {
+    return sodium.from_base64(text, sodium.base64_variants.ORIGINAL);
+  }
+
+  function vaultMetadata(vault) {
+    return {
+      schema: vault.schema,
+      version: vault.version,
+      created_at: vault.created_at,
+      mode: vault.mode,
+      kdf: vault.kdf,
+      wrap: { algorithm: vault.wrap.algorithm, nonce: vault.wrap.nonce },
+      content: { algorithm: vault.content.algorithm, nonce: vault.content.nonce }
+    };
+  }
+
+  function downloadText(filename, text, type = "application/json") {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function init() {
+    try {
+      await sodium.ready;
+      setStatus(lockStatus, "Ready. Text is encrypted locally in your browser.", "ok");
+    } catch (err) {
+      setStatus(lockStatus, `Failed to load libsodium: ${err.message || err}`, "bad");
+    }
+  }
+
+  async function lockVault() {
+    await sodium.ready;
+    const plaintext = $("plainText").value;
+    const phrase = $("lockPhrase").value;
+
+    if (!plaintext.trim()) return setStatus(lockStatus, "Add plaintext first.", "bad");
+    if (phrase.length < 12) return setStatus(lockStatus, "Use a longer phrase. Minimum 12 characters for this demo.", "bad");
+
+    try {
+      const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+      const wrapNonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+      const contentNonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+      const vaultKey = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+      const wrapKey = sodium.crypto_pwhash(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES, phrase, salt, OPS, MEM, sodium.crypto_pwhash_ALG_ARGON2ID13);
+
+      const baseVault = {
+        schema: SCHEMA,
+        version: VERSION,
+        created_at: new Date().toISOString(),
+        mode: "inline-index",
+        kdf: { algorithm: "argon2id", opslimit: OPS, memlimit: MEM, salt: b64(salt) },
+        wrap: { algorithm: ALG, nonce: b64(wrapNonce) },
+        content: { algorithm: ALG, nonce: b64(contentNonce) }
+      };
+
+      const aad = sodium.from_string(canonical(vaultMetadata(baseVault)));
+      const wrapped = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(vaultKey, aad, null, wrapNonce, wrapKey);
+      const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(sodium.from_string(plaintext), aad, null, contentNonce, vaultKey);
+
+      const vault = {
+        ...baseVault,
+        wrap: { ...baseVault.wrap, wrapped_key: b64(wrapped) },
+        content: { ...baseVault.content, ciphertext: b64(cipher) }
+      };
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadText(`qev-${stamp}.vault`, JSON.stringify(vault, null, 2));
+      setStatus(lockStatus, "Vault created and downloaded. Keep the phrase; QEV cannot recover it.", "ok");
+    } catch (err) {
+      setStatus(lockStatus, `Lock failed: ${err.message || err}`, "bad");
+    }
+  }
+
+  async function unlockVault() {
+    await sodium.ready;
+    const file = $("vaultFile").files?.[0];
+    const phrase = $("unlockPhrase").value;
+
+    if (!file) return setStatus(unlockStatus, "Choose a .vault file first.", "bad");
+    if (!phrase) return setStatus(unlockStatus, "Enter the phrase.", "bad");
+
+    try {
+      const text = await file.text();
+      const vault = JSON.parse(text);
+
+      if (vault.schema !== SCHEMA) throw new Error(`Unsupported schema: ${vault.schema || "missing"}`);
+      if (vault.wrap?.algorithm !== ALG || vault.content?.algorithm !== ALG) throw new Error("Unsupported vault algorithm.");
+
+      const salt = unb64(vault.kdf.salt);
+      const wrapNonce = unb64(vault.wrap.nonce);
+      const contentNonce = unb64(vault.content.nonce);
+      const wrapped = unb64(vault.wrap.wrapped_key);
+      const cipher = unb64(vault.content.ciphertext);
+
+      const wrapKey = sodium.crypto_pwhash(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES, phrase, salt, Number(vault.kdf.opslimit), Number(vault.kdf.memlimit), sodium.crypto_pwhash_ALG_ARGON2ID13);
+      const aad = sodium.from_string(canonical(vaultMetadata(vault)));
+      const vaultKey = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, wrapped, aad, wrapNonce, wrapKey);
+      const plainBytes = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, cipher, aad, contentNonce, vaultKey);
+      lastPlaintext = sodium.to_string(plainBytes);
+
+      plainOutput.textContent = lastPlaintext;
+      $("downloadPlainBtn").disabled = false;
+      setStatus(unlockStatus, "Vault unlocked. Authentication passed.", "ok");
+    } catch (err) {
+      lastPlaintext = "";
+      plainOutput.textContent = "";
+      $("downloadPlainBtn").disabled = true;
+      setStatus(unlockStatus, `Unlock failed. Wrong phrase, tampered vault, or unsupported format.\n${err.message || err}`, "bad");
+    }
+  }
+
+  $("lockBtn").addEventListener("click", lockVault);
+  $("unlockBtn").addEventListener("click", unlockVault);
+  $("clearLockBtn").addEventListener("click", () => { $("plainText").value = ""; $("lockPhrase").value = ""; });
+  $("downloadPlainBtn").addEventListener("click", () => downloadText("qev-plaintext.txt", lastPlaintext, "text/plain"));
+
+  init();
+</script>
 </body>
 </html>
