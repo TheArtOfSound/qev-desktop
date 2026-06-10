@@ -2,12 +2,13 @@
 //
 // Library users:
 //
-//   import { encryptVaultV2, decryptVaultV2, runSelfTest } from "@imagineqira/qev-cli";
+//   import { encryptVaultV2, decryptVaultV2, rewrapVaultV2, runSelfTest } from "@bryan237l/qev-cli";
 //   await runSelfTest();
 //   const v = await encryptVaultV2({ plaintext: "hi", password: "long phrase", mode: "self" });
 //   const pt = await decryptVaultV2({ vault: v, password: "long phrase" });
+//   const rotated = await rewrapVaultV2({ vault: v, oldPassword: "long phrase", newPassword: "new long phrase" });
 //
-// The "main" field in package.json points here so `import "@imagineqira/qev-cli"`
+// The "main" field in package.json points here so `import "@bryan237l/qev-cli"`
 // pulls the crypto API but NOT the CLI front-end. The CLI is only loaded
 // via the `bin` entry.
 
@@ -41,6 +42,8 @@ export {
   LOCK_PRESETS,
   DEFAULT_PRESET_KEY,
 } from "./vault.js";
+
+export { rewrapVaultV2 } from "./rewrap.js";
 
 export {
   canonicalJSON,
