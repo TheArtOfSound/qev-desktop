@@ -1,13 +1,14 @@
 name: Deploy QEV Pages
 
 # Single source of truth for the GitHub Pages site:
-#   /          — inline QEV vault app (repo-root index.html)
-#   /app/      — guide + tool SPA, built fresh from proof-lock-web/
+#   /          — the QEV app (built fresh from proof-lock-web/);
+#                #/tool, #/start etc. are its routes
+#   /app/      — redirect to / (links shipped 2026-06-10 only)
 #   /docs/     — markdown docs + redirect for old /docs/ SPA links
 #   /assets/   — shared static assets
-# (An earlier setup had two workflows racing to deploy different
-# payloads to the same Pages environment; whichever ran last won,
-# which intermittently broke …/#/tool links.)
+# (An earlier setup had two separate apps and two workflows racing to
+# deploy different payloads to the same Pages environment; whichever
+# ran last won, which intermittently broke …/#/tool links.)
 
 on:
   push:
@@ -54,11 +55,12 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site
-          cp index.html _site/index.html
+          cp -R proof-lock-web/dist/* _site/
           cp 404.html _site/404.html
           cp -R docs _site/docs
-          cp -R proof-lock-web/dist _site/app
-          if [ -d assets ]; then cp -R assets _site/assets; fi
+          mkdir -p _site/app
+          cp app-redirect.html _site/app/index.html
+          if [ -d assets ]; then mkdir -p _site/assets && cp -R assets/. _site/assets/; fi
           touch _site/.nojekyll
 
       - name: Upload Pages artifact

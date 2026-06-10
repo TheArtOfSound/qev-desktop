@@ -34,8 +34,7 @@ Use it for:
 
 | Surface | Purpose |
 |---|---|
-| [Web app](https://theartofsound.github.io/qev-desktop/) | full vault workflow in the browser — lock text or files, unlock, inspect, tamper-check |
-| [Guide + tool](https://theartofsound.github.io/qev-desktop/app/#/tool) | guided Proof Lock workflow with record templates and docs |
+| [Web app](https://theartofsound.github.io/qev-desktop/#/tool) | full vault workflow in the browser — lock text or files, unlock, inspect, tamper-check, record templates, guide pages |
 | [`qev-cli`](./qev-cli) | npm CLI for lock/unlock/rewrap/self-test |
 | [Desktop & Android](https://secure.imagineqira.com/downloads) | QEV apps for Mac, Windows, and Android (QR pairing + Noise XK P2P chat) |
 | [BRY-NFET-SX platform](https://secure.imagineqira.com) | Qira LLC's policy-aware encrypted envelope platform |

@@ -4,6 +4,8 @@ import {
   LOCK_PRESETS,
   PresetKey,
   QevVault,
+  b64urlDecode,
+  b64urlEncode,
   decryptVaultV2,
   encryptVaultV2,
   generatePassphrase
@@ -80,6 +82,35 @@ Notes:`
 const defaultText = templates[0].text;
 
 const MIN_PHRASE_CHARS = 12;
+
+// The vault format caps plaintext at 256 KiB; files are stored as a
+// base64url JSON payload (~4/3 expansion + envelope), so cap uploads
+// where the encoded payload still fits.
+const MAX_FILE_BYTES = 180 * 1024;
+
+type FilePayload = { kind: "file"; name: string; type: string; bytes: string };
+type TextPayload = { kind: "text"; text: string };
+
+// Text vaults store raw text (compatible with qev-cli and the secure
+// vault page). File vaults store a JSON payload — the same shape the
+// old inline index app used, which also wrapped text; unwrap both so
+// legacy vaults keep opening here.
+function parsePayload(text: string): FilePayload | TextPayload | null {
+  try {
+    const obj = JSON.parse(text) as Record<string, unknown>;
+    if (obj && typeof obj === "object") {
+      if (obj.kind === "file" && typeof obj.bytes === "string") return obj as FilePayload;
+      if (obj.kind === "text" && typeof obj.text === "string") return obj as TextPayload;
+    }
+  } catch {
+    // raw text vault — not JSON
+  }
+  return null;
+}
+
+function safeFileName(name: string) {
+  return String(name || "qev-file").replace(/[^a-z0-9._-]/gi, "_").slice(0, 90);
+}
 
 function getPageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "");
@@ -191,9 +222,9 @@ function UsesPage() {
         <br />
         <b>Not a fit:</b> password recovery, legal notarization, cloud backup, or large file storage.
         <br />
-        <b>Need files, not text?</b> The <a href="../">index app</a> locks
-        whole files, and the <a href="https://secure.imagineqira.com/downloads" rel="noopener">desktop app</a> adds
-        device pairing and encrypted chat.
+        <b>Need files, not text?</b> The Tool's File mode locks files up to
+        ~180 KB; the <a href="https://secure.imagineqira.com/downloads" rel="noopener">desktop app</a> handles
+        bigger files and adds device pairing and encrypted chat.
       </div>
     </section>
   );
@@ -266,12 +297,16 @@ function SecurityPage() {
 
 function ToolPage() {
   const [plain, setPlain] = useState(defaultText);
+  const [inputMode, setInputMode] = useState<"text" | "file">("text");
+  const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [lockPhrase, setLockPhrase] = useState("");
   const [openPhrase, setOpenPhrase] = useState("");
   const [preset, setPreset] = useState<PresetKey>("strong");
   const [vaultText, setVaultText] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle", text: "Ready." });
   const [decrypted, setDecrypted] = useState("");
+  const [openedFile, setOpenedFile] = useState<FilePayload | null>(null);
+  const [inspectText, setInspectText] = useState("");
   const [dragging, setDragging] = useState(false);
 
   function useTemplate(template: Template) {
@@ -280,8 +315,28 @@ function ToolPage() {
     setStatus({ kind: "idle", text: `${template.title} template loaded.` });
   }
 
+  async function buildPlaintext(): Promise<string> {
+    if (inputMode === "text") return plain;
+    if (!pickedFile) throw new Error("Choose a file to lock first.");
+    if (pickedFile.size > MAX_FILE_BYTES) {
+      throw new Error(
+        `File too large for the browser tool (max ~${Math.round(MAX_FILE_BYTES / 1024)} KB). ` +
+        "Use the CLI or the desktop app for bigger files."
+      );
+    }
+    const bytes = new Uint8Array(await pickedFile.arrayBuffer());
+    const payload: FilePayload = {
+      kind: "file",
+      name: pickedFile.name,
+      type: pickedFile.type || "application/octet-stream",
+      bytes: b64urlEncode(bytes)
+    };
+    return JSON.stringify(payload);
+  }
+
   async function lockVault() {
     setDecrypted("");
+    setOpenedFile(null);
     if (lockPhrase.length < MIN_PHRASE_CHARS) {
       setStatus({
         kind: "bad",
@@ -292,7 +347,7 @@ function ToolPage() {
     setStatus({ kind: "idle", text: `Locking locally (${LOCK_PRESETS[preset].label} preset, ${LOCK_PRESETS[preset].hint})...` });
     try {
       const created = await encryptVaultV2({
-        plaintext: plain,
+        plaintext: await buildPlaintext(),
         password: lockPhrase,
         preset,
         mode: "self"
@@ -309,13 +364,57 @@ function ToolPage() {
   async function openVault() {
     setStatus({ kind: "idle", text: "Opening locally..." });
     setDecrypted("");
+    setOpenedFile(null);
     try {
       if (!vaultText.trim()) throw new Error("Paste, drop, upload, or create a vault first.");
       const vault = JSON.parse(vaultText) as QevVault;
       const text = await decryptVaultV2({ vault, password: openPhrase });
-      setDecrypted(text);
-      setStatus({ kind: "ok", text: "Opened. Passphrase matched and the vault was not changed." });
+      const payload = parsePayload(text);
+      if (payload?.kind === "file") {
+        setOpenedFile(payload);
+        const size = b64urlDecode(payload.bytes).length;
+        setStatus({
+          kind: "ok",
+          text: `Opened. File "${payload.name}" (${size.toLocaleString()} bytes) unlocked — download it below.`
+        });
+      } else {
+        setDecrypted(payload?.kind === "text" ? payload.text : text);
+        setStatus({ kind: "ok", text: "Opened. Passphrase matched and the vault was not changed." });
+      }
     } catch (err) {
+      setStatus({ kind: "bad", text: err instanceof Error ? err.message : String(err) });
+    }
+  }
+
+  function downloadOpenedFile() {
+    if (!openedFile) return;
+    const bytes = b64urlDecode(openedFile.bytes);
+    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: openedFile.type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = safeFileName(openedFile.name);
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function inspectVault() {
+    try {
+      if (!vaultText.trim()) throw new Error("Create or load a vault first.");
+      const v = JSON.parse(vaultText) as QevVault;
+      const rows = [
+        ["schema", v.schema],
+        ["version", v.version],
+        ["created_at", v.created_at],
+        ["mode", v.mode],
+        ["kdf", v.kdf ? `${v.kdf.algorithm} · ops=${v.kdf.opslimit} · mem=${(v.kdf.memlimit / (1024 * 1024)).toFixed(0)} MiB` : "missing"],
+        ["wrap", v.wrap ? `${v.wrap.algorithm} · wrapped_key ${String(v.wrap.wrapped_key || "").length} chars` : "missing"],
+        ["content", v.content ? `${v.content.algorithm} · ciphertext ${String(v.content.ciphertext || "").length} chars` : "missing"]
+      ];
+      setInspectText(rows.map(([k, val]) => `${String(k).padEnd(11)} ${val}`).join("\n"));
+      setStatus({ kind: "idle", text: "Inspected metadata without decrypting. No passphrase needed for this." });
+    } catch (err) {
+      setInspectText("");
       setStatus({ kind: "bad", text: err instanceof Error ? err.message : String(err) });
     }
   }
@@ -400,8 +499,32 @@ function ToolPage() {
             ))}
           </div>
 
-          <label htmlFor="plain">Record text <Help text="Write or paste the exact content you want locked into the vault file." /></label>
-          <textarea id="plain" value={plain} onChange={(e) => setPlain(e.target.value)} spellCheck={false} />
+          <label htmlFor="inputMode">What to lock <Help text="Text mode locks the record you type below. File mode locks an uploaded file into the same .vault format." /></label>
+          <select id="inputMode" value={inputMode} onChange={(e) => setInputMode(e.target.value as "text" | "file")}>
+            <option value="text">Text record</option>
+            <option value="file">File (up to ~180 KB)</option>
+          </select>
+
+          {inputMode === "text" && (
+            <>
+              <label htmlFor="plain">Record text <Help text="Write or paste the exact content you want locked into the vault file." /></label>
+              <textarea id="plain" value={plain} onChange={(e) => setPlain(e.target.value)} spellCheck={false} />
+            </>
+          )}
+
+          {inputMode === "file" && (
+            <>
+              <label htmlFor="plainFile">File to lock <Help text="The file is encoded into the encrypted payload with its name and type. Larger files belong in the CLI or desktop app." /></label>
+              <input
+                id="plainFile"
+                type="file"
+                onChange={(e) => setPickedFile(e.target.files?.[0] ?? null)}
+              />
+              {pickedFile && (
+                <p className="file-note">{safeFileName(pickedFile.name)} · {pickedFile.size.toLocaleString()} bytes</p>
+              )}
+            </>
+          )}
 
           <label htmlFor="lockPhrase">Locking passphrase <Help text="This passphrase creates the vault. Save it. Without it, the vault cannot be opened." /></label>
           <div className="phrase-row">
@@ -456,11 +579,29 @@ function ToolPage() {
 
           <div className="actions">
             <button className="black" onClick={openVault}>Open</button>
+            <button onClick={inspectVault} disabled={!vaultText}>Inspect</button>
             <button onClick={copyVault} disabled={!vaultText}>Copy JSON</button>
             <button onClick={tamperVault} disabled={!vaultText}>Tamper test</button>
           </div>
 
           <div className={`status ${status.kind}`}>{status.text}</div>
+
+          {inspectText && (
+            <div className="opened">
+              <div className="small-label">Vault metadata (not decrypted)</div>
+              <pre>{inspectText}</pre>
+            </div>
+          )}
+
+          {openedFile && (
+            <div className="opened">
+              <div className="small-label">Opened file</div>
+              <pre>{safeFileName(openedFile.name)} · {openedFile.type}</pre>
+              <div className="actions">
+                <button className="black" onClick={downloadOpenedFile}>Download file</button>
+              </div>
+            </div>
+          )}
 
           {decrypted && (
             <div className="opened">
@@ -490,7 +631,6 @@ export default function App() {
         <a className="brand" href="#/start"><span className="mark">Q</span> QEV <span className="brand-sub">Qira Encryption Vault</span></a>
         <div className="top-links">
           <a href="#/tool">Open Tool</a>
-          <a href="../" title="Quick vault app on the repo index — locks files too">Index App</a>
           <a href="https://github.com/TheArtOfSound/qev-desktop" rel="noopener">GitHub</a>
         </div>
       </nav>

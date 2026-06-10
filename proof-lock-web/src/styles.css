@@ -555,3 +555,16 @@ footer { display: grid; gap: 10px; }
 @media (max-width: 700px) {
   .brand-sub { display: none; }
 }
+
+input[type="file"] {
+  width: 100%;
+  border: 1px dashed var(--line);
+  background: var(--surface);
+  padding: 10px;
+  font: inherit;
+}
+.file-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
