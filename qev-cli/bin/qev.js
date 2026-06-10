@@ -26,8 +26,8 @@
 // SAFETY RULES (enforced here, not in lib/):
 //   - No --phrase / --password flag. Phrases are always prompted on stdin.
 //     The shell would otherwise record them in history and /proc.
-//   - No stack traces on user errors. We print a concise "qev: error: ..."
-//     line and exit 1.
+//   - No stack traces on user errors. We print concise, categorized messages
+//     and exit 1.
 //   - Never log the phrase, plaintext, or derived key. The lib module
 //     has the same rule; this file just never touches the values.
 
@@ -44,6 +44,7 @@ import {
   DEFAULT_PRESET_KEY,
   VERSION,
 } from "../lib/vault.js";
+import { b64urlDecode, b64urlEncode } from "../lib/canonical.js";
 import {
   promptPhrase,
   promptPhraseConfirmed,
@@ -55,6 +56,74 @@ import {
 /** Print `qev: error: <msg>` to stderr and exit 1. */
 function die(msg) {
   stderr.write(`qev: error: ${msg}\n`);
+  exit(1);
+}
+
+function bullet(line) {
+  stderr.write(`  - ${line}\n`);
+}
+
+function check(line) {
+  stderr.write(`  ✓ ${line}\n`);
+}
+
+/**
+ * Print categorized unlock failures without pretending AEAD can always tell
+ * wrong phrase apart from tampering. A failed wrap-key authentication check
+ * intentionally merges those cases.
+ */
+function explainUnlockFailure(vaultPath, err) {
+  const detail = err?.message || String(err || "unknown error");
+  const lower = detail.toLowerCase();
+
+  stderr.write(`qev: unlock failed: ${vaultPath}\n`);
+
+  if (lower.includes("not valid json") || lower.includes("json")) {
+    stderr.write("category: malformed vault file\n");
+    bullet("The file could not be parsed as JSON.");
+    bullet("Check that you selected the full .vault file and did not copy a partial snippet.");
+  } else if (
+    lower.includes("unsupported vault schema") ||
+    lower.includes("unsupported schema") ||
+    lower.includes("unsupported kdf") ||
+    lower.includes("unsupported wrap") ||
+    lower.includes("unsupported content") ||
+    lower.includes("unsupported algorithm")
+  ) {
+    stderr.write("category: unsupported vault format\n");
+    bullet("This CLI only opens supported QEV V2 vaults.");
+    bullet("Open the file in inspect mode or update qev if the vault came from a newer release.");
+  } else if (
+    lower.includes("vault malformed") ||
+    lower.includes("missing") ||
+    lower.includes("length") ||
+    lower.includes("too large") ||
+    lower.includes("invalid character") ||
+    lower.includes("out of range")
+  ) {
+    stderr.write("category: malformed or damaged vault\n");
+    bullet("The vault JSON is present, but one or more required fields are missing, invalid, or outside safety limits.");
+    bullet("Most likely causes: partial copy, damaged file, manual edit, unsupported generator, or transport corruption.");
+  } else if (
+    lower.includes("wrong phrase") ||
+    lower.includes("tampered vault") ||
+    lower.includes("could not decrypt") ||
+    lower.includes("authentication")
+  ) {
+    stderr.write("category: authentication check failed\n");
+    bullet("Most likely causes: wrong phrase, edited vault metadata, damaged wrapped key, or tampered ciphertext.");
+    bullet("For safety, QEV cannot always distinguish wrong phrase from tampering because authenticated encryption rejects both the same way.");
+    bullet("Try the phrase again; if it still fails, treat the vault as damaged or modified.");
+  } else if (lower.includes("utf-8")) {
+    stderr.write("category: decoded plaintext is not valid UTF-8\n");
+    bullet("The cryptographic unlock passed, but the plaintext bytes were not text.");
+    bullet("This CLI path currently writes UTF-8 plaintext to stdout.");
+  } else {
+    stderr.write("category: unknown unlock error\n");
+    bullet("The CLI did not recognize this failure mode. The technical detail below may help file a bug.");
+  }
+
+  stderr.write(`technical detail: ${detail}\n`);
   exit(1);
 }
 
@@ -128,15 +197,11 @@ async function cmdLock(argv) {
     );
   }
 
-  // 1. Read plaintext from stdin (or prompt the user on a TTY).
   const plaintext = await promptPlaintext();
   if (!plaintext || plaintext.length === 0) {
     die("lock: empty plaintext — nothing to encrypt");
   }
 
-  // 2. Prompt for the phrase twice. If the terminal isn't interactive,
-  //    promptPhraseConfirmed will reject — which is the right failure
-  //    mode for scripted foot-guns.
   let phrase;
   try {
     phrase = await promptPhraseConfirmed();
@@ -144,7 +209,6 @@ async function cmdLock(argv) {
     die(err.message || "phrase prompt failed");
   }
 
-  // 3. Encrypt. Surface known errors; log bug-style errors to stderr.
   stderr.write(
     `locking with ${preset.label} preset (${preset.hint}) ...\n`,
   );
@@ -161,7 +225,6 @@ async function cmdLock(argv) {
     die(err.message || "encryption failed");
   }
 
-  // 4. Write the vault JSON. To a file if --out, otherwise stdout.
   const json = JSON.stringify(vault, null, 2) + "\n";
   if (values.out) {
     try {
@@ -193,7 +256,6 @@ async function cmdUnlock(argv) {
   }
   const vaultPath = positionals[0];
 
-  // 1. Load and parse the vault file.
   let vaultText;
   try {
     vaultText = await readFile(vaultPath, { encoding: "utf8" });
@@ -205,10 +267,9 @@ async function cmdUnlock(argv) {
   try {
     vault = JSON.parse(vaultText);
   } catch (err) {
-    die(`unlock: ${vaultPath} is not valid JSON: ${err.message}`);
+    explainUnlockFailure(vaultPath, new Error(`not valid JSON: ${err.message}`));
   }
 
-  // 2. Prompt for the phrase.
   let phrase;
   try {
     phrase = await promptPhrase();
@@ -216,17 +277,13 @@ async function cmdUnlock(argv) {
     die(err.message || "phrase prompt failed");
   }
 
-  // 3. Decrypt. On failure, print the specific error but never the
-  //    phrase, plaintext, or any derived material.
   let plaintext;
   try {
     plaintext = await decryptVaultV2({ vault, password: phrase });
   } catch (err) {
-    die(err.message || "decryption failed");
+    explainUnlockFailure(vaultPath, err);
   }
 
-  // 4. Write plaintext to stdout. The trailing newline keeps pipes
-  //    behaving sanely (`qev unlock x.vault | less`).
   stdout.write(plaintext);
   if (!plaintext.endsWith("\n") && stdout.isTTY) {
     stdout.write("\n");
@@ -263,15 +320,76 @@ async function cmdSelfTest(argv) {
   });
   if (values.help) usage("self-test");
 
-  stderr.write("qev self-test: encrypt → decrypt → tamper → wrong-phrase ... ");
+  stderr.write("qev self-test\n");
   try {
     const result = await runSelfTest();
-    if (result.ok) {
-      stderr.write("ok\n");
-      exit(0);
+    if (!result.ok) {
+      throw new Error("library self-test returned a non-ok result");
     }
+    check("library round-trip, wrong-phrase, and tamper checks passed");
+
+    const testPlain = "self-test: explicit failure UX";
+    const testPassword = "self-test-phrase-only";
+    const quick = LOCK_PRESETS.quick;
+
+    const vault = await encryptVaultV2({
+      plaintext: testPlain,
+      password: testPassword,
+      mode: "self",
+      opslimit: quick.opslimit,
+      memlimit: quick.memlimit,
+    });
+    check(`created ${vault.schema} vault with quick preset`);
+
+    const roundTrip = await decryptVaultV2({ vault, password: testPassword });
+    if (roundTrip !== testPlain) {
+      throw new Error("explicit round-trip mismatch");
+    }
+    check("decrypted with the correct phrase");
+
+    let wrongPhraseRejected = false;
+    try {
+      await decryptVaultV2({ vault, password: "definitely-wrong-phrase" });
+    } catch (_err) {
+      wrongPhraseRejected = true;
+    }
+    if (!wrongPhraseRejected) {
+      throw new Error("wrong phrase was not rejected");
+    }
+    check("rejected wrong phrase / authentication failure");
+
+    const tampered = JSON.parse(JSON.stringify(vault));
+    const ctBytes = b64urlDecode(tampered.content.ciphertext);
+    ctBytes[0] = ctBytes[0] ^ 0x01;
+    tampered.content.ciphertext = b64urlEncode(ctBytes);
+    let tamperRejected = false;
+    try {
+      await decryptVaultV2({ vault: tampered, password: testPassword });
+    } catch (_err) {
+      tamperRejected = true;
+    }
+    if (!tamperRejected) {
+      throw new Error("tampered ciphertext was not rejected");
+    }
+    check("rejected damaged/tampered ciphertext");
+
+    const unsupported = { ...vault, schema: "BRY-NFET-SX-VAULT-V99" };
+    let schemaRejected = false;
+    try {
+      await decryptVaultV2({ vault: unsupported, password: testPassword });
+    } catch (_err) {
+      schemaRejected = true;
+    }
+    if (!schemaRejected) {
+      throw new Error("unsupported schema was not rejected");
+    }
+    check("rejected unsupported schema");
+
+    stderr.write("result: ok\n");
+    exit(0);
   } catch (err) {
-    stderr.write(`FAILED\nqev: error: ${err.message || err}\n`);
+    stderr.write("result: FAILED\n");
+    stderr.write(`qev: error: ${err.message || err}\n`);
     exit(1);
   }
 }
@@ -286,10 +404,6 @@ async function main() {
   const subcmd = args[0];
   const rest = args.slice(1);
 
-  // Reject any top-level --phrase / --password / --pw to discourage
-  // shell-history leakage. This is defence-in-depth; none of the
-  // subcommand parsers accept it, but we reject it explicitly here so
-  // the error message is friendly.
   for (const a of rest) {
     if (/^--(phrase|password|pw)(=|$)/.test(a)) {
       die(
@@ -324,8 +438,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  // Last-line-of-defence error handler. Don't print stack traces — they
-  // obscure the real message and aren't useful to end users.
   stderr.write(`qev: error: ${err.message || err}\n`);
   exit(1);
 });
