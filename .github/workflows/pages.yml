@@ -1,5 +1,14 @@
 name: Deploy QEV Pages
 
+# Single source of truth for the GitHub Pages site:
+#   /          — inline QEV vault app (repo-root index.html)
+#   /app/      — guide + tool SPA, built fresh from proof-lock-web/
+#   /docs/     — markdown docs + redirect for old /docs/ SPA links
+#   /assets/   — shared static assets
+# (An earlier setup had two workflows racing to deploy different
+# payloads to the same Pages environment; whichever ran last won,
+# which intermittently broke …/#/tool links.)
+
 on:
   push:
     branches:
@@ -28,12 +37,27 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build static Pages payload
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: proof-lock-web/package-lock.json
+
+      - name: Build guide app
+        working-directory: proof-lock-web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Assemble site
         run: |
           rm -rf _site
           mkdir -p _site
           cp index.html _site/index.html
+          cp 404.html _site/404.html
           cp -R docs _site/docs
+          cp -R proof-lock-web/dist _site/app
           if [ -d assets ]; then cp -R assets _site/assets; fi
           touch _site/.nojekyll
 

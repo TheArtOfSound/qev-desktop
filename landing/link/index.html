@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qira Link | Private mesh between your own devices</title>
+  <meta name="description" content="Qira Link is a private encrypted mesh between devices you already own. Same pair-in-person trust model as QEV. No accounts, no VPN provider, no exit nodes.">
+  <link rel="canonical" href="https://secure.imagineqira.com/link">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/link">
+  <meta property="og:title" content="Qira Link — private mesh between your own devices">
+  <meta property="og:description" content="Pair your devices. Access them from anywhere. No accounts, no VPN provider, no exit nodes. Same trust model as QEV.">
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+  <style>
+    .link-hero {
+      padding: 110px 0 60px;
+      text-align: center;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .link-status {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .link-hero h1 {
+      font-size: 3rem;
+      line-height: 1.1;
+      margin: 0 0 18px;
+    }
+    .link-hero .sub {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      max-width: 640px;
+      margin: 0 auto 36px;
+    }
+    .link-cta {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .link-cta.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-left: 8px;
+    }
+    .link-sections {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .link-section {
+      margin-top: 64px;
+    }
+    .link-section h2 {
+      font-size: 1.6rem;
+      margin-bottom: 18px;
+    }
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .link-card {
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .link-card h3 {
+      font-size: 0.95rem;
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    .link-card p {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+      margin: 0;
+    }
+    .link-no-list {
+      padding: 20px 24px;
+      background: #1a0f0f;
+      border: 1px solid #3a1414;
+      border-radius: 10px;
+    }
+    .link-no-list li {
+      color: #f5b7b7;
+      font-size: 0.9rem;
+      padding: 4px 0;
+    }
+    .link-rule {
+      padding: 22px 26px;
+      border-left: 3px solid var(--accent);
+      background: rgba(99, 102, 241, 0.06);
+      border-radius: 4px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .link-rule strong { color: var(--accent); }
+  </style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+<body>
+<!-- Use the site-wide nav pattern (class="nav-links" / class="logo")
+     so styles.css renders it correctly. The old .site-nav-* classes
+     had no matching rules in the stylesheet, so the nav appeared
+     unstyled and crammed into one line. -->
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">BRY-NFET-SX</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/security">Security</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="link-hero">
+  <div class="wrap">
+    <div class="link-status">v0.1.0 &middot; Coming soon</div>
+    <h1>Qira Link</h1>
+    <p class="sub">
+      A private, encrypted mesh between devices you already own.
+      Pair them in person once. Reach them from anywhere.
+      No accounts. No VPN provider. No exit nodes.
+    </p>
+    <a href="#what-it-is" class="link-cta">What makes it different</a>
+    <a href="/downloads" class="link-cta secondary">QEV downloads</a>
+  </div>
+</header>
+
+<div class="link-sections">
+
+  <section class="link-section" id="what-it-is">
+    <h2>What Qira Link is</h2>
+    <div class="link-rule">
+      <strong>Not a VPN provider.</strong>
+      Qira Link is a private tunnel between devices you personally own &mdash;
+      the same trust model as QEV, at the network layer. You pair your
+      laptop, phone, and home server in person once (QR code + 30-digit
+      safety number), then any of them can reach the others over
+      encrypted UDP, from anywhere.
+    </div>
+  </section>
+
+  <section class="link-section">
+    <h2>How it works</h2>
+    <div class="link-grid">
+      <div class="link-card">
+        <h3>Pair in person</h3>
+        <p>Scan a QR code between two of your devices. Compare a 30-digit safety number out loud. You've just created a permanent trusted link.</p>
+      </div>
+      <div class="link-card">
+        <h3>Encrypted UDP tunnel</h3>
+        <p>WireGuard wire protocol (same Noise-family primitives QEV uses) carries packets between paired devices. Line-rate, auto-rekey, replay-protected.</p>
+      </div>
+      <div class="link-card">
+        <h3>Direct when possible</h3>
+        <p>LAN-direct on the same network; hole-punched UDP when not; the QEV relay as last-resort store-and-forward. Relay only ever sees ciphertext.</p>
+      </div>
+      <div class="link-card">
+        <h3>Kernel TUN, userspace keys</h3>
+        <p>Your private key stays in the OS keystore (macOS Keychain, Android EncryptedSharedPreferences). Packet routing uses WinTun on Windows, utun on macOS, VpnService on Android.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="link-section">
+    <h2>What Qira Link will never do</h2>
+    <ul class="link-no-list">
+      <li>No exit nodes &mdash; you cannot route traffic through somebody else's device to mask your IP.</li>
+      <li>No third-party bridges &mdash; you cannot pair with a stranger.</li>
+      <li>No account system, no email verification, no web dashboard.</li>
+      <li>No anonymity against a network-level adversary &mdash; this is a trust tool between your own devices, not a cloak.</li>
+    </ul>
+  </section>
+
+  <section class="link-section">
+    <h2>Built on QEV's trust model</h2>
+    <div class="link-grid">
+      <div class="link-card">
+        <h3>Same pairing flow</h3>
+        <p>Identical QR + safety-number process as QEV device pairing. If you already use QEV, you already know how to set up Qira Link.</p>
+      </div>
+      <div class="link-card">
+        <h3>Same relay, same guarantee</h3>
+        <p>When direct UDP fails, tunnel traffic routes through the QEV relay. It still sees only ciphertext &mdash; no plaintext, no metadata beyond pk-to-pk.</p>
+      </div>
+      <div class="link-card">
+        <h3>Open source</h3>
+        <p>Every line auditable. No back door. No telemetry. Same license as QEV.</p>
+      </div>
+      <div class="link-card">
+        <h3>Free forever</h3>
+        <p>No subscription. No tiers. No locked features. The same promise as QEV because Qira Link is the same philosophy at a different layer.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="link-section">
+    <h2>Roadmap</h2>
+    <div class="link-grid">
+      <div class="link-card">
+        <h3>Phase 1 &middot; Core crypto</h3>
+        <p>Rust library implementing the WireGuard wire protocol wrapped with QEV pairing as the sole trust source. Target: 1.5 weeks.</p>
+      </div>
+      <div class="link-card">
+        <h3>Phase 2 &middot; Desktop TUN</h3>
+        <p>macOS utun, Windows WinTun, Linux /dev/net/tun. Target: 2 weeks.</p>
+      </div>
+      <div class="link-card">
+        <h3>Phase 3 &middot; Android</h3>
+        <p>VpnService + JNI into the Rust core. Target: 1.5 weeks.</p>
+      </div>
+      <div class="link-card">
+        <h3>Phase 4 &middot; NAT traversal</h3>
+        <p>STUN + hole punching, QEV relay fallback. Target: 1 week.</p>
+      </div>
+      <div class="link-card">
+        <h3>Phase 5 &middot; UX polish</h3>
+        <p>Tauri app, tunnel toggle, peer list, connection status. Target: 1 week.</p>
+      </div>
+      <div class="link-card">
+        <h3>Phase 6 &middot; Ship v0.1.0</h3>
+        <p>Signed DMG, MSI with WinTun, signed APK. Target: roughly 10 weeks from spec (2026-04-17).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="link-section">
+    <h2>Want to be notified?</h2>
+    <p style="color:var(--text-dim);">
+      Qira Link v0.1.0 will appear on the
+      <a href="/downloads" style="color:var(--accent);">downloads page</a>
+      when it's ready. No mailing list, no tracking &mdash; same as
+      everything else here.
+    </p>
+  </section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>
+      Free. Open source. No accounts. No servers.
+      QEV v0.29.0 &middot; Qira Link v0.1.0-alpha &middot; &copy; 2026 Qira LLC.
+    </p>
+  </div>
+</footer>
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
+</body>
+</html>

@@ -520,3 +520,38 @@ footer {
     width: min(240px, 70vw);
   }
 }
+
+/* QEV brand mark + cross-property footer */
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand .mark {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--black);
+  color: var(--surface);
+  font-weight: bold;
+  font-size: 17px;
+}
+.brand-sub {
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--muted);
+  border-left: 1px solid var(--line);
+  padding-left: 9px;
+}
+select {
+  width: 100%;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 10px;
+  font: inherit;
+  margin-bottom: 6px;
+}
+footer { display: grid; gap: 10px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 7px 16px; }
+.footer-links a { font-weight: bold; font-size: 13px; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) {
+  .brand-sub { display: none; }
+}

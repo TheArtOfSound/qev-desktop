@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:image" content="https://secure.imagineqira.com/og-image.png">
+<meta property="og:image:secure_url" content="https://secure.imagineqira.com/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BRY-NFET-SX — Policy-aware encrypted envelope workflow">
+<meta name="twitter:image" content="https://secure.imagineqira.com/og-image.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/og-image.png">
   <title>BRY-NFET-SX | Policy-Aware Encrypted Envelope Workflow Platform</title>
   <meta name="description" content="BRY-NFET-SX is a policy-aware encrypted envelope workflow platform. Authenticated encryption, multi-message session envelopes, signed bundle export, trust-aware verification, and persisted security artifacts.">
   <meta name="keywords" content="encrypted envelope, authenticated encryption, ChaCha20-Poly1305, signed bundle verification, security workflow, policy comparison, AEAD, artifact signing, trust semantics, encrypted artifacts">
@@ -32,11 +40,18 @@
     "applicationCategory": "SecurityApplication",
     "operatingSystem": "Linux, macOS",
     "description": "Policy-aware encrypted envelope workflow platform with authenticated encryption, multi-message session envelopes, signed bundle export, and trust-aware verification semantics.",
-    "softwareVersion": "0.28.1",
+    "softwareVersion": "0.29.0",
     "author": {
       "@type": "Organization",
-      "name": "Qira LLC"
+      "name": "Qira LLC",
+      "url": "https://imagineqira.com"
     },
+    "url": "https://secure.imagineqira.com/",
+    "sameAs": [
+      "https://github.com/TheArtOfSound/qev-desktop",
+      "https://theartofsound.github.io/qev-desktop/",
+      "https://imagineqira.com"
+    ],
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -65,7 +80,7 @@
         "name": "Is BRY-NFET-SX production-ready?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "This is a controlled-use product preview (v0.28.1). It has been through internal adversarial reviews and multiple hardening phases, but has not been formally audited by a third party. It is suitable for evaluation, controlled workflows, and technical review."
+          "text": "This is a controlled-use product preview (v0.29.0). It has been through internal adversarial reviews and multiple hardening phases, but has not been formally audited by a third party. It is suitable for evaluation, controlled workflows, and technical review."
         }
       },
       {
@@ -80,8 +95,8 @@
   }
   </script>
 
-  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
-</head>
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
 <body>
 
 <nav>
@@ -89,22 +104,18 @@
     <a href="/" class="logo">BRY-NFET-SX</a>
     <div class="nav-links">
       <a href="/">Product</a>
-      <a href="/review">Review</a>
       <a href="/security">Security</a>
-      <a href="/verify">Integrity</a>
-      <a href="/challenge">Challenge</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
-      <a href="/android">Android</a>
       <a href="/contact">Contact</a>
       <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
-    </div>
+        </div>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap">
-    <div class="hero-label">Controlled-Use Product Preview &mdash; v0.28.1</div>
+    <div class="hero-label">Controlled-Use Product Preview &mdash; v0.29.0</div>
     <h1>Encrypted envelope workflows<br>with verifiable trust semantics</h1>
     <p class="sub">A policy-aware encrypted envelope workflow platform built on standard authenticated encryption. Package structured messages into session artifacts, compare routing policies, export signed bundles, and verify trust &mdash; with semantics that distinguish integrity from authenticity.</p>
     <div class="hero-actions">
@@ -150,6 +161,7 @@
         <a href="/vault" class="btn btn-sm btn-primary">Open the Envelope</a>
         <a href="/vault#verify" class="btn btn-sm btn-outline">How to Verify</a>
         <a href="/verify" class="btn btn-sm btn-outline">Site Integrity Record</a>
+        <a href="https://github.com/TheArtOfSound/qev-desktop" class="btn btn-sm btn-outline" rel="noopener">Source on GitHub</a>
       </div>
     </div>
   </div>
@@ -369,7 +381,7 @@
 
       <div class="faq-row">
         <div class="faq-q">Is this production-ready?</div>
-        <div class="faq-a">This is a controlled-use product preview, version 0.28.1. It has been through three internal adversarial security reviews and multiple hardening phases (35A-35F, 38A-38E, plus audit-3 cleanup and v0.28.1 bundle write canonicalization). It has not been formally audited by a third party and is not designed for hostile multi-tenant deployment. It is suitable for evaluation, controlled workflows, demos, and technical review.</div>
+        <div class="faq-a">This is a controlled-use product preview, version 0.29.0. It has been through three internal adversarial security reviews and multiple hardening phases (35A-35F, 38A-38E, plus audit-3 cleanup and v0.29.0 bundle write canonicalization). It has not been formally audited by a third party and is not designed for hostile multi-tenant deployment. It is suitable for evaluation, controlled workflows, demos, and technical review.</div>
       </div>
 
       <div class="faq-row">
@@ -416,9 +428,16 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
     Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
-    &copy; 2026 Qira LLC. All rights reserved.
+    &copy; 2026 <a href="https://imagineqira.com" rel="noopener">Qira LLC</a>. All rights reserved.<br>
+    <span style="display:inline-block; margin-top:10px;">
+      <a href="https://imagineqira.com" rel="noopener">Qira LLC</a> &middot;
+      <a href="https://github.com/TheArtOfSound/qev-desktop" rel="noopener">QEV on GitHub</a> &middot;
+      <a href="https://theartofsound.github.io/qev-desktop/" rel="noopener">QEV Web Tool</a> &middot;
+      <a href="https://www.npmjs.com/package/@bryan237l/qev-cli" rel="noopener">QEV CLI (npm)</a> &middot;
+      <a href="/verify">Site Integrity</a>
+    </span>
   </div>
 </footer>
 
@@ -430,5 +449,12 @@ document.querySelectorAll('.faq-q').forEach(function(el){
 });
 </script>
 
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

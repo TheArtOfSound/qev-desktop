@@ -14,7 +14,7 @@
   <meta property="og:description" content="Encrypt a message in your browser. Plaintext never leaves the tab. XChaCha20-Poly1305 + Argon2id, all running locally.">
   <meta property="og:site_name" content="BRY-NFET-SX">
 
-  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
 
   <style>
     /* Vault-specific styles, scoped to .vault-* class names so they don't
@@ -288,212 +288,18 @@
       font-size: 0.78rem; color: var(--text-secondary);
       word-break: break-all;
     }
-    .vault-result-envelope strong { color: var(--text); display: block; margin-bottom: 4px; }
-
-    /* -----------------------------------------------------------------
-       ACCESS GATE
-       -----------------------------------------------------------------
-       The vault page is a private preview. Visitors must email
-       bryanleonard@imagineqira.com for an access code. The code is
-       checked client-side via SHA-256; only the hex digest ships in
-       the HTML source. Anyone viewing source can see the digest but
-       cannot reverse it back to the 43-char code.
-    */
-    .gate-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    .gate-card {
-      max-width: 520px;
-      width: 100%;
-      padding: 36px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-      text-align: center;
-    }
-    .gate-card .gate-icon {
-      width: 56px;
-      height: 56px;
-      margin: 0 auto 16px;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-    .gate-card h1 {
-      font-size: 1.45rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 0 0 10px;
-    }
-    .gate-card .gate-sub {
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      line-height: 1.65;
-      margin: 0 0 24px;
-    }
-    .gate-card .gate-email-label {
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 6px;
-    }
-    .gate-card .gate-email {
-      display: inline-block;
-      padding: 10px 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--accent);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 0.9rem;
-      text-decoration: none;
-      margin-bottom: 28px;
-    }
-    .gate-card .gate-email:hover {
-      border-color: var(--accent);
-      text-decoration: none;
-    }
-    .gate-card .gate-input-label {
-      display: block;
-      text-align: left;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-    .gate-card .gate-input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .gate-card input[type="password"],
-    .gate-card input[type="text"] {
-      flex: 1;
-      min-width: 0;
-      padding: 12px 14px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      box-sizing: border-box;
-    }
-    .gate-card input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent-bg);
-    }
-    .gate-card .gate-reveal {
-      padding: 10px 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      font-family: inherit;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .gate-card .gate-reveal:hover { border-color: var(--text-dim); color: var(--text); }
-    .gate-card .gate-submit {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: var(--text);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 12px;
-      transition: background 0.12s;
-    }
-    .gate-card .gate-submit:hover { background: #2d3340; }
-    .gate-card .gate-submit:disabled { background: var(--text-dim); cursor: not-allowed; }
-    .gate-card .gate-error {
-      margin-top: 14px;
-      padding: 10px 14px;
-      background: rgba(220, 38, 38, 0.08);
-      color: #b91c1c;
-      border: 1px solid rgba(220, 38, 38, 0.2);
-      border-radius: 6px;
-      font-size: 0.82rem;
-      display: none;
-    }
-    .gate-card .gate-error.visible { display: block; }
-    .gate-card .gate-foot {
-      margin-top: 20px;
-      font-size: 0.74rem;
-      color: var(--text-dim);
-      line-height: 1.5;
-    }
-    .gate-card .gate-foot a { color: var(--text-secondary); text-decoration: underline; }
-    body.gate-locked .gate-app-content { display: none !important; }
-    body.gate-locked nav { display: none !important; }
-  </style>
+    .vault-result-envelope strong { color: var(--text); display: block; margin-bottom: 4px; }  </style>
 </head>
-<body class="gate-locked">
+<body>
 
-<!-- ================= ACCESS GATE ================= -->
-<div id="gate-overlay" class="gate-overlay">
-  <div class="gate-card">
-    <div class="gate-icon">🔒</div>
-    <h1>Private Preview</h1>
-    <p class="gate-sub">
-      QEV Web Vault is currently in private preview. To request access,
-      email the address below. You'll receive an access code within one
-      business day.
-    </p>
-    <div class="gate-email-label">Request access</div>
-    <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Web%20Vault%20Access%20Request&body=Please%20send%20me%20an%20access%20code%20for%20the%20QEV%20Web%20Vault%20private%20preview.%0A%0AName%3A%20%0AOrganization%3A%20%0AIntended%20use%3A%20" class="gate-email">bryanleonard@imagineqira.com</a>
-    <label class="gate-input-label" for="gate-code">Access code</label>
-    <div class="gate-input-row">
-      <input type="password" id="gate-code" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Paste the code you received">
-      <button type="button" class="gate-reveal" id="gate-reveal">Show</button>
-    </div>
-    <button type="button" class="gate-submit" id="gate-submit">Unlock</button>
-    <div class="gate-error" id="gate-error">That code didn't match. Check for stray spaces.</div>
-    <p class="gate-foot">
-      Already tried it and want the native app instead?
-      <a href="/downloads">Download QEV for Mac or Windows</a>.
-      <br>
-      Don't need a vault at all? <a href="/">Back to BRY-NFET-SX</a>.
-    </p>
-  </div>
-</div>
-
-<!-- ================= GATED CONTENT ================= -->
-<!-- Everything below this marker is hidden while body.gate-locked
-     is set. Unlocking removes the class and reveals the app. -->
-<div class="gate-app-content">
+<!-- Gate removed — vault is free and open -->
 
 <nav>
   <div class="wrap">
     <a href="/" class="logo">BRY-NFET-SX</a>
     <div class="nav-links">
       <a href="/">Product</a>
-      <a href="/review">Review</a>
       <a href="/security">Security</a>
-      <a href="/verify">Integrity</a>
-      <a href="/challenge">Challenge</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
       <a href="/contact">Contact</a>
@@ -712,7 +518,7 @@
             <div class="vault-knob-tip" id="tip-schema">
               The version of the locked box format. Version 2 is what we make today &mdash; it uses a random data key that is itself locked by your phrase. Older Version 1 boxes still open on this page. If we ever change the format again, future versions will get a new number.
             </div>
-            <div class="vault-knob-locked-pill">BRY-NFET-SX VAULT V2 (made by version 0.28.1)</div>
+            <div class="vault-knob-locked-pill">BRY-NFET-SX VAULT V2 (made by version 0.29.0)</div>
           </div>
         </div>
 
@@ -875,26 +681,28 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
     Built on standard authenticated encryption (ChaCha20-Poly1305 / XChaCha20-Poly1305). Not a new cryptographic primitive.<br>
     &copy; 2026 Qira LLC. All rights reserved.
   </div>
 </footer>
 
-</div><!-- /.gate-app-content -->
 
-<!-- Gate JS — loaded from an external file because CSP forbids
-     inline <script> blocks. The plaintext access code is NOT in
-     gate.js either; only the SHA-256 hex digest. See gate.js for
-     rotation instructions. -->
-<script src="/vault/gate.js?v=0.28.1-gate1"></script>
+<!-- Gate removed — vault is free and open, no access code required. -->
 
-<script src="/vault/sodium.js?v=0.28.1-phrase1"
+<script src="/vault/sodium.js?v=0.29.0"
         integrity="sha384-xE+e4s598d4A0BKvbnkYaqRYutiZTg3KzqnWK51WA6h0yoCZ3uuV52KsntFIWScg"
         crossorigin="anonymous"></script>
-<script src="/vault/chat.js?v=0.28.1-phrase1"
-        integrity="sha384-1MwkpbF0l5eI+zXu9HrgQPZBgnPxanRIsX/5Miq7HMq41nI/Yvo4CWafoMmWo51Q"
+<script src="/vault/chat.js?v=0.30.0"
+        integrity="sha384-/pk1zT1lRQIVk0fSv5w2l00586HPhaPG/EMCVZN6ESLvpTgg65zOF4I5SScXK4LN"
         crossorigin="anonymous"></script>
 
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

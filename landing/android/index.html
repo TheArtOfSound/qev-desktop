@@ -85,7 +85,7 @@
       color: var(--text);
     }
   </style>
-</head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
 <body>
 
 <!-- ===================== NAV ===================== -->
@@ -93,9 +93,10 @@
   <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
     <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
     <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
-      <a href="/downloads">Download</a>
+      <a href="/">Product</a>
+      <a href="/security">Security</a>
       <a href="/vault">Vault</a>
-      <a href="/android" style="font-weight:700;color:var(--accent);">Android</a>
+      <a href="/downloads" style="font-weight:700;color:var(--accent);">Download</a>
       <a href="/contact">Contact</a>
     </div>
   </div>
@@ -107,14 +108,15 @@
   <p class="tagline">
     The same offline encryption vault that runs on Mac and Windows,
     now on your phone. Same vault format. Same crypto. Same
-    phrase-based security. No accounts, no servers, no Play Store.
+    phrase-based security. Plus QR device pairing and encrypted
+    chat between your devices. No accounts, no servers, no Play Store.
     Free and open.
   </p>
-  <a href="/assets/QEV_0.28.1_android.apk" class="android-download-btn" download>
-    Download QEV_0.28.1_android.apk
+  <a href="/downloads/QEV-0.29.0-release.apk" class="android-download-btn" download>
+    Download QEV-0.29.0-release.apk
   </a>
   <div class="android-meta">
-    ARM64 &middot; ~11 MB &middot; Android 7.0+ &middot; Free &middot; Open source
+    ARM64 &middot; ~38 MB &middot; Android 7.0+ &middot; Free &middot; Open source
   </div>
 </div>
 
@@ -123,7 +125,7 @@
   <h2>Install</h2>
   <ol>
     <li>Tap the download button above. Your browser will download
-        <code>QEV_0.28.1_android.apk</code>.</li>
+        <code>QEV-0.29.0-release.apk</code>.</li>
     <li>Open your phone's <strong>Downloads</strong> folder (or tap
         the notification when the download finishes).</li>
     <li>Tap the APK file. Android will ask you to allow installing
@@ -159,6 +161,7 @@
     <li>Network security config blocking all cleartext traffic</li>
     <li>Cloud backup and device-transfer explicitly disabled</li>
     <li>QR pairing + direct P2P vault transfer (same LAN)</li>
+    <li>Encrypted chat messaging between paired devices</li>
     <li>Relay-based offline delivery via secure.imagineqira.com</li>
     <li>Same vault format (BRY-NFET-SX-VAULT-V2) as every other QEV platform</li>
   </ul>
@@ -170,7 +173,7 @@
   <ul>
     <li><a href="/downloads" style="color:var(--accent);">Mac + Windows desktop app</a> — native installers</li>
     <li><a href="/vault" style="color:var(--accent);">Web vault</a> — browser-based, same crypto</li>
-    <li><strong>Linux / CLI</strong> — <code>npm i -g @imagineqira/qev-cli</code></li>
+    <li><strong>Linux / CLI</strong> — <code>npm i -g @bryan237l/qev-cli</code></li>
   </ul>
 </div>
 
@@ -182,5 +185,12 @@
   <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">bryanleonard@imagineqira.com</a>
 </footer>
 
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

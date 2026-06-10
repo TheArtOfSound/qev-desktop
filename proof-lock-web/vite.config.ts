@@ -11,7 +11,7 @@ const sodiumBundle = path.resolve(
 
 export default defineConfig({
   plugins: [react()],
-  base: "/qev-desktop/",
+  base: "./",
   resolve: {
     alias: {
       "libsodium-wrappers-sumo": sodiumBundle

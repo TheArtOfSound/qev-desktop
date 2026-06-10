@@ -60,6 +60,11 @@
   // -------- Constants --------
   const SCHEMA_V1 = "BRY-NFET-SX-VAULT-V1";
   const SCHEMA_V2 = "BRY-NFET-SX-VAULT-V2";
+  // Qira Notify envelope — structurally similar to V2 but with
+  // literal `wrap.aad` / `content.aad` domain strings as AAD (not
+  // a canonical-JSON-derived binding). Accepted here for read-only
+  // decryption so a Notify JSON + phrase opens in the Vault tab.
+  const SCHEMA_QIRA_NOTIFY_V1 = "QIRA-NOTIFY-V1";
   const SCHEMA = SCHEMA_V2; // default schema for new encryptions
   const VERSION = "0.28.1";
   const KDF_ALG = "argon2id";
@@ -527,16 +532,73 @@
     }
   }
 
-  // Dispatch validator — chooses V1 or V2 based on schema string.
+  // Qira Notify uses libsodium's canonical alg name; Vault uses
+  // our brand-specific title-case. Both refer to the same AEAD.
+  const NOTIFY_AEAD_ALG = "xchacha20poly1305-ietf";
+
+  // Qira Notify V1 validator. Structurally V2-shaped but no `mode`
+  // or `version` fields, and it carries its own AAD as literal
+  // strings in `wrap.aad` / `content.aad`. Algorithm strings use
+  // the libsodium canonical naming (lowercase, `-ietf`) rather
+  // than the vault's title-case.
+  function validateVaultSchemaQiraNotifyV1(vault) {
+    if (!vault || typeof vault !== "object") {
+      throw new Error("Vault malformed: not an object");
+    }
+    if (vault.schema !== SCHEMA_QIRA_NOTIFY_V1) {
+      throw new Error(
+        'Unsupported vault schema: "' + vault.schema +
+        '" (expected ' + SCHEMA_QIRA_NOTIFY_V1 + ")"
+      );
+    }
+    if (typeof vault.created_at !== "string") {
+      throw new Error("Notify envelope malformed: missing created_at");
+    }
+    enforceKdfCaps(vault.kdf);
+    if (!vault.wrap || vault.wrap.algorithm !== NOTIFY_AEAD_ALG) {
+      throw new Error(
+        "Unsupported wrap algorithm: " + (vault.wrap && vault.wrap.algorithm)
+      );
+    }
+    if (typeof vault.wrap.aad !== "string") {
+      throw new Error("Notify envelope malformed: missing wrap.aad");
+    }
+    if (typeof vault.wrap.nonce !== "string") {
+      throw new Error("Notify envelope malformed: missing wrap.nonce");
+    }
+    if (typeof vault.wrap.wrapped_key !== "string") {
+      throw new Error("Notify envelope malformed: missing wrap.wrapped_key");
+    }
+    if (!vault.content || vault.content.algorithm !== NOTIFY_AEAD_ALG) {
+      throw new Error(
+        "Unsupported content algorithm: " + (vault.content && vault.content.algorithm)
+      );
+    }
+    if (typeof vault.content.aad !== "string") {
+      throw new Error("Notify envelope malformed: missing content.aad");
+    }
+    if (typeof vault.content.nonce !== "string") {
+      throw new Error("Notify envelope malformed: missing content.nonce");
+    }
+    if (typeof vault.content.ciphertext !== "string") {
+      throw new Error("Notify envelope malformed: missing content.ciphertext");
+    }
+  }
+
+  // Dispatch validator — chooses V1, V2, or Notify-V1 based on schema.
   function validateVaultSchema(vault) {
     if (!vault || typeof vault !== "object") {
       throw new Error("Vault malformed: not an object");
     }
     if (vault.schema === SCHEMA_V2) return validateVaultSchemaV2(vault);
     if (vault.schema === SCHEMA_V1) return validateVaultSchemaV1(vault);
+    if (vault.schema === SCHEMA_QIRA_NOTIFY_V1) {
+      return validateVaultSchemaQiraNotifyV1(vault);
+    }
     throw new Error(
       'Unsupported vault schema: "' + vault.schema +
-      '" (expected ' + SCHEMA_V2 + " or " + SCHEMA_V1 + ")"
+      '" (expected ' + SCHEMA_V2 + ", " + SCHEMA_V1 + ", or " +
+      SCHEMA_QIRA_NOTIFY_V1 + ")"
     );
   }
 
@@ -875,6 +937,88 @@
     }
   }
 
+  // -------- Qira Notify V1 decrypt --------
+  //
+  // A Notify envelope is structurally V2-shaped but its AAD is the
+  // envelope's literal `wrap.aad` / `content.aad` strings, not a
+  // canonical-JSON binding of the metadata. Same AEAD + KDF as V2;
+  // only the AAD differs.
+  //
+  // Read-only: QEV never produces Notify envelopes — this path
+  // exists so a user who pastes a Notify inbox JSON can open it
+  // with their phrase in the Vault tab, no extra tooling required.
+  function decryptVaultQiraNotifyV1(opts) {
+    const vault = opts.vault;
+    const password = opts.password;
+
+    validateVaultSchemaQiraNotifyV1(vault);
+
+    if (typeof password !== "string" || password.length === 0) {
+      throw new Error("Type the phrase");
+    }
+
+    const salt = b64urlDecode(vault.kdf.salt);
+    const wrapNonce = b64urlDecode(vault.wrap.nonce);
+    const wrappedKey = b64urlDecode(vault.wrap.wrapped_key);
+    const contentNonce = b64urlDecode(vault.content.nonce);
+    const contentCt = b64urlDecode(vault.content.ciphertext);
+
+    if (salt.length !== SALT_BYTES) throw new Error("Notify envelope malformed: salt length");
+    if (wrapNonce.length !== NONCE_BYTES) throw new Error("Notify envelope malformed: wrap nonce length");
+    if (contentNonce.length !== NONCE_BYTES) throw new Error("Notify envelope malformed: content nonce length");
+    if (wrappedKey.length !== KEY_BYTES + 16) {
+      throw new Error("Notify envelope malformed: wrapped_key length (got " + wrappedKey.length + ")");
+    }
+    if (contentCt.length === 0) throw new Error("Notify envelope malformed: empty ciphertext");
+    if (contentCt.length > MAX_CIPHERTEXT_BYTES) {
+      throw new Error("Notify envelope too large (max " + (MAX_CIPHERTEXT_BYTES / 1024) + " KiB)");
+    }
+
+    const pwBytes = utf8(password);
+    const wrapKey = sodium.crypto_pwhash(
+      KEY_BYTES, pwBytes, salt,
+      vault.kdf.opslimit, vault.kdf.memlimit,
+      sodium.crypto_pwhash_ALG_ARGON2ID13
+    );
+    sodium.memzero(pwBytes);
+
+    const wrapAad = utf8(vault.wrap.aad);
+    const contentAad = utf8(vault.content.aad);
+
+    let vaultKey;
+    try {
+      vaultKey = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null, wrappedKey, wrapAad, wrapNonce, wrapKey
+      );
+    } catch (err) {
+      sodium.memzero(wrapKey);
+      throw new Error("Could not decrypt: wrong phrase or tampered envelope");
+    }
+    sodium.memzero(wrapKey);
+
+    if (vaultKey.length !== KEY_BYTES) {
+      sodium.memzero(vaultKey);
+      throw new Error("Notify envelope malformed: unwrapped vault_key is not " + KEY_BYTES + " bytes");
+    }
+
+    let plaintextBytes;
+    try {
+      plaintextBytes = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null, contentCt, contentAad, contentNonce, vaultKey
+      );
+    } catch (err) {
+      sodium.memzero(vaultKey);
+      throw new Error("Could not decrypt: Notify envelope content was tampered with");
+    }
+    sodium.memzero(vaultKey);
+
+    try {
+      return fromUtf8(plaintextBytes);
+    } catch (err) {
+      throw new Error("Decrypted bytes are not valid UTF-8");
+    }
+  }
+
   // ---- Top-level dispatch ----
 
   // Encrypt always produces V2. There is no reason to produce new V1 vaults.
@@ -882,7 +1026,8 @@
     return encryptVaultV2(opts);
   }
 
-  // Decrypt dispatches on the schema string so legacy V1 boxes still open.
+  // Decrypt dispatches on the schema string so legacy V1 boxes still
+  // open AND Qira Notify envelopes open too.
   function decryptVault(opts) {
     const vault = opts && opts.vault;
     if (!vault || typeof vault !== "object") {
@@ -890,9 +1035,13 @@
     }
     if (vault.schema === SCHEMA_V2) return decryptVaultV2(opts);
     if (vault.schema === SCHEMA_V1) return decryptVaultV1(opts);
+    if (vault.schema === SCHEMA_QIRA_NOTIFY_V1) {
+      return decryptVaultQiraNotifyV1(opts);
+    }
     throw new Error(
       'Unsupported vault schema: "' + vault.schema +
-      '" (expected ' + SCHEMA_V2 + " or " + SCHEMA_V1 + ")"
+      '" (expected ' + SCHEMA_V2 + ", " + SCHEMA_V1 + ", or " +
+      SCHEMA_QIRA_NOTIFY_V1 + ")"
     );
   }
 
@@ -1188,6 +1337,64 @@
     return Promise.reject(new Error("Clipboard API not available"));
   }
 
+  // Chat envelope decrypt path. Returns { plaintext, meta } on
+  // success, null if the input isn't a chat envelope, or throws a
+  // user-friendly Error if the input IS a chat envelope but decryption
+  // fails (wrong phrase, malformed payload, etc). The caller catches
+  // the throw and surfaces the error to the user.
+  function tryDecryptChatEnvelope(raw, phrase) {
+    const trimmed = (raw || "").trim();
+    if (trimmed.length === 0 || trimmed.charAt(0) !== "{") return null;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (e) {
+      return null;
+    }
+    if (!parsed || parsed.schema !== "QEV-CHAT-ENVELOPE-V1") return null;
+    if (!Array.isArray(parsed.ids) || parsed.ids.length !== 2) {
+      throw new Error("Chat envelope missing 'ids' pair");
+    }
+    if (typeof parsed.nonce !== "string" || typeof parsed.ct !== "string") {
+      throw new Error("Chat envelope missing 'nonce' or 'ct'");
+    }
+    if (typeof phrase !== "string" || phrase.length === 0) {
+      throw new Error("Type the shared phrase to decrypt the chat message");
+    }
+    const ids = parsed.ids
+      .map(function (s) { return String(s).toLowerCase(); })
+      .sort();
+    const contextStr = "QEV-CHAT-V1:" + ids[0] + ":" + ids[1];
+    const phraseBytes = new TextEncoder().encode(phrase);
+    const contextBytes = new TextEncoder().encode(contextStr);
+    const combined = new Uint8Array(phraseBytes.length + contextBytes.length);
+    combined.set(phraseBytes);
+    combined.set(contextBytes, phraseBytes.length);
+    const key = sodium.crypto_generichash(32, combined);
+    sodium.memzero(combined);
+    sodium.memzero(phraseBytes);
+    let nonceBytes;
+    let ctBytes;
+    try {
+      nonceBytes = sodium.from_base64(parsed.nonce, sodium.base64_variants.URLSAFE_NO_PADDING);
+      ctBytes = sodium.from_base64(parsed.ct, sodium.base64_variants.URLSAFE_NO_PADDING);
+    } catch (e) {
+      throw new Error("Chat envelope base64 malformed");
+    }
+    let ptBytes;
+    try {
+      ptBytes = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, ctBytes, null, nonceBytes, key);
+    } catch (e) {
+      sodium.memzero(key);
+      throw new Error("Wrong phrase (AEAD auth tag mismatch)");
+    }
+    sodium.memzero(key);
+    const plaintext = new TextDecoder().decode(ptBytes);
+    sodium.memzero(ptBytes);
+    const meta = "Schema: QEV-CHAT-ENVELOPE-V1  |  Participants: " + ids[0].slice(0, 8) + "… ↔ " + ids[1].slice(0, 8) + "…";
+    return { plaintext: plaintext, meta: meta };
+  }
+
   function parseVaultInput(raw) {
     const trimmed = (raw || "").trim();
     if (trimmed.length === 0) {
@@ -1403,6 +1610,24 @@
           try {
             const raw = $("vault-decrypt-input").value;
             const password = $("vault-decrypt-password").value;
+
+            // Chat-envelope fast path. Before attempting vault decode,
+            // peek at the trimmed JSON and see if it's a chat envelope
+            // copied from a locked conversation. If so, decrypt with
+            // the per-chat BLAKE2b(phrase || context) key and bypass
+            // the vault Argon2id path entirely. Vault code is never
+            // touched — this is a pre-check that only fires for the
+            // chat schema string.
+            const chatResult = tryDecryptChatEnvelope(raw, password);
+            if (chatResult !== null) {
+              $("vault-decrypt-password").value = "";
+              $("vault-decrypt-result-text").textContent = chatResult.plaintext;
+              $("vault-decrypt-result").classList.remove("vault-hidden");
+              $("vault-decrypt-result-meta").textContent = chatResult.meta;
+              setStatus("vault-decrypt-status", "Chat message decrypted", "ok");
+              return;
+            }
+
             const vault = parseVaultInput(raw);
             const plaintext = decryptVault({ vault: vault, password: password });
             // Clear sensitive form fields
@@ -1410,11 +1635,25 @@
             // Render result
             $("vault-decrypt-result-text").textContent = plaintext;
             $("vault-decrypt-result").classList.remove("vault-hidden");
-            const meta = [
-              "Mode: " + (vault.mode === "share" ? "shared with you" : "your own note"),
-              "Created: " + vault.created_at,
-              "Schema: " + vault.schema + " v" + vault.version,
-            ].join("  |  ");
+            // Meta line adapts to the schema — Notify envelopes don't
+            // have `mode`/`version`, so we show a tailored label for
+            // those and skip the missing fields rather than showing
+            // "your own note" (wrong) or "vundefined" (ugly).
+            const isNotify = vault.schema === SCHEMA_QIRA_NOTIFY_V1;
+            const metaParts = [];
+            if (isNotify) {
+              metaParts.push("Source: Qira Notify encrypted notification");
+            } else {
+              metaParts.push(
+                "Mode: " +
+                  (vault.mode === "share" ? "shared with you" : "your own note")
+              );
+            }
+            metaParts.push("Created: " + vault.created_at);
+            metaParts.push(
+              "Schema: " + vault.schema + (vault.version ? " v" + vault.version : "")
+            );
+            const meta = metaParts.join("  |  ");
             $("vault-decrypt-result-meta").textContent = meta;
             setStatus("vault-decrypt-status", "Decrypted successfully", "ok");
           } catch (err) {

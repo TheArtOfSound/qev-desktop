@@ -1,7 +1,7 @@
 import sodium from "libsodium-wrappers-sumo";
 
 export const SCHEMA_V2 = "BRY-NFET-SX-VAULT-V2";
-export const VERSION = "0.29.0";
+export const VERSION = "0.30.0";
 export const KDF_ALG = "argon2id";
 export const AEAD_ALG = "XChaCha20-Poly1305";
 

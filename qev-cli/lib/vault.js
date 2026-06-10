@@ -57,7 +57,10 @@ export async function ready() {
 export const SCHEMA_V1 = "BRY-NFET-SX-VAULT-V1";
 export const SCHEMA_V2 = "BRY-NFET-SX-VAULT-V2";
 export const SCHEMA = SCHEMA_V2;
-export const VERSION = "0.29.0";
+// Stamped into every vault this build creates. Sourced from
+// package.json so the npm release version and the vault "version"
+// field can never drift apart again (0.30.0 shipped stamping 0.29.0).
+export const VERSION = require("../package.json").version;
 
 export const KDF_ALG = "argon2id";
 export const AEAD_ALG = "XChaCha20-Poly1305";

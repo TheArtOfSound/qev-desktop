@@ -34,9 +34,12 @@ Use it for:
 
 | Surface | Purpose |
 |---|---|
-| [`qev-cli`](./qev-cli) | npm CLI for lock/unlock/self-test |
-| [`docs/`](./docs) | threat model, vault format, and site content |
-| [`docs/index.html`](./docs/index.html) | GitHub Pages-ready landing/demo page |
+| [Web app](https://theartofsound.github.io/qev-desktop/) | full vault workflow in the browser — lock text or files, unlock, inspect, tamper-check |
+| [Guide + tool](https://theartofsound.github.io/qev-desktop/app/#/tool) | guided Proof Lock workflow with record templates and docs |
+| [`qev-cli`](./qev-cli) | npm CLI for lock/unlock/rewrap/self-test |
+| [Desktop & Android](https://secure.imagineqira.com/downloads) | QEV apps for Mac, Windows, and Android (QR pairing + Noise XK P2P chat) |
+| [BRY-NFET-SX platform](https://secure.imagineqira.com) | Qira LLC's policy-aware encrypted envelope platform |
+| [`docs/`](./docs) | threat model, vault format, rewrap and failure-UX notes |
 | `BRY-NFET-SX-VAULT-V2` | current vault schema used by QEV |
 
 ## Install the CLI

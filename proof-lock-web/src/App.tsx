@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { DragEvent } from "react";
 import {
+  LOCK_PRESETS,
+  PresetKey,
   QevVault,
   decryptVaultV2,
   encryptVaultV2,
@@ -77,6 +79,8 @@ Notes:`
 
 const defaultText = templates[0].text;
 
+const MIN_PHRASE_CHARS = 12;
+
 function getPageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "");
   return pages.some((page) => page.id === raw) ? (raw as Page) : "start";
@@ -98,7 +102,7 @@ function download(name: string, text: string) {
 
 function vaultName() {
   const stamp = new Date().toISOString().slice(0, 10);
-  return `proof-lock-${stamp}.vault`;
+  return `qev-${stamp}.vault`;
 }
 
 function Help({ text }: { text: string }) {
@@ -113,10 +117,11 @@ function Help({ text }: { text: string }) {
 function StartPage() {
   return (
     <section className="page start-page">
-      <p className="eyebrow">QEV local vault utility</p>
+      <p className="eyebrow">QEV — Qira Encryption Vault</p>
       <h1>Write it. Lock it. Prove it later.</h1>
       <p className="lead">
-        Proof Lock turns a text record into a downloadable <code>.vault</code> file.
+        QEV turns a text record into a downloadable <code>.vault</code> file —
+        XChaCha20-Poly1305 + Argon2id, sealed in your browser.
         Keep the passphrase. If someone edits the vault, it will not open.
       </p>
 
@@ -170,7 +175,7 @@ function UsesPage() {
     <section className="page">
       <p className="eyebrow">Use cases</p>
       <h1>For records that need to stay honest.</h1>
-      <p className="lead">Proof Lock is not just for developers. It is for any text record you may need to trust later.</p>
+      <p className="lead">QEV is not just for developers. It is for any text record you may need to trust later.</p>
 
       <div className="use-list">
         {normalUses.map(([title, body]) => (
@@ -185,6 +190,10 @@ function UsesPage() {
         <b>Best fit:</b> notes, logs, receipts, AI outputs, decisions, instructions, and handoffs.
         <br />
         <b>Not a fit:</b> password recovery, legal notarization, cloud backup, or large file storage.
+        <br />
+        <b>Need files, not text?</b> The <a href="../">index app</a> locks
+        whole files, and the <a href="https://secure.imagineqira.com/downloads" rel="noopener">desktop app</a> adds
+        device pairing and encrypted chat.
       </div>
     </section>
   );
@@ -210,7 +219,15 @@ function CliPage() {
           <h3>Open vault</h3>
           <pre>qev unlock proof.vault</pre>
         </article>
+        <article>
+          <h3>Rotate the phrase</h3>
+          <pre>qev rewrap proof.vault --out rotated.vault</pre>
+        </article>
       </div>
+      <p className="lead" style={{ marginTop: 18 }}>
+        Package page: <a href="https://www.npmjs.com/package/@bryan237l/qev-cli" rel="noopener">@bryan237l/qev-cli on npm</a> ·
+        Source: <a href="https://github.com/TheArtOfSound/qev-desktop" rel="noopener">GitHub</a>
+      </p>
     </section>
   );
 }
@@ -238,14 +255,20 @@ function SecurityPage() {
           <p>This does not protect you from malware, screenshots, keyloggers, or weak passphrases.</p>
         </article>
       </div>
+      <p className="lead" style={{ marginTop: 18 }}>
+        Read the full <a href="https://github.com/TheArtOfSound/qev-desktop/blob/main/docs/THREAT_MODEL.md" rel="noopener">threat model</a> and
+        the <a href="https://github.com/TheArtOfSound/qev-desktop/blob/main/docs/VAULT_FORMAT.md" rel="noopener">vault format spec</a> before
+        relying on QEV for anything sensitive.
+      </p>
     </section>
   );
 }
 
 function ToolPage() {
   const [plain, setPlain] = useState(defaultText);
-  const [lockPhrase, setLockPhrase] = useState("demo-passphrase-change-me");
-  const [openPhrase, setOpenPhrase] = useState("demo-passphrase-change-me");
+  const [lockPhrase, setLockPhrase] = useState("");
+  const [openPhrase, setOpenPhrase] = useState("");
+  const [preset, setPreset] = useState<PresetKey>("strong");
   const [vaultText, setVaultText] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle", text: "Ready." });
   const [decrypted, setDecrypted] = useState("");
@@ -258,13 +281,20 @@ function ToolPage() {
   }
 
   async function lockVault() {
-    setStatus({ kind: "idle", text: "Locking locally..." });
     setDecrypted("");
+    if (lockPhrase.length < MIN_PHRASE_CHARS) {
+      setStatus({
+        kind: "bad",
+        text: `Use a longer passphrase (at least ${MIN_PHRASE_CHARS} characters), or click Generate.`
+      });
+      return;
+    }
+    setStatus({ kind: "idle", text: `Locking locally (${LOCK_PRESETS[preset].label} preset, ${LOCK_PRESETS[preset].hint})...` });
     try {
       const created = await encryptVaultV2({
         plaintext: plain,
         password: lockPhrase,
-        preset: "quick",
+        preset,
         mode: "self"
       });
       const text = JSON.stringify(created, null, 2);
@@ -375,9 +405,24 @@ function ToolPage() {
 
           <label htmlFor="lockPhrase">Locking passphrase <Help text="This passphrase creates the vault. Save it. Without it, the vault cannot be opened." /></label>
           <div className="phrase-row">
-            <input id="lockPhrase" value={lockPhrase} onChange={(e) => setLockPhrase(e.target.value)} spellCheck={false} />
+            <input
+              id="lockPhrase"
+              value={lockPhrase}
+              onChange={(e) => setLockPhrase(e.target.value)}
+              spellCheck={false}
+              placeholder={`At least ${MIN_PHRASE_CHARS} characters — or Generate one`}
+            />
             <button onClick={newPhrase}>Generate</button>
           </div>
+
+          <label htmlFor="preset">Strength preset <Help text="How much work an attacker must do per passphrase guess. Strong is right for most records; Vault is the slowest and strongest." /></label>
+          <select id="preset" value={preset} onChange={(e) => setPreset(e.target.value as PresetKey)}>
+            {(Object.keys(LOCK_PRESETS) as PresetKey[]).map((key) => (
+              <option key={key} value={key}>
+                {LOCK_PRESETS[key].label} — {LOCK_PRESETS[key].hint}
+              </option>
+            ))}
+          </select>
 
           <div className="actions primary-actions">
             <button className="black" onClick={lockVault}>Lock</button>
@@ -404,7 +449,7 @@ function ToolPage() {
           </label>
 
           <label htmlFor="openPhrase">Opening passphrase <Help text="Use the passphrase that was used when the vault was created." /></label>
-          <input id="openPhrase" value={openPhrase} onChange={(e) => setOpenPhrase(e.target.value)} spellCheck={false} />
+          <input id="openPhrase" value={openPhrase} onChange={(e) => setOpenPhrase(e.target.value)} spellCheck={false} placeholder="Passphrase used when the vault was created" />
 
           <label htmlFor="vault">Vault JSON <Help text="Paste vault JSON here, edit it for tamper testing, or load it by dropping a .vault file above." /></label>
           <textarea id="vault" className="vault-area" value={vaultText} onChange={(e) => setVaultText(e.target.value)} spellCheck={false} placeholder="Paste vault JSON here or drop a .vault file above." />
@@ -442,10 +487,11 @@ export default function App() {
   return (
     <main>
       <nav className="topbar">
-        <a className="brand" href="#/start">Proof Lock</a>
+        <a className="brand" href="#/start"><span className="mark">Q</span> QEV <span className="brand-sub">Qira Encryption Vault</span></a>
         <div className="top-links">
           <a href="#/tool">Open Tool</a>
-          <a href="https://github.com/TheArtOfSound/qev-desktop">GitHub</a>
+          <a href="../" title="Quick vault app on the repo index — locks files too">Index App</a>
+          <a href="https://github.com/TheArtOfSound/qev-desktop" rel="noopener">GitHub</a>
         </div>
       </nav>
 
@@ -467,7 +513,14 @@ export default function App() {
       </div>
 
       <footer>
-        Local browser workflow. No account. No upload. Keep your passphrase; no one can recover it for you.
+        <div>Local browser workflow. No account. No upload. Keep your passphrase; no one can recover it for you.</div>
+        <div className="footer-links">
+          <a href="https://imagineqira.com" rel="noopener">Qira LLC</a>
+          <a href="https://secure.imagineqira.com" rel="noopener">BRY-NFET-SX Platform</a>
+          <a href="https://secure.imagineqira.com/downloads" rel="noopener">Desktop &amp; Android</a>
+          <a href="https://www.npmjs.com/package/@bryan237l/qev-cli" rel="noopener">CLI on npm</a>
+          <a href="https://github.com/TheArtOfSound/qev-desktop" rel="noopener">GitHub</a>
+        </div>
       </footer>
     </main>
   );

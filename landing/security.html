@@ -14,8 +14,8 @@
   <meta property="og:site_name" content="BRY-NFET-SX">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Security and Trust | BRY-NFET-SX">
-  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
-</head>
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
 <body>
 
 <nav>
@@ -23,16 +23,12 @@
     <a href="/" class="logo">BRY-NFET-SX</a>
     <div class="nav-links">
       <a href="/">Product</a>
-      <a href="/review">Review</a>
       <a href="/security">Security</a>
-      <a href="/verify">Integrity</a>
-      <a href="/challenge">Challenge</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
-      <a href="/android">Android</a>
       <a href="/contact">Contact</a>
       <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
-    </div>
+        </div>
   </div>
 </nav>
 
@@ -106,7 +102,7 @@
 <section>
   <div class="wrap">
     <div class="heading">Hardening completed</div>
-    <div class="desc">Three internal adversarial security reviews have been run against BRY-NFET-SX. Audit 1 produced 11 findings and was resolved in Phases 35A-35F. Audit 2 produced further findings and was resolved in Phases 38A-38E. Audit 3 produced residual-issue findings that were closed out in a cleanup pass. v0.28.1 added a dogfooding fix discovered during the public challenge work. 258 tests currently pass (220 product tests + 38 tests covering the local Python vault tool that opens V1/V2 browser-produced vaults).</div>
+    <div class="desc">Three internal adversarial security reviews have been run against BRY-NFET-SX. Audit 1 produced 11 findings and was resolved in Phases 35A-35F. Audit 2 produced further findings and was resolved in Phases 38A-38E. Audit 3 produced residual-issue findings that were closed out in a cleanup pass. v0.29.0 added a dogfooding fix discovered during the public challenge work. 258 tests currently pass (220 product tests + 38 tests covering the local Python vault tool that opens V1/V2 browser-produced vaults).</div>
     <div class="sec-grid">
       <div class="sec-col">
         <h3>Phase 35A: Provider lockdown</h3>
@@ -177,7 +173,7 @@
           <li><span class="mark-done">Done</span>Envelope message count limit enforced (default 100, configurable)</li>
           <li><span class="mark-done">Done</span>Non-numeric configuration values fall back to default instead of crashing</li>
         </ul>
-        <h3 style="margin-top: 28px;">v0.28.1: Bundle write canonicalization</h3>
+        <h3 style="margin-top: 28px;">v0.29.0: Bundle write canonicalization</h3>
         <ul>
           <li><span class="mark-done">Done</span>Bundle files written in the same canonical form the manifest hashes</li>
           <li><span class="mark-done">Done</span>External verification with standard tools (shasum, sha256sum) now matches the manifest directly</li>
@@ -264,12 +260,19 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
     Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
     This security page last updated: 2026-04-15.<br>
     &copy; 2026 Qira LLC. All rights reserved.
   </div>
 </footer>
 
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

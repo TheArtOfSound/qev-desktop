@@ -6,15 +6,15 @@
   <title>Privacy Policy | QEV — Qira Encryption Vault</title>
   <meta name="description" content="QEV privacy policy. We don't collect data. We can't read your vaults. There is no account, no server-side storage of your content, and no tracking.">
   <link rel="stylesheet" href="/styles.css">
-</head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
 <body>
 <nav>
   <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
     <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
     <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
-      <a href="/downloads">Download</a>
+      <a href="/security">Security</a>
       <a href="/vault">Vault</a>
-      <a href="/android">Android</a>
+      <a href="/downloads">Download</a>
       <a href="/contact">Contact</a>
     </div>
   </div>
@@ -35,7 +35,7 @@
   <ul>
     <li>No account creation — there are no usernames, passwords, or email addresses.</li>
     <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, no server-side log analysis of page views.</li>
-    <li>No cookies — the site sets zero cookies. The access-gate code is stored in <code>localStorage</code> on your browser only.</li>
+    <li>No cookies — the site sets zero cookies. No access gate, no login.</li>
     <li>No telemetry — the desktop, Android, and CLI apps make zero network calls after installation. The web vault at <code>/vault</code> runs under <code>Content-Security-Policy: connect-src 'none'</code>, which means the browser itself refuses to let the page call anywhere.</li>
     <li>No crash reporting — if the app crashes, the crash stays on your machine. We never see it.</li>
   </ul>
@@ -77,5 +77,12 @@
 <footer style="text-align:center;padding:32px 24px;font-size:0.76rem;color:var(--text-dim);border-top:1px solid var(--border);">
   QEV v0.29.0 &middot; &copy; 2026 Qira LLC &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
 </footer>
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

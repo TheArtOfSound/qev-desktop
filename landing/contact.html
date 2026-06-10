@@ -14,8 +14,8 @@
   <meta property="og:site_name" content="BRY-NFET-SX">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Contact | BRY-NFET-SX">
-  <link rel="stylesheet" href="/styles.css?v=0.28.1-mob1">
-</head>
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
 <body>
 
 <nav>
@@ -23,16 +23,12 @@
     <a href="/" class="logo">BRY-NFET-SX</a>
     <div class="nav-links">
       <a href="/">Product</a>
-      <a href="/review">Review</a>
       <a href="/security">Security</a>
-      <a href="/verify">Integrity</a>
-      <a href="/challenge">Challenge</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
-      <a href="/android">Android</a>
       <a href="/contact">Contact</a>
       <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
-    </div>
+        </div>
   </div>
 </nav>
 
@@ -90,9 +86,9 @@
         <a href="/security" class="btn btn-sm btn-outline">View Security Status</a>
       </div>
       <div class="card">
-        <h3>API Documentation</h3>
-        <p>Interactive API documentation for all packet, envelope, storage, and bundle endpoints.</p>
-        <a href="/docs" class="btn btn-sm btn-outline">View API Docs</a>
+        <h3>Source code</h3>
+        <p>QEV is open source. Read the Rust and JavaScript source, audit the crypto, file issues, or contribute.</p>
+        <a href="https://github.com/TheArtOfSound/qev-desktop" class="btn btn-sm btn-outline">View on GitHub</a>
       </div>
     </div>
   </div>
@@ -124,11 +120,18 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.28.1 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
     Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
     &copy; 2026 Qira LLC. All rights reserved.
   </div>
 </footer>
 
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
 </body>
 </html>
