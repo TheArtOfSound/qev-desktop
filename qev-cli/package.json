@@ -1,6 +1,6 @@
 {
   "name": "@bryan237l/qev-cli",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "description": "Command-line vault for offline encrypted message envelopes. Same XChaCha20-Poly1305 + Argon2id crypto as the QEV desktop and web apps. Cross-platform, zero network access, lock a file with a phrase and share it through any channel.",
   "keywords": [
     "encryption",
@@ -32,6 +32,7 @@
   "exports": {
     ".": "./lib/index.js",
     "./vault": "./lib/vault.js",
+    "./rewrap": "./lib/rewrap.js",
     "./canonical": "./lib/canonical.js"
   },
   "files": [
@@ -44,8 +45,8 @@
     "node": ">=18.17.0"
   },
   "scripts": {
-    "test": "node --test test/",
-    "test:watch": "node --test --watch test/",
+    "test": "node --test test/*.test.js",
+    "test:watch": "node --test --watch test/*.test.js",
     "selftest": "./bin/qev.js self-test",
     "start": "./bin/qev.js"
   },
