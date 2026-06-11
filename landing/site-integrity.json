@@ -1,18 +1,18 @@
 {
   "schema": "BRY-NFET-SX-SITE-INTEGRITY-V2",
   "site": "secure.imagineqira.com",
-  "signed_at": "2026-06-10T05:26:38.399285+00:00",
+  "signed_at": "2026-06-11T08:51:06.595996+00:00",
   "file_count": 35,
   "files": {
-    "index.html": "81d7a20ccacc77f64c81da415ec63ca0ed5e5e1ffd084ca840aafeda96ecc4d7",
-    "review.html": "e696f30d6ace7ad7c39448a5dea0f2442141c8f06cf41e5df3f7b627d504bc8f",
-    "security.html": "84e2c1c495e1053e1f749ba357a7841de433178151ea25a8c5b73144473ad21e",
-    "contact.html": "14e2e9e502acab32c2639c6666a8a26c5785736292a33b521952c2227229137a",
-    "verify.html": "4b79646d0d22b7d9285180aba523c0090c51ea83c02474becfeed156c99b50dc",
-    "challenge.html": "4d1b8ce998d731dbe3ff1168565c7715f1854b170718809ae7a011940b7d1dcc",
-    "downloads.html": "9c637f097e46f634ef1acbe7d29e30eacd8e2977503e16744db3e38b22a98e9a",
+    "index.html": "33df6ce95d0b11415e3785b6a0f6264ca00fc811b3b4e33dc0438e955fd34b9f",
+    "review.html": "5b74b0d328f8c6b34818ba1543563b0807f1dfa7d8b176d6f2211992d005ca8e",
+    "security.html": "e3f52ceeffb2e20196478ee3530adfba0f12d7968e8d1c5cc2ae82fabf5f1cff",
+    "contact.html": "004aa8db0b75e39e6f15836ea48cb990829a7236a14dde6b51e401cef6bbcdd5",
+    "verify.html": "0a7f846229dc57c59faa461ed584d6f13f91df54d50ce376f71d5d3d200b984b",
+    "challenge.html": "91435fbcc4914266f940e8419bc180fb6a8d2c3b42fd894f5b7acef8e1100824",
+    "downloads.html": "ccf686b98378a4b209a05de16c7328dbcf8f311fa074fbe527cc75f95bff849e",
     "privacy.html": "22469863a0f0aae9d1b27ae574aa16d3af1e740c096266c13b6fa1a6610a24d5",
-    "vault/index.html": "5c09f31feef8d49aa8951a266e8466f7341e631d6ff7d5a1f30d3707584aa9d8",
+    "vault/index.html": "5574a6c4e7415ce8eb93733b36b16ad39fa323c253bd5e2497c4736690bee16d",
     "vault/chat.js": "0ffbeaea3ca7a37fa2c5eab3dbe923e164a451d4c79ea7aebc535aabeb30ae81",
     "vault/sodium.js": "b13df42138a77880bd8e18ab184ca74fac59c31471cf82f8ded677cc46b5087f",
     "vault/SODIUM-VERSION.txt": "b273c527bdd08abe17f2e4262612ada4a17b9b3147cdceb2d1459de585adfa41",
@@ -35,7 +35,7 @@
     "notify/icon-512.png": "81d39778f3fdc2c284d998a68a2faa9e72ee1734e7a7ff8c3ede359eb8248a9b",
     "notify/icon-maskable-192.png": "9171ef31ab19fe0d338d80b3835804c103cb03898e50fd5e727b2f09af6c6893",
     "notify/icon-maskable-512.png": "a8b41b8ee170ef3277b96565126c0055e74bd311afac311f3368384de1124f0e",
-    "link/index.html": "ab3058ca8ae0d593105fe1c9c91e993471ca031dffb3069de13fae01a3a384d1",
+    "link/index.html": "942402fe60eb7c57a84cf6afffb3e3164d8c31172e6d074bd685a43544b9ad61",
     "og-image.png": "d086d3962a895d1f02269d3bf111da80c5d2bee7688a27142689efef4b1290a5",
     "site-signer.ed25519.pub": "dbb282b70657334bbf1cdf6f2fa6d758b5a81556aaf0c16b5602167d08879c18",
     "site-verify.js": "b1aba59812d5f632ad39b14ebaabbe8834195da879341b7fee1c4e852051e8d1"
@@ -50,7 +50,7 @@
     "algorithm": "ed25519",
     "domain": "BRY-NFET-SX|SITE-INTEGRITY|V2",
     "public_key_hex": "881de4e7616992f92013b84ba1bbd08280a007b491bde28a46d8a15612d1d326",
-    "signature_hex": "b41299f3fa8eeab573fdbbce24cbc93b2582c1f0b66717044275465818df541adb858acd73728732767a07bd624f8a40dedafa4b4f16898163c8e422622fa702",
+    "signature_hex": "1ff2f45dfc53feb268bf60d65ee63dcf2217b89673c59edeafb5f1ee109edc8fdce1239d869fa5bde436e1f3f15c6aacb92d8f1e66875f84a54e8741471dc106",
     "canonical_json_note": "The signed bytes are: BRY-NFET-SX|SITE-INTEGRITY|V2|| json.dumps(manifest_without_signature, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8'). The 'manifest_without_signature' object is this record with the 'signature' field removed. JS verifiers: recursively sort object keys, then JSON.stringify(obj) with no indent argument \u2014 this produces the same bytes."
   }
 }
