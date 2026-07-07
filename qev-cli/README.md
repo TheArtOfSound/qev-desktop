@@ -126,7 +126,7 @@ qev self-test: encrypt → decrypt → tamper → wrong-phrase ... ok
 
 ```sh
 $ qev version
-qev 0.28.1
+qev 0.30.0
 ```
 
 ## Crypto
@@ -155,7 +155,7 @@ workflow.
 ```json
 {
   "schema": "BRY-NFET-SX-VAULT-V2",
-  "version": "0.28.1",
+  "version": "0.30.0",
   "created_at": "2026-04-15T23:59:59.000Z",
   "mode": "self",
   "kdf": {
@@ -218,54 +218,3 @@ regardless of which implementation produced the vault.
   is open.
 - **Supply-chain compromise.** Pin versions, audit dependencies, and prefer
   `npm ci` in CI.
-
-**What it is not:**
-
-- It is not a messenger.
-- It is not a password manager.
-- It is not cloud storage encryption.
-- It is not a new encryption algorithm.
-
-QEV fills a narrow gap: encrypt a single thing, share it once, through any
-channel, without an account.
-
-## Programmatic use
-
-```js
-import { encryptVaultV2, decryptVaultV2, runSelfTest } from "@bryan237l/qev-cli";
-
-await runSelfTest(); // throws on any failure
-
-const vault = await encryptVaultV2({
-  plaintext: "hello",
-  password: "a-reasonably-long-phrase",
-  mode: "self",
-  opslimit: 4,
-  memlimit: 96 * 1024 * 1024,
-});
-
-const pt = await decryptVaultV2({ vault, password: "a-reasonably-long-phrase" });
-console.log(pt); // "hello"
-```
-
-## Development
-
-```sh
-git clone https://github.com/TheArtOfSound/qev-desktop.git
-cd qev-desktop/qev-cli
-npm install
-npm test
-./bin/qev.js self-test
-```
-
-## License
-
-MIT © Bryan Leonard / Qira LLC. libsodium is ISC licensed. See `LICENSE` and
-`vendor/libsodium-license.txt` for the full texts.
-
-## Support
-
-- Desktop app: [`secure.imagineqira.com/downloads`](https://secure.imagineqira.com/downloads)
-- Web app: [`secure.imagineqira.com/vault`](https://secure.imagineqira.com/vault)
-- npm: [`@bryan237l/qev-cli`](https://www.npmjs.com/package/@bryan237l/qev-cli)
-- Questions, bugs, refunds: `bryanleonard@imagineqira.com`
