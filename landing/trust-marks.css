@@ -48,9 +48,12 @@
 
   --tm-ink:             #16181d;   /* 17.76:1 on bg */
   --tm-body:            #4a5261;   /*  7.86:1 on bg */
-  --tm-muted:           #6b7280;   /*  4.83:1 on bg - replaces
-                                       --text-dim #8590a2 (3.23:1,
-                                       AA FAIL) */
+  --tm-muted:           #646c7a;   /*  5.29:1 on bg, 4.76:1 worst case
+                                       (on --tm-surface-raised) - replaces
+                                       --text-dim #8590a2, which was
+                                       3.23:1 on white and 2.90:1 on the
+                                       raised surface: AA FAIL on every
+                                       ground this site actually uses */
 
   /* --- semantic verdict colours -------------------------------
      Deliberately separate from the brand accent. A verdict must
@@ -60,7 +63,7 @@
   --tm-caution:         #9a6700;   /* 4.87:1 - passed, but scoped
                                        narrower than you may think */
   --tm-failed:          #b3261e;   /* 6.54:1 - check failed      */
-  --tm-unproven:        #6b7280;   /* 4.83:1 - NOT CHECKED. Not a
+  --tm-unproven:        #646c7a;   /* 5.29:1 - NOT CHECKED. Not a
                                        failure. The audit found the
                                        product had no way to say
                                        this, so pages either implied
@@ -70,7 +73,7 @@
   --tm-verified-bg:  rgba(13, 122, 79, 0.08);
   --tm-caution-bg:   rgba(154, 103, 0, 0.09);
   --tm-failed-bg:    rgba(179, 38, 30, 0.08);
-  --tm-unproven-bg:  rgba(107, 114, 128, 0.08);
+  --tm-unproven-bg:  rgba(100, 108, 122, 0.08);
 
   /* --- type ---------------------------------------------------
      Monospace is not "the code font" here, it is the product's
@@ -144,11 +147,11 @@
 :root[data-theme="light"] {
   --tm-bg: #ffffff; --tm-surface: #f7f8fa; --tm-surface-raised: #eef0f4;
   --tm-border: #dfe3e9; --tm-border-strong: #c4cad4;
-  --tm-ink: #16181d; --tm-body: #4a5261; --tm-muted: #6b7280;
+  --tm-ink: #16181d; --tm-body: #4a5261; --tm-muted: #646c7a;
   --tm-accent: #1a56db; --tm-verified: #0d7a4f; --tm-caution: #9a6700;
-  --tm-failed: #b3261e; --tm-unproven: #6b7280;
+  --tm-failed: #b3261e; --tm-unproven: #646c7a;
   --tm-verified-bg: rgba(13,122,79,0.08); --tm-caution-bg: rgba(154,103,0,0.09);
-  --tm-failed-bg: rgba(179,38,30,0.08); --tm-unproven-bg: rgba(107,114,128,0.08);
+  --tm-failed-bg: rgba(179,38,30,0.08); --tm-unproven-bg: rgba(100,108,122,0.08);
 }
 
 /* ============================================================
