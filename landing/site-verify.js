@@ -200,7 +200,7 @@
   //
   // Matching by path prefix is intentional: /vault/* sub-pages are
   // covered by the same CSP location block and the same reasoning.
-  const STRICT_CSP_PREFIXES = ["/vault"];
+  const STRICT_CSP_PREFIXES = [];
   function hasStrictCsp() {
     const p = location.pathname.replace(/\/$/, "");
     return STRICT_CSP_PREFIXES.some(

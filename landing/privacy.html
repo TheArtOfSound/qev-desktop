@@ -36,7 +36,7 @@
     <li>No account creation — there are no usernames, passwords, or email addresses.</li>
     <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, and no server-side analysis of page views. Every page on this site is served from our own server with no third-party scripts, no tag manager, and no measurement IDs. You can confirm this without trusting us: open DevTools, load any page, and check the Network tab — every request goes to <code>secure.imagineqira.com</code> and nowhere else. The list of files we serve is itself covered by the Ed25519-signed manifest at <a href="/verify">/verify</a>.</li>
     <li>No cookies — we set zero cookies anywhere on this site, and there is no access gate and no login. The <code>/vault</code> page additionally writes nothing to <code>localStorage</code>, <code>sessionStorage</code>, or <code>IndexedDB</code>.</li>
-    <li>No telemetry from the web vault — the <code>/vault</code> page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'none'</code>, so the browser itself refuses every <code>fetch</code>, <code>XMLHttpRequest</code>, <code>WebSocket</code>, and <code>navigator.sendBeacon</code> that page could attempt. Do not take our word for it — read the header yourself: <code>curl -sI https://secure.imagineqira.com/vault/ | grep -i content-security-policy</code>. That header is scoped to the vault page; it is not a claim about every page on this site.</li>
+    <li>No telemetry from the web vault — the <code>/vault</code> page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'self'</code>, so the browser refuses any connection to a third-party host. Same-origin requests remain possible — libsodium fetches its WebAssembly module that way — but nothing can reach an outside server. Do not take our word for it — read the header yourself: <code>curl -sI https://secure.imagineqira.com/vault/ | grep -i content-security-policy</code>. That header is scoped to the vault page; it is not a claim about every page on this site.</li>
     <li>No telemetry in the apps — with one precision that matters: no telemetry is not the same as no network. The CLI (<code>@bryan237l/qev-cli</code>) contains no networking code whatsoever; its only dependency is libsodium, and the published package has no HTTP, socket, or <code>fetch</code> call in it. The desktop app <em>does</em> open network connections, but only for features you deliberately invoke — device pairing, encrypted chat, and relay delivery, described in the next section — and its source contains no analytics, crash-reporting, or update-check code. The Android build's source is not in the public repository, so you cannot check it the same way; treat "no telemetry" there as our stated design intent rather than as something you or we have measured. No independent auditor has certified any of this.</li>
     <li>No crash reporting — the desktop app and the CLI contain no crash-reporting or error-telemetry component. If they crash, the crash stays on your machine.</li>
   </ul>
@@ -85,7 +85,7 @@
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
         crossorigin="anonymous"></script>
 </body>
 </html>
