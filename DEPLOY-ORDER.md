@@ -26,9 +26,21 @@ That is true **only after** `deploy/nginx-secure.conf` is live.
    ```
    nginx -t && systemctl reload nginx
    ```
-   `nginx -t` was not run during remediation — nginx isn't installed in the
-   authoring environment. Braces balance and directives desk-check, but
-   **you must run `nginx -t` before reloading.**
+   **This config has now been validated locally** (2026-07-30, nginx 1.31.3;
+   production runs 1.28.3). `nginx -t` reports *syntax is ok / test is
+   successful* with all 74 `add_header` directives intact. The certbot-managed
+   `ssl_certificate`, `ssl_dhparam` and `include` lines were stubbed for the
+   local run because those paths only exist on the server — nothing else was
+   changed. **Still run `nginx -t` on the server before reloading**, since
+   those TLS lines were not exercised here.
+
+   It was also run for real and probed with curl. Every one of the five
+   headers arrived on all ten paths tested (`/`, `/vault/`, `/vault`,
+   `/verify`, `/downloads`, `/privacy`, `/challenge`, `/styles.css`,
+   `/vault/chat.js`, `/site-verify.js`) — including the static-asset location
+   that sets its own `Cache-Control`, which is exactly where `add_header`
+   non-inheritance silently drops everything. `/vault*` returned
+   `connect-src 'none'`; everything else `connect-src 'self'`.
 
 2. **Verify the headers actually arrive.** `add_header` does not inherit into
    a location that sets any `add_header` of its own, so the block is repeated
@@ -40,10 +52,16 @@ That is true **only after** `deploy/nginx-secure.conf` is live.
    ```
    `/vault/` must show `connect-src 'none'`; everything else `connect-src 'self'`.
 
-3. **Confirm the vault still works.** The CSP is strict. Open `/vault/`,
-   encrypt and decrypt a throwaway string, and check the console for CSP
-   violations. If `sodium.js` or `chat.js` is blocked, the page is dead —
-   roll back step 1 immediately.
+3. **Confirm the vault still works.** Done locally against the real config:
+   `/vault/` rendered, `typeof sodium === "object"` (so the SRI-pinned
+   `sodium.js` and `chat.js` both executed under `script-src 'self'`), and
+   the Lock/Open controls were present. Outbound calls were genuinely
+   blocked — `fetch` threw `TypeError` and synchronous `XMLHttpRequest`
+   threw, where at audit time both returned 200. The page's
+   `connect-src 'none'` claim is now true rather than aspirational.
+
+   Repeat the check on the server anyway after deploying, since TLS and the
+   real certificate chain were not part of the local run.
 
 4. **Re-sign the integrity manifest.** Every changed file under `landing/`
    has a new SHA-256, so `site-integrity.json` is now stale. Re-sign with the
