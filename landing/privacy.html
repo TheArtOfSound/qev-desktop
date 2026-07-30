@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy | QEV — Qira Encryption Vault</title>
   <meta name="description" content="QEV privacy policy. We cannot read your vaults. There is no account, no analytics, and no server-side storage of your content. The one exception — relay connection metadata — is disclosed in full.">
-  <link rel="stylesheet" href="/styles.css"></head>
+  <link rel="stylesheet" href="/styles.css">  <link rel="canonical" href="https://secure.imagineqira.com/privacy">
+</head>
 <body>
 <nav>
   <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
-    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
+    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">QEV</a>
     <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
       <a href="/security">Security</a>
       <a href="/vault">Vault</a>
@@ -56,12 +57,11 @@
   <p>Envelopes are deleted from the relay once the recipient fetches them, and unfetched envelopes are evicted after 30 days (the relay's default <code>retention_hours</code> is 720; see <code>relay/src/config.rs</code>). The relay's deployed configuration file is not published, so treat that number as an operator commitment rather than something you can verify from outside.</p>
 
   <h2>Third parties</h2>
-  <p>Nothing you put into a vault is processed by a third party. At the site level there are exactly two third parties, and here they are:</p>
+  <p>Nothing you put into a vault is processed by a third party. At the site level there is exactly one, and it only applies if you install the CLI:</p>
   <ul>
-    <li><strong>Google</strong> — Google Analytics on the marketing pages, as disclosed above. Not loaded on <code>/vault</code>.</li>
     <li><strong>npm</strong> — the CLI package (<code>@bryan237l/qev-cli</code>) is distributed via npmjs.com, and npm's own privacy policy applies to the download transaction. The CLI itself makes zero network calls once installed.</li>
   </ul>
-  <p>Beyond those: no ad networks, no payment processor (the software is free), and no CDN — apart from Google's <code>gtag.js</code> noted above, every asset is served directly from our server.</p>
+  <p>Beyond that: no analytics provider, no ad networks, no tag manager, no payment processor (the software is free), and no CDN. Every asset on this site is served directly from our own server. Ten pages here did previously carry a Google Analytics tag; it was removed on 2026-07-29, and the site's Content-Security-Policy now permits no third-party host at all, so the browser would block one even if it were reintroduced by mistake.</p>
 
   <h2>Open source</h2>
   <p>The source code is available at <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">github.com/TheArtOfSound/qev-desktop</a>. The license that actually governs it is whatever the <a href="https://github.com/TheArtOfSound/qev-desktop/blob/main/LICENSE" style="color:var(--accent);">LICENSE file in that repository</a> says — read it there rather than trusting a license name typed onto a marketing page.</p>

@@ -4,3 +4,5 @@ Disallow: /app/
 Disallow: /api/
 
 Sitemap: https://secure.imagineqira.com/sitemap.xml
+
+# Security contact: /.well-known/security.txt (RFC 9116)

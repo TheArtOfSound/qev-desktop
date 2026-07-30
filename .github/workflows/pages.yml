@@ -61,7 +61,27 @@ jobs:
           mkdir -p _site/app
           cp app-redirect.html _site/app/index.html
           if [ -d assets ]; then mkdir -p _site/assets && cp -R assets/. _site/assets/; fi
+          cp robots.txt _site/robots.txt
           touch _site/.nojekyll
+
+          # This Pages build is UNSIGNED: no Subresource Integrity on its
+          # scripts, and outside the Ed25519 manifest that covers
+          # secure.imagineqira.com. The 2026-07-29 audit flagged it as a
+          # second, unverifiable copy of a security tool competing with
+          # the canonical site for the brand.
+          #
+          # Injected at assembly time so nothing in proof-lock-web/ has to
+          # know it is being mirrored: noindex (so it stops competing in
+          # search) plus a canonical pointing at the signed site. Bookmarks
+          # keep working; nothing is redirected away. robots.txt stays
+          # crawlable on purpose so the noindex is actually seen.
+          for f in _site/index.html _site/404.html; do
+            [ -f "$f" ] || continue
+            # `grep -q ... && continue` would exit 1 on no-match and, under
+            # the default `bash -e`, fail the whole step. Use an if-block.
+            if grep -q 'name="robots"' "$f"; then continue; fi
+            sed -i 's#</head>#<meta name="robots" content="noindex,follow"><link rel="canonical" href="https://secure.imagineqira.com/vault"></head>#I' "$f"
+          done
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

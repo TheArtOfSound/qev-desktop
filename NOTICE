@@ -1,0 +1,16 @@
+QEV — third-party notices
+=========================
+
+QEV itself is MIT licensed; see LICENSE.
+
+This notice was split out of LICENSE on 2026-07-29. The text below was
+previously appended to the MIT text in the same file, which prevented
+GitHub's license detector from recognising the license — the repository
+showed "NOASSERTION" while the website and the repo description both
+stated MIT. Nothing about the licensing changed; only the file layout.
+
+libsodium
+---------
+QEV uses libsodium through libsodium-wrappers-sumo. Libsodium is distributed
+under the ISC License. See qev-cli/vendor/libsodium-license.txt for the bundled
+license text and upstream notices.
