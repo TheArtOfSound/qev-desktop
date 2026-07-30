@@ -17,7 +17,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
+// Asset root: where the referenced scripts actually live.
 const LANDING = process.env.QEV_LANDING || new URL('../landing', import.meta.url).pathname;
+// HTML root: which pages to scan. public-site/ pages also pin /site-verify.js,
+// and scanning only landing/ meant a site-verify.js change silently left ~37
+// public-site pages with a stale hash - the browser then refuses to run the
+// tamper check on all of them, with no visible symptom. Pass QEV_HTML_ROOT to
+// scan the other tree using the same asset root.
+const HTML_ROOT = process.env.QEV_HTML_ROOT || LANDING;
 const WRITE = process.argv.includes('--write');
 
 // _deployed-rescue holds byte-exact copies of what production was actually
@@ -41,7 +48,7 @@ const htmlFiles = [];
       htmlFiles.push(p);
     }
   }
-})(LANDING);
+})(HTML_ROOT);
 
 let checked = 0;
 let changed = 0;
@@ -55,14 +62,14 @@ for (const hf of htmlFiles) {
     (m, src, mid, integ) => {
       const fp = resolve(src);
       if (!fs.existsSync(fp)) {
-        missing.push(`${path.relative(LANDING, hf)} -> ${src}`);
+        missing.push(`${path.relative(HTML_ROOT, hf)} -> ${src}`);
         return m;
       }
       checked++;
       const want = sri(fs.readFileSync(fp));
       if (want === integ) return m;
       changed++;
-      console.log(`MISMATCH ${path.relative(LANDING, hf)}  ${src}`);
+      console.log(`MISMATCH ${path.relative(HTML_ROOT, hf)}  ${src}`);
       console.log(`   in html: ${integ}`);
       console.log(`   actual : ${want}`);
       return m.replace(`integrity="${integ}"`, `integrity="${want}"`);
@@ -70,7 +77,7 @@ for (const hf of htmlFiles) {
   );
   if (next !== orig && WRITE) {
     fs.writeFileSync(hf, next);
-    console.log(`  -> rewrote ${path.relative(LANDING, hf)}`);
+    console.log(`  -> rewrote ${path.relative(HTML_ROOT, hf)}`);
   }
 }
 
