@@ -152,12 +152,13 @@ digests match.
 
 | Item | Why it can't be done here |
 |---|---|
-| **Apple Developer + EV Authenticode certificates** | Requires purchase (~$99/yr Apple) and identity validation. Until then the downloads stay unsigned and the OS warnings stay correct. |
+| **Code-signing certificates** | Purchases, so they need you. Researched 2026-07-30 — see `docs/SIGNING-OPTIONS.md`: macOS has no free path ($99/yr, mandatory for notarization), but Windows no longer needs an EV cert — **Azure Artifact Signing is ~$10/mo and now open to self-employed individuals**. ~$219/yr signs both. Caveat: it does not grant instant SmartScreen trust. |
 | **Publish or retract the challenge** | Still yours — the key is offline. Both paths are now prepared: see `docs/CHALLENGE-RESOLUTION.md` and `scripts/challenge_reveal.py` (fails closed if the commitment does not reproduce). |
 | ~~`npm publish` the CLI~~ | **DONE 2026-07-30.** `@bryan237l/qev-cli@0.31.0` published and verified from a clean install: reports 0.31.0, 7776-word list, old vaults still open byte-exactly. |
 | ~~Push branches~~ | **DONE.** All branches pushed; `main` untouched in both repos. Opening PRs / merging remains your call. |
 | ~~GitHub Pages duplicate~~ | **DONE.** The Pages workflow now injects `noindex` + a canonical to the signed site and ships a robots.txt. Takes effect on the next Pages build. |
 | ~~Gateway health auth~~ | **DONE.** Split into public liveness vs Bearer-gated detail, timing-safe, fails closed on the shipped default token. 11/11 gateway tests pass. Needs deploying with the gateway. |
+| **npm scope `@imagineqira`** | Unregistered as of 2026-07-30 while the download page names it as the intended package — a live typosquat opening. Creating the org is free and takes ~2 minutes, but it is account creation, so it needs you. Interim mitigation already shipped: the page states plainly that a package under that name is not ours. |
 | **IndexNow key** | `/indexnow.txt` 404s while `indexnow-submit.mjs` exists, so submissions cannot be working. The key is tied to your Bing account. |
 
 ## Analytics — a decision you should know about
