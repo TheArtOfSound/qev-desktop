@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download QEV | Qira Encryption Vault</title>
+  <meta name="description" content="QEV — Qira Encryption Vault. Offline encrypted envelopes for Mac and Windows. Free, open-source, no accounts, no servers.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/downloads">
+  <meta property="og:type" content="product">
+  <meta property="og:url" content="https://secure.imagineqira.com/downloads">
+  <meta property="og:title" content="Download QEV — Offline Encryption Vault for Mac and Windows">
+  <meta property="og:description" content="Free. Open source. No accounts. Offline vault files; optional relay for chat delivery only. Encrypt a message, send the file, remember the phrase.">
+  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QEV — Offline Encryption Vault">
+  <meta name="twitter:description" content="Free. Mac + Windows + Android + CLI. Offline forever.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "QEV — Qira Encryption Vault",
+    "operatingSystem": "macOS 11+, Windows 10+",
+    "applicationCategory": "SecurityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "description": "Offline encrypted envelope vault with device pairing and encrypted chat. Encrypt a message, remember the phrase, share the file anywhere. No accounts, no servers, no plaintext ever leaves your computer.",
+    "softwareVersion": "0.29.0",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Qira LLC"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+  <style>
+    /* Downloads-page-specific polish. Scoped to .dl-* to not collide
+       with the shared site styles. */
+    .dl-hero {
+      padding: 96px 0 48px;
+      text-align: center;
+    }
+    .dl-hero .price-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent-border);
+      margin-bottom: 24px;
+    }
+    .dl-hero h1 {
+      font-size: clamp(2rem, 4.5vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .dl-hero .sub {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .dl-buy {
+      display: inline-block;
+      padding: 18px 48px;
+      border-radius: 10px;
+      background: var(--text);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.12s;
+      letter-spacing: 0.01em;
+    }
+    .dl-buy:hover { background: #2d3340; transform: translateY(-1px); }
+    .dl-buy-price { font-weight: 800; }
+    .dl-buy-sub {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    .dl-trust-row {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+    .dl-trust-item { display: flex; align-items: center; gap: 6px; }
+    .dl-trust-item::before {
+      content: "✓";
+      color: var(--green-text);
+      font-weight: 700;
+    }
+
+    .dl-os-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      max-width: 860px;
+      margin: 32px auto 0;
+    }
+    @media (max-width: 620px) {
+      .dl-os-row { grid-template-columns: 1fr; }
+    }
+    .dl-beta-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-bg, rgba(120, 160, 255, 0.12));
+      border: 1px solid var(--accent-border, rgba(120, 160, 255, 0.3));
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    .dl-os-card code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.72rem;
+      padding: 1px 5px;
+      background: var(--surface);
+      border-radius: 3px;
+    }
+    .dl-os-card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      text-align: left;
+      transition: border-color 0.12s;
+    }
+    .dl-os-card:hover { border-color: var(--accent-border); }
+    .dl-os-card h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .dl-os-card p {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin: 0;
+    }
+    .dl-os-card .size {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      padding: 3px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+    }
+    .dl-card-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity 0.12s;
+    }
+    .dl-card-btn:hover { opacity: 0.9; }
+    .dl-card-btn-alt {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .dl-install-help {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0;
+      background: var(--surface);
+    }
+    .dl-install-help summary {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+      user-select: none;
+      list-style: none;
+    }
+    .dl-install-help summary::-webkit-details-marker { display: none; }
+    .dl-install-help summary::before { content: "? "; }
+    .dl-install-help[open] summary { border-bottom: 1px solid var(--border); }
+    .dl-install-help ol {
+      padding: 12px 14px 12px 30px;
+      margin: 0;
+      line-height: 1.7;
+    }
+    .dl-install-help ol li { margin-bottom: 6px; }
+    .dl-install-help code {
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.76rem;
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      user-select: all;
+      -webkit-user-select: all;
+    }
+    .dl-install-why {
+      padding: 10px 14px;
+      margin: 0;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+    .dl-card-cmd {
+      display: block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.78rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      user-select: all;
+      -webkit-user-select: all;
+    }
+
+    .dl-vs-table {
+      width: 100%;
+      border-collapse: collapse;
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 0.9rem;
+    }
+    .dl-vs-table th {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .dl-vs-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    .dl-vs-table tr.highlight td {
+      background: var(--accent-bg);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .dl-usecase-card {
+      padding: 24px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .dl-usecase-card:hover {
+      border-color: var(--accent-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .dl-usecase-card .emoji {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .dl-usecase-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .dl-usecase-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .dl-try-first {
+      background: var(--surface);
+      padding: 56px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .dl-try-first h2 {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .dl-try-first p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/security">Security</a>
+      <a href="/vault">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/contact">Contact</a>
+      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+        </div>
+  </div>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<header class="dl-hero">
+  <div class="wrap">
+    <div class="price-tag">Free &middot; Open source</div>
+    <h1>QEV &mdash; Qira Encryption Vault</h1>
+    <p class="sub">
+      Encrypt a message. Remember the phrase. Send the file anywhere.
+      Pair devices with a QR code. Chat with encrypted messages.
+      No accounts. No recurring fees. Vault files are offline; optional chat uses a delivery relay that cannot read message content (not a plaintext server).
+    </p>
+
+    <div class="dl-trust-row">
+      <div class="dl-trust-item">Free forever</div>
+      <div class="dl-trust-item">No account required</div>
+      <div class="dl-trust-item">Open source</div>
+      <div class="dl-trust-item">Device pairing</div>
+      <div class="dl-trust-item">Encrypted chat</div>
+      <div class="dl-trust-item">Per-chat lock/unlock (phrase never saved)</div>
+      <div class="dl-trust-item">Keychain-wrapped identity (Mac)</div>
+    </div>
+
+    <div class="dl-os-row">
+      <div class="dl-os-card">
+        <h4>macOS <span class="dl-beta-tag">v0.29.0</span></h4>
+        <p>Apple Silicon &amp; Intel &middot; macOS 11 Big Sur or newer</p>
+        <span class="size">~2 MB DMG</span>
+        <a href="/downloads/QEV_0.29.0_aarch64.dmg" class="dl-card-btn" download>Download .dmg</a>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.82rem;">
+          <strong>v0.29.0 highlights:</strong> macOS Keychain-wrapped private key &middot; per-chat lock/unlock with the shared phrase never saved &middot; locked chats display as copyable ciphertext so you can still scroll, select, and decrypt elsewhere (Open-a-vault tab or <a href="/vault">/vault</a>) &middot; <strong>refreshed chat UI</strong> with bigger tap targets, smoother peer switching, and a proper mobile back-button flow. Existing installs migrate automatically on first launch.
+        </p>
+        <details class="dl-install-help">
+          <summary>Mac says "can't verify"? Here's the fix (10 seconds)</summary>
+          <ol>
+            <li>Open the <code>.dmg</code> and drag <strong>QEV.app</strong> into your <strong>Applications</strong> folder.</li>
+            <li>Open <strong>Terminal</strong> (search "Terminal" in Spotlight).</li>
+            <li>Paste this and press Enter:<br><code>xattr -cr /Applications/QEV.app && open /Applications/QEV.app</code></li>
+            <li>QEV opens. Done. You only do this once &mdash; after that, double-click works normally.</li>
+          </ol>
+          <p class="dl-install-why">
+            <strong>Why does this happen?</strong> The app isn't signed with a $99/year Apple Developer certificate yet, so macOS Gatekeeper blocks it by default. The command above removes the browser's quarantine flag. The app is the same open-source binary path as published builds (not Apple-notarized / Authenticode-signed yet). Desktop pipeline tests are a separate suite from the product-preview 258-test claim — see <a href="/status/">/status/</a>. Not independently audited.
+          </p>
+        </details>
+      </div>
+      <div class="dl-os-card">
+        <h4>Windows <span class="dl-beta-tag">v0.29.0</span></h4>
+        <p>x64 &middot; Windows 10 / 11 &middot; WebView2 (auto-installed)</p>
+        <span class="size">MSI installer &middot; full feature parity with Mac</span>
+        <a href="/downloads/QEV_0.29.0_x64_en-US.msi" class="dl-card-btn" download>Download .msi</a>
+        <a href="/downloads/QEV_0.29.0_x64-setup.exe" class="dl-card-btn dl-card-btn-alt" download>or .exe installer</a>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.82rem;">
+          <strong>v0.29.0 has everything the Mac has:</strong> device pairing (QR &amp; safety number), encrypted chat with relay delivery, per-chat lock/unlock, identity backup/restore, and the same vault format &mdash; cross-platform compatible with QEV v0.29.0 on Mac and Android.
+        </p>
+        <details class="dl-install-help">
+          <summary>Windows SmartScreen warning on first launch?</summary>
+          <ol>
+            <li>Click <strong>"More info"</strong> (small link under the warning).</li>
+            <li>Click <strong>"Run anyway"</strong>.</li>
+            <li>The installer runs normally. This only happens once.</li>
+          </ol>
+          <p class="dl-install-why">
+            <strong>Why?</strong> The MSI isn't yet Authenticode-signed with an EV certificate, so Windows SmartScreen flags it as unrecognized. The binary is the same one built by the public GitHub Actions workflow from the open-source Rust sources.
+          </p>
+        </details>
+      </div>
+      <div class="dl-os-card">
+        <h4><a href="/android" style="color:var(--text);text-decoration:none;">Android <span class="dl-beta-tag">beta</span></a></h4>
+        <p>arm64 &middot; Android 7.0+</p>
+        <span class="size">~38 MB APK</span>
+        <a href="/downloads/QEV-0.29.0-release.apk" class="dl-card-btn" download>Download .apk</a>
+      </div>
+      <div class="dl-os-card">
+        <h4>Linux / CLI <span class="dl-beta-tag">beta</span></h4>
+        <p>Node 18.17+ &middot; same vault format</p>
+        <span class="size">~17 KB tarball</span>
+        <code class="dl-card-cmd">npm i -g @bryan237l/qev-cli</code>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.78rem;">Official published CLI name today: <code>@bryan237l/qev-cli</code> (v0.30.0). Brand package <code>@imagineqira/qev-cli</code> is planned, not published yet. <a href="/status/">Status matrix</a></p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" style="max-width:1060px;margin:0 auto;padding:0 24px 8px;">
+  <p style="font-size:0.88rem;color:var(--text-dim);line-height:1.5;">
+    <strong>Downloads = Envelope Core + optional Qira Link.</strong>
+    Commercial capture gateway (connectors, Field Service evidence):
+    <a href="/platform/">/platform/</a> ·
+    Versions &amp; test counts: <a href="/status/">/status/</a> ·
+    Trust marks: <a href="/trust/">/trust/</a>
+  </p>
+</div>
+
+<!-- ===================== QIRA LINK (sibling product) ===================== -->
+<section style="max-width:1060px;margin:0 auto;padding:40px 24px;">
+  <div style="padding:28px;border:1px solid var(--border);border-radius:14px;background:var(--surface);">
+    <div style="display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(99,102,241,0.14);color:var(--accent);font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:14px;">Sibling product &middot; Early alpha &middot; v0.1.0-alpha</div>
+    <h2 style="margin:0 0 12px;font-size:1.7rem;">Qira Link</h2>
+    <p style="color:var(--text-dim);line-height:1.55;max-width:640px;margin:0 0 18px;">
+      A private encrypted mesh between devices you own. Same pair-in-person trust model as QEV &mdash; at the network layer.
+      No accounts. No VPN provider. No exit nodes. Just your devices reaching your devices, from anywhere.
+    </p>
+
+    <!-- ===== One-line install (easiest path for macOS) ===== -->
+    <div style="padding:18px;border:1px solid var(--accent);border-radius:10px;background:rgba(99,102,241,0.07);margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff;font-size:0.65rem;font-weight:800;letter-spacing:0.06em;">RECOMMENDED</span>
+        <strong style="font-size:0.95rem;">Install on macOS in one command</strong>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.82rem;line-height:1.5;margin:0 0 10px;">
+        Open <strong>Terminal</strong> (<kbd>⌘</kbd>+<kbd>Space</kbd>, type "Terminal", Enter) and paste:
+      </p>
+      <pre style="background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:6px;overflow-x:auto;margin:0 0 6px;font-size:0.75rem;line-height:1.4;"><code>curl -fsSL https://secure.imagineqira.com/downloads/qira-link-install.sh | bash</code></pre>
+      <p style="color:var(--text-dim);font-size:0.75rem;margin:6px 0 0;">
+        Downloads the DMG, copies Qira Link.app to <code>/Applications</code>, clears macOS
+        quarantine, launches it. Prompts for your sudo password once.
+        <a href="/downloads/qira-link-install.sh" style="color:var(--accent);text-decoration:underline;">Read the script first</a>
+        if you'd rather see what it's doing.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
+      <div class="dl-os-card">
+        <h4>macOS <span class="dl-beta-tag">alpha</span></h4>
+        <p>Apple Silicon &middot; macOS 11+</p>
+        <span class="size">~4 MB DMG</span>
+        <a href="/downloads/QiraLink-0.1.0-alpha.0-aarch64.dmg" class="dl-card-btn" download>Download .dmg</a>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          Prefer manual? Three steps after downloading:
+          <strong>double-click the DMG</strong>, <strong>drag "Qira Link" onto the Applications folder</strong>,
+          then <strong>right-click Qira Link in /Applications → Open</strong>.
+          The right-click is needed because this alpha isn't yet signed by Apple.
+        </p>
+      </div>
+      <div class="dl-os-card" style="opacity:0.75;">
+        <h4>Windows <span class="dl-beta-tag">not yet</span></h4>
+        <p>Not available for download yet.</p>
+        <span class="size">&mdash;</span>
+        <span class="dl-card-btn" style="opacity:0.6;cursor:not-allowed;pointer-events:none;">Coming soon</span>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          The MSI + WinTun bundling is scripted and ready; we'll post a binary here once
+          we've signed it with an Authenticode certificate. Intel/AMD 64-bit · Windows 10 1809+.
+        </p>
+      </div>
+      <div class="dl-os-card" style="opacity:0.75;">
+        <h4>Android <span class="dl-beta-tag">not yet</span></h4>
+        <p>Not available for download yet.</p>
+        <span class="size">&mdash;</span>
+        <span class="dl-card-btn" style="opacity:0.6;cursor:not-allowed;pointer-events:none;">Coming soon</span>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          The APK + VpnService wiring is scripted; we'll post a signed build here once we
+          rotate the Play Store keystore. arm64 · Android 7.0+.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <a href="/link" class="btn-primary" style="padding:10px 20px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;">Learn more</a>
+      <span style="padding:10px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text-dim);font-size:0.85rem;">Needs QEV installed on the same device &mdash; Qira Link reads QEV's paired-peer list</span>
+    </div>
+
+    <details style="margin-top:6px;padding:12px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.10);">
+      <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;color:var(--text);">First time you click Connect: macOS Keychain prompt</summary>
+      <div style="margin-top:10px;font-size:0.85rem;color:var(--text-dim);line-height:1.55;">
+        <p>
+          The first time you click <strong>Connect</strong> on a peer, macOS will pop a
+          dialog asking to share your QEV identity from the Keychain:
+        </p>
+        <p style="padding:10px;border-left:3px solid var(--accent);background:rgba(99,102,241,0.05);font-style:italic;margin:8px 0;">
+          "Qira Link wants to use your confidential information stored in
+          <code>com.imagineqira.qev</code> in your keychain. To allow this, enter the
+          'login' keychain password."
+        </p>
+        <p>
+          <strong>Click "Always Allow"</strong> and enter your Mac login password once.
+          This adds Qira Link to the Keychain item's access-control list; you'll never
+          see the prompt again.
+        </p>
+        <p style="color:var(--text);font-size:0.8rem;">
+          <strong>Why this happens:</strong> QEV created the item. macOS enforces per-app
+          access-control lists — only the app that created a keychain item can read it
+          silently. Qira Link is a different binary, so the OS asks for your consent on
+          first use. Once both apps are signed with the same Apple Developer ID and
+          share a <code>keychain-access-groups</code> entitlement (shipping release),
+          this prompt goes away entirely.
+        </p>
+      </div>
+    </details>
+
+    <details style="margin-top:6px;padding:12px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.10);">
+      <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;color:var(--text);">Troubleshooting: "Qira Link cannot be opened" or "Qira Link is damaged"</summary>
+      <div style="margin-top:10px;font-size:0.85rem;color:var(--text-dim);line-height:1.55;">
+        <p>
+          Both messages mean the same thing: macOS Gatekeeper blocks unsigned binaries by
+          default. The one-liner installer above handles this automatically; if you're
+          installing by hand, here's the cleanup:
+        </p>
+        <ol style="padding-left:22px;">
+          <li style="margin-bottom:10px;">
+            <strong>Clear the quarantine flag on the installed app:</strong>
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>sudo xattr -cr "/Applications/Qira Link.app"
+open "/Applications/Qira Link.app"</code></pre>
+          </li>
+          <li style="margin-bottom:10px;">
+            <strong>If it still says "damaged"</strong> (Sonoma / Sequoia are stricter), also re-sign it locally:
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>sudo codesign --force --deep --sign - "/Applications/Qira Link.app"
+open "/Applications/Qira Link.app"</code></pre>
+            The <code>- </code>after <code>--sign</code> is a literal minus sign. It tells <code>codesign</code> to produce an ad-hoc (cert-less) signature, which is enough to convince Gatekeeper the app hasn't been tampered with since install.
+          </li>
+          <li>
+            <strong>Can't find Qira Link.app?</strong> Your browser may have put the DMG somewhere other than Downloads.
+            Locate it with:
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>mdfind -name QiraLink-0.1.0-alpha.0-aarch64.dmg</code></pre>
+            &mdash; then double-click that path.
+          </li>
+        </ol>
+        <p style="margin-top:12px;font-size:0.8rem;">
+          All of this goes away the minute we sign the shipping build with an Apple Developer ID certificate. It's an alpha-only chore.
+        </p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== TRY FIRST ===================== -->
+<div class="dl-try-first">
+  <div class="wrap">
+    <h2>Prefer to try it in the browser first?</h2>
+    <p>
+      The browser version at <strong>secure.imagineqira.com/vault</strong>
+      uses the same crypto and the same vault format as the desktop
+      app. No account needed &mdash; just open it and start encrypting.
+    </p>
+    <a href="/vault" class="btn btn-outline">Open the Web Vault</a>
+  </div>
+</div>
+
+<!-- ======================= USE CASES ======================= -->
+<section>
+  <div class="wrap">
+    <div class="label">Who it's for</div>
+    <div class="heading">Real-world moments QEV is built for</div>
+    <div class="desc">Not research labs. Not datacenters. The everyday cases where you need one secret to reach one person, once, and nothing else.</div>
+
+    <div class="g3">
+      <div class="dl-usecase-card">
+        <span class="emoji">🔑</span>
+        <h3>Hand over a starter password to a new employee</h3>
+        <p>HR creates accounts. You need to deliver the temporary password without posting it in a Slack channel that's audited forever. Lock it in QEV, text them the phrase, email them the file. They open it on day one, read the password, delete the file.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">📄</span>
+        <h3>Send a settlement PDF password to a client</h3>
+        <p>The PDF goes through the firm's portal. The password needs to reach the client separately, and email isn't appropriate. Lock the password in QEV, download the box file, hand it off however you want. Tell the client the phrase over a phone call. Done.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">👨‍👩‍👧</span>
+        <h3>Share the Wi-Fi password with grandma</h3>
+        <p>She's not going to install 1Password. She's not going to make a LastPass account. She needs to open a file on her laptop, read the Wi-Fi password, and throw the file away. Lock it in QEV, AirDrop it to her, tell her the phrase on the phone.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">🏥</span>
+        <h3>Share a medical detail with family</h3>
+        <p>A diagnosis, a prescription, something private that shouldn't sit in an email thread forever. Lock it in QEV, share the file on a family chat, tell the person the phrase in person. Delete the file after they read it.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">📓</span>
+        <h3>Store a private note for yourself</h3>
+        <p>A journal entry. An account recovery code. A reminder you don't want a cloud backup to see. QEV writes an encrypted box file to your disk; only you know the phrase. The file survives backups and sync without exposing the contents.</p>
+      </div>
+      <div class="dl-usecase-card">
+        <span class="emoji">🎁</span>
+        <h3>Pass a gift surprise to a partner's phone</h3>
+        <p>You want to send a reservation or gift detail that shouldn't sit readable in their phone's lock screen notifications. Lock it in QEV, text them the file, whisper them the phrase. They open it when they're ready.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COMPARISON ======================= -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Why QEV</div>
+    <div class="heading">Where it fits in the encryption-tool landscape</div>
+    <div class="desc">Three boxes checked that no other tool checks together: free and open source, offline forever, cross-device portable files.</div>
+
+    <table class="dl-vs-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>QEV</th>
+          <th>Bitwarden Premium</th>
+          <th>1Password</th>
+          <th>Signal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td>Cost</td>
+          <td><strong>Free</strong></td>
+          <td>~$20/year</td>
+          <td>$35.88/year</td>
+          <td>Free</td>
+        </tr>
+        <tr>
+          <td>5-year total cost</td>
+          <td><strong>Free</strong></td>
+          <td>$99</td>
+          <td>$180</td>
+          <td>$0</td>
+        </tr>
+        <tr>
+          <td>Account required</td>
+          <td><strong>No</strong></td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Yes (phone number)</td>
+        </tr>
+        <tr>
+          <td>Works offline forever</td>
+          <td><strong>Yes</strong></td>
+          <td>No (server sync)</td>
+          <td>No (server sync)</td>
+          <td>No (needs network)</td>
+        </tr>
+        <tr>
+          <td>Message survives service shutdown</td>
+          <td><strong>Yes</strong></td>
+          <td>Depends on export</td>
+          <td>Depends on export</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Recipient needs the app</td>
+          <td>No (free web version works)</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Category</td>
+          <td>Encrypted envelope</td>
+          <td>Password manager</td>
+          <td>Password manager</td>
+          <td>Messenger</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="text-align: center; margin-top: 32px; font-size: 0.86rem; color: var(--text-dim); max-width: 680px; margin-left: auto; margin-right: auto;">
+      QEV isn't trying to replace any of these. If you need a password database,
+      get Bitwarden. If you need an end-to-end messenger, get Signal. QEV covers
+      the <em>one</em> case those tools don't: encrypt one secret, once, send the
+      file anywhere, no account, no server, no subscription.
+    </p>
+  </div>
+</section>
+
+<!-- ====================== HOW IT WORKS ====================== -->
+<section>
+  <div class="wrap">
+    <div class="label">How it works</div>
+    <div class="heading">Thirty seconds, start to finish</div>
+    <div class="desc">Zero learning curve. If you can save a file, you can use QEV.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">Step 01</div>
+        <h4>Type the message</h4>
+        <p>Anything you want to keep private. Up to 256 KiB of text. Passwords, notes, recovery codes, a letter.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 02</div>
+        <h4>Pick a secret phrase</h4>
+        <p>Four random words. The app has a generator if you don't have one in mind. You remember this phrase — it is never stored anywhere.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 03</div>
+        <h4>Click Lock it</h4>
+        <p>QEV produces an encrypted vault file. Save it wherever you want. The file is safe to send through email, chat, USB, SMS, anything.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 04</div>
+        <h4>Share the phrase separately</h4>
+        <p>If you're sending to someone else, tell them the phrase through a different channel (phone call, in person, text). They open the file in QEV and see the message.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= TRUST SECTION ======================= -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Verifiable trust</div>
+    <div class="heading">You don't have to trust us. Check the code.</div>
+    <div class="desc">QEV uses only well-reviewed standard primitives and the site ships its own integrity proof.</div>
+    <div class="g3">
+      <div class="card">
+        <h3>Standard crypto only</h3>
+        <p>XChaCha20-Poly1305 for encryption. Argon2id for phrase stretching. Both are RFC-standard algorithms implemented by the libsodium library Signal uses. QEV invents no new cryptography.</p>
+      </div>
+      <div class="card">
+        <h3>Site integrity is signed</h3>
+        <p>Every file on this site is SHA-256 hashed and the manifest is signed with ed25519. The <a href="/site-signer.ed25519.pub">public key</a> is published. Anyone can verify the signature against the manifest independently.</p>
+        <a href="/verify" class="btn btn-sm btn-outline" style="margin-top: 12px;">How to verify</a>
+      </div>
+      <div class="card">
+        <h3>No telemetry, no network</h3>
+        <p>The app makes zero network requests after launch. You can verify this yourself with DevTools or a packet sniffer. It has no analytics, no crash reporting, no update-check pings — nothing leaves your machine unless you explicitly export a file.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FINAL CTA ==================== -->
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Ready?</h2>
+    <p>Free and open source. Mac, Windows, Android, and CLI. No account, no payment, no server.</p>
+    <div class="cta-actions">
+      <a href="/downloads#products" class="btn btn-primary">Download for your platform</a>
+      <a href="/vault" class="btn btn-outline">Open the Web Vault</a>
+      <a href="/contact" class="btn btn-outline">Questions?</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    QEV v0.29.0 &middot; Free &amp; open source &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC<br>
+    <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">Source on GitHub</a>
+    &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
+    &middot; <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">Contact</a>
+  </div>
+</footer>
+
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        crossorigin="anonymous"></script>
+</body>
+</html>
