@@ -66,8 +66,9 @@
     <div class="heading">Integrity record</div>
     <div class="desc">The signed integrity record for this site, fetched from <code>/site-integrity.json</code> when this page loads. It is not a hard-coded copy, so the file count and the <code>signed_at</code> timestamp you see below are the deployed ones. Any count or timestamp quoted in the examples further down this page is illustrative only.</div>
     <div class="card" style="max-width: 720px;">
+      <p style="font-size: 0.86rem;">The block below is a <strong>server-rendered snapshot taken at signing time</strong>, so it stays readable with JavaScript disabled. With scripting enabled it is replaced by a live fetch of <a href="/site-integrity.json">/site-integrity.json</a>. If the two disagree the live file is authoritative &mdash; and either way, verify the signature yourself rather than trusting this page.</p>
       <div id="integrity-loading">Loading integrity record...</div>
-      <noscript><p style="font-size: 0.86rem;">This block is fetched with JavaScript, so with scripting disabled nothing appears here. Download <a href="/site-integrity.json">/site-integrity.json</a> directly instead &mdash; it is the same file this page would have loaded.</p></noscript>
+      
       <pre id="integrity-record" style="display:none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto; white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere; max-height: 500px;"></pre>
       <div id="integrity-error" style="display:none; color: var(--amber-text);">Could not load the integrity record. The file may not have been generated yet.</div>
     </div>
@@ -206,6 +207,9 @@ fetch('/site-integrity.json')
   .catch(function() {
     document.getElementById('integrity-loading').style.display = 'none';
     document.getElementById('integrity-error').style.display = 'block';
+    // Keep the server-rendered summary visible on fetch failure (F-007).
+    // Hiding it would leave a JS-disabled or offline reader with nothing
+    // at all, which is worse than a snapshot labelled as a snapshot.
   });
 </script>
 
