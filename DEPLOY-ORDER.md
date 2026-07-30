@@ -82,6 +82,14 @@ That is true **only after** `deploy/nginx-secure.conf` is live.
    `✓ site-integrity verified` badge appears. If it shows the red tamper
    banner, step 4 did not take.
 
+## Reference copies of what production served
+
+`docs/deployed-rescue/` holds byte-exact copies of the five pages that had
+no source anywhere. They live under `docs/` deliberately: inside `landing/`
+they would be rsynced to the web root and signed into the manifest, serving
+the pre-remediation pages — false CSP claim included — at live URLs. Diff
+against them before deploying; do not deploy them.
+
 ## SRI — already handled, but don't undo it
 
 `landing/vault/chat.js` and `landing/site-verify.js` changed, which invalidated
@@ -97,11 +105,11 @@ fatal, not cosmetic.
 | Item | Why it can't be done here |
 |---|---|
 | **Apple Developer + EV Authenticode certificates** | Requires purchase (~$99/yr Apple) and identity validation. Until then the downloads stay unsigned and the OS warnings stay correct. |
-| **Publish or retract the challenge master key** | `reveal_at` was 2026-04-21; it is 98 days overdue and `reveal_status` is still `pending`. The key is held offline. Either publish it or formally retract the challenge with a dated note — leaving it pending is the worst of the three. |
-| **`npm publish` the CLI** | The published 0.30.0 reports `qev 0.29.0`; the repo fix (`createRequire` from package.json) is correct but unpublished. Republishing also ships the 7776-word passphrase list. |
-| **Push branches / open PRs** | Outward-facing; not done without your say-so. Both repos are on `audit-remediation-2026-07-29`, committed locally, `main` untouched. |
-| **GitHub Pages duplicate** | `theartofsound.github.io/qev-desktop/` serves a second, unsigned vault with no SRI, outside the manifest, and `robots.txt` 404s there. Decide: redirect to the signed site, or keep it with a prominent "unsigned mirror" banner. |
-| **Gateway health auth** | `/platform/v1/health` is still unauthenticated and returns full preflight detail, connector inventory and signing key id. The agent assigned this did not finish. |
+| **Publish or retract the challenge** | Still yours — the key is offline. Both paths are now prepared: see `docs/CHALLENGE-RESOLUTION.md` and `scripts/challenge_reveal.py` (fails closed if the commitment does not reproduce). |
+| ~~`npm publish` the CLI~~ | **DONE 2026-07-30.** `@bryan237l/qev-cli@0.31.0` published and verified from a clean install: reports 0.31.0, 7776-word list, old vaults still open byte-exactly. |
+| ~~Push branches~~ | **DONE.** All branches pushed; `main` untouched in both repos. Opening PRs / merging remains your call. |
+| ~~GitHub Pages duplicate~~ | **DONE.** The Pages workflow now injects `noindex` + a canonical to the signed site and ships a robots.txt. Takes effect on the next Pages build. |
+| ~~Gateway health auth~~ | **DONE.** Split into public liveness vs Bearer-gated detail, timing-safe, fails closed on the shipped default token. 11/11 gateway tests pass. Needs deploying with the gateway. |
 | **IndexNow key** | `/indexnow.txt` 404s while `indexnow-submit.mjs` exists, so submissions cannot be working. The key is tied to your Bing account. |
 
 ## Analytics — a decision you should know about

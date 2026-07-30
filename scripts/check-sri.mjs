@@ -23,6 +23,9 @@ const WRITE = process.argv.includes('--write');
 // _deployed-rescue holds byte-exact copies of what production was actually
 // serving. They deliberately reference the OLD site-verify.js hash. Rewriting
 // them would destroy the only surviving record of those deployed pages.
+// Rescue copies now live in docs/deployed-rescue, outside landing/,
+// so they are neither scanned here nor deployed. Kept for safety in
+// case a copy is ever placed back under landing/.
 const SKIP_DIRS = new Set(['_deployed-rescue']);
 
 const sri = (buf) => 'sha384-' + crypto.createHash('sha384').update(buf).digest('base64');

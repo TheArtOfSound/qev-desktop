@@ -1,5 +1,12 @@
 # Rescued deployed pages — 2026-07-30
 
+> Moved here from `landing/` on 2026-07-30. Under `landing/` these files
+> would have been rsynced to the web root and signed into the manifest,
+> serving the **pre-remediation** pages — including the false
+> `connect-src 'none'` claim — at live URLs like `/_deployed-rescue/privacy.html`.
+> That would have reintroduced the audit's headline finding at a new address.
+> They are reference copies, not deployable content.
+
 **These are byte-for-byte copies of what secure.imagineqira.com was actually
 serving on 2026-07-30, fetched over HTTPS.**
 
@@ -29,7 +36,7 @@ content that has never been diffed against what users actually see.
 Do this first:
 
 ```bash
-diff <(python3 -c "import re,sys;print(re.sub(r'\s+',' ',open(sys.argv[1]).read()))" landing/_deployed-rescue/verify.html) \
+diff <(python3 -c "import re,sys;print(re.sub(r'\s+',' ',open(sys.argv[1]).read()))" docs/deployed-rescue/verify.html) \
      <(python3 -c "import re,sys;print(re.sub(r'\s+',' ',open(sys.argv[1]).read()))" landing/verify.html)
 ```
 
