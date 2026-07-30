@@ -67,10 +67,9 @@
     <div class="desc">The signed integrity record for this site, fetched from <code>/site-integrity.json</code> when this page loads. It is not a hard-coded copy, so the file count and the <code>signed_at</code> timestamp you see below are the deployed ones. Any count or timestamp quoted in the examples further down this page is illustrative only.</div>
     <div class="card" style="max-width: 720px;">
       <p style="font-size: 0.86rem;">The block below is a <strong>server-rendered snapshot taken at signing time</strong>, so it stays readable with JavaScript disabled. With scripting enabled it is replaced by a live fetch of <a href="/site-integrity.json">/site-integrity.json</a>. If the two disagree the live file is authoritative &mdash; and either way, verify the signature yourself rather than trusting this page.</p>
-      <div id="integrity-loading">Loading integrity record...</div>
-      
+            <div id="integrity-loading">Loading integrity record...</div>
       <pre id="integrity-record" style="display:none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto; white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere; max-height: 500px;"></pre>
-      <div id="integrity-error" style="display:none; color: var(--amber-text);">Could not load the integrity record. The file may not have been generated yet.</div>
+      <div id="integrity-error" style="display:none; color: var(--amber-text);">Could not refresh the integrity record. Server-rendered summary is shown above; download /site-integrity.json for the full signed manifest.</div>
     </div>
     <div style="margin-top: 20px;">
       <a href="/site-integrity.json" class="btn btn-sm btn-outline" download>Download integrity record (JSON)</a>
