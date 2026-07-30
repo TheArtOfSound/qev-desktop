@@ -100,6 +100,54 @@ execute both scripts and the vault page would simply not work.
 If you edit either file again, recompute before deploying. Any mismatch is
 fatal, not cosmetic.
 
+
+## Deploy access — checked exhaustively on 2026-07-30
+
+Every route was tried and **none works from this machine**:
+
+| route | result |
+|---|---|
+| `ssh root@198.211.100.37` (what `deploy.sh` targeted) | ports 22/2222/2022/22222/8022 **and 80/443** all closed — that droplet is retired |
+| `ssh` to the real host `52.72.26.109` | port 22 filtered |
+| GitHub Actions | `pages.yml` publishes GitHub Pages only; `qev-build.yml` builds artifacts. Neither touches the webroot |
+| cloud CLIs | no `aws`, no `doctl`, no credentials on disk |
+| CDN / proxy API | none — `nginx/1.28.3` answers directly, no CDN in front |
+
+**The important discovery:** `secure.imagineqira.com` now resolves to
+**52.72.26.109** (`ec2-52-72-26-109.compute-1.amazonaws.com`), not the
+DigitalOcean droplet `deploy.sh` was pointing at. The site moved to AWS and
+the deploy script was never updated. Running it as it stood would have
+deployed to a dead box while production carried on serving something else —
+silently, because the site would keep working.
+
+`deploy.sh` now derives `SERVER` from DNS, refuses to run against the
+retired droplet, verifies over HTTPS that the target really serves the
+domain, and refuses to continue without SSH rather than half-deploying.
+
+**Worth checking:** SSH being filtered from a developer machine suggests an
+EC2 security-group rule that no longer includes your address. Confirm you
+can still reach the box *before* you need to — a production host nobody can
+log into is its own outage.
+
+## Deploying the signed webroot
+
+Build and sign produce a complete tree; deploy that, not a repo:
+
+```bash
+python3 qev-platform/scripts/build_site.py \
+  --landing qev-desktop/landing --public qev-platform/public-site \
+  --releases <dir with the .dmg/.exe/.msi/.apk> --out /tmp/qev-webroot --clean
+
+python3 qev-platform/scripts/resign-site-integrity.py \
+  --site-root /tmp/qev-webroot --key <site-signer.ed25519.key>
+
+rsync -avz --delete /tmp/qev-webroot/ user@52.72.26.109:/var/www/secure-imagineqira/
+```
+
+`site-integrity.json` is inside the tree, so content and signature ship
+together and can never disagree. Verified locally: signature VALID, 78/78
+digests match.
+
 ## Still outstanding — these need you, not code
 
 | Item | Why it can't be done here |
