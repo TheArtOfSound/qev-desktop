@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Security and Trust | BRY-NFET-SX</title>
-  <meta name="description" content="Security status, trust model, hardening history, and known limitations of the BRY-NFET-SX encrypted envelope workflow platform. Honest assessment of what is solid and what remains open.">
+  <title>Security and Trust | QEV — Qira Encryption Vault</title>
+  <meta name="description" content="Security status, trust model, hardening history, and known limitations of QEV (formerly BRY-NFET-SX). Honest assessment of what is solid and what remains open.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://secure.imagineqira.com/security">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://secure.imagineqira.com/security">
-  <meta property="og:title" content="Security and Trust | BRY-NFET-SX">
-  <meta property="og:description" content="Security status, hardening history, trust model, and documented limitations for BRY-NFET-SX.">
-  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta property="og:title" content="Security and Trust | QEV — Qira Encryption Vault">
+  <meta property="og:description" content="Security status, hardening history, trust model, and documented limitations for QEV (formerly BRY-NFET-SX).">
+  <meta property="og:site_name" content="QEV — Qira Encryption Vault">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Security and Trust | BRY-NFET-SX">
-  <link rel="stylesheet" href="/styles.css?v=0.29.0">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+  <meta name="twitter:title" content="Security and Trust | QEV — Qira Encryption Vault">
+  <link rel="stylesheet" href="/styles.css?v=0.29.0"></head>
 <body>
 
 <nav>
@@ -27,7 +26,6 @@
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
       <a href="/contact">Contact</a>
-      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
         </div>
   </div>
 </nav>
@@ -36,22 +34,24 @@
   <div class="wrap">
     <div class="label">Security and Trust</div>
     <h1>What is hardened, what is limited,<br>and why we document both</h1>
-    <p class="page-desc">BRY-NFET-SX is a controlled-use product preview. This page describes the current security posture, the hardening work completed, the trust model, and the limitations that remain open.</p>
+    <p class="page-desc">QEV (formerly BRY-NFET-SX) is a controlled-use product preview. This page describes the current security posture, the hardening work completed, the trust model, and the limitations that remain open. Where a section is about one specific layer — the Python envelope and bundle platform, or the vault format used by the web, desktop, and CLI apps — it says so, because the two layers do not use the same primitives.</p>
   </div>
 </header>
 
 <section>
   <div class="wrap">
     <div class="heading">Cryptographic foundation</div>
-    <div class="desc">The system uses standard authenticated encryption. No custom primitives.</div>
+    <div class="desc">Both layers use standard authenticated encryption from standard libraries. No custom primitives, and no cipher implemented here.</div>
     <div class="g3">
       <div class="card">
+        <div class="card-label">Envelope and bundle layer (Python)</div>
         <h3>ChaCha20-Poly1305</h3>
-        <p>All packet encryption uses ChaCha20-Poly1305 AEAD provided by the Python cryptography library. Key derivation uses HMAC-SHA256. No novel cryptographic algorithms are introduced.</p>
+        <p>All packet encryption uses ChaCha20-Poly1305 AEAD provided by the pyca/cryptography library, which wraps OpenSSL and Rust-based implementations. Key derivation uses HMAC-SHA256. No novel cryptographic algorithms are introduced and no cipher is implemented in this codebase.</p>
       </div>
       <div class="card">
-        <h3>Standard library dependency</h3>
-        <p>Cryptographic operations are delegated to the pyca/cryptography library, which wraps OpenSSL and Rust-based implementations. BRY-NFET-SX does not implement its own cipher.</p>
+        <div class="card-label">Vault format (web, desktop, CLI)</div>
+        <h3>XChaCha20-Poly1305 + Argon2id</h3>
+        <p>The <code>.vault.json</code> format uses XChaCha20-Poly1305 with an Argon2id-derived wrap key, via libsodium. The KDF parameters travel in the vault header, so they are validated on open rather than trusted: an <code>opslimit</code> or <code>memlimit</code> outside the accepted range (memory 8&ndash;256 MiB) makes the open fail with an out-of-range error. A tampered header cannot quietly downgrade the KDF to something cheap to brute-force.</p>
       </div>
       <div class="card">
         <h3>Packet integrity</h3>
@@ -81,7 +81,7 @@
           </tr>
           <tr style="border-bottom: 1px solid var(--border-subtle);">
             <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">signature_verified</td>
-            <td style="padding: 10px 8px; color: var(--text-secondary);">HMAC-SHA256 digest is cryptographically valid</td>
+            <td style="padding: 10px 8px; color: var(--text-secondary);">The HMAC-SHA256 authentication tag over the manifest recomputes correctly. Despite the field name, this is shared-secret authentication, not a public-key signature: it proves the tag was produced by someone holding the signer secret, and the verifier holds that same secret. It is not third-party attribution.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border-subtle);">
             <td style="padding: 10px 8px; color: var(--text); font-weight: 600; overflow-wrap: anywhere; word-break: break-word;">metadata_consistent</td>
@@ -94,7 +94,8 @@
         </tbody>
       </table>
       </div>
-      <p style="margin-top: 16px; font-size: 0.84rem; color: var(--text-dim);">Unsigned bundles, unchecked signatures, and failed verifications are never reported as trusted. The verification output distinguishes every state explicitly.</p>
+      <p style="margin-top: 16px; font-size: 0.84rem; color: var(--text-dim);">Unsigned bundles, unchecked tags, and failed verifications are never reported as trusted. The verification output distinguishes every state explicitly.</p>
+      <p style="margin-top: 10px; font-size: 0.84rem; color: var(--text-dim);">Note the boundary: bundle authenticity rests on HMAC-SHA256, which is symmetric. Anyone holding the signer secret can produce a valid tag, so a bundle tag tells you the bundle came from a holder of that secret &mdash; it cannot tell a third party that it came from <em>us</em>. This site's own integrity manifest at <a href="/verify">/verify</a> is a different mechanism: that one is an Ed25519 public-key signature, and anyone can verify it with the published public key and no secret at all.</p>
     </div>
   </div>
 </section>
@@ -102,7 +103,7 @@
 <section>
   <div class="wrap">
     <div class="heading">Hardening completed</div>
-    <div class="desc">Three internal adversarial security reviews have been run against BRY-NFET-SX. Audit 1 produced 11 findings and was resolved in Phases 35A-35F. Audit 2 produced further findings and was resolved in Phases 38A-38E. Audit 3 produced residual-issue findings that were closed out in a cleanup pass. v0.29.0 added a dogfooding fix discovered during the public challenge work. 258 tests currently pass (220 product tests + 38 tests covering the local Python vault tool that opens V1/V2 browser-produced vaults).</div>
+    <div class="desc">Three internal adversarial security reviews have been run against the envelope and bundle platform. Audit 1 produced 11 findings and was resolved in Phases 35A-35F. Audit 2 produced further findings and was resolved in Phases 38A-38E. Audit 3 produced residual-issue findings that were closed out in a cleanup pass. v0.29.0 added a dogfooding fix discovered during the public challenge work. 258 tests currently pass (220 product tests + 38 tests covering the local Python vault tool that opens V1/V2 browser-produced vaults).</div>
     <div class="sec-grid">
       <div class="sec-col">
         <h3>Phase 35A: Provider lockdown</h3>
@@ -213,6 +214,10 @@
         <h3>No formal external audit</h3>
         <p>The internal adversarial review identified and resolved critical issues. A formal third-party security audit has not been conducted.</p>
       </div>
+      <div class="card">
+        <h3>Installers are not code-signed</h3>
+        <p>The desktop installers carry no developer certificate: not notarized by Apple, not Authenticode-signed for Windows. Gatekeeper and SmartScreen will warn you, and they are right to &mdash; there is no publisher identity for them to check. The published SHA-256 of each artifact is the substitute, and it is a weaker one: it proves you got the file we published, not that we are who we say we are. The <a href="/downloads">downloads page</a> lists the hashes and explains each warning.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -238,7 +243,7 @@
     <h2>Security questions</h2>
     <p>For security-specific inquiries, include "Security Review" in the subject line.</p>
     <div class="cta-actions">
-      <a href="mailto:bryanleonard@imagineqira.com?subject=BRY-NFET-SX%20Security%20Review" class="btn btn-primary">Contact for Security Review</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Security%20Review" class="btn btn-primary">Contact for Security Review</a>
       <a href="/review" class="btn btn-outline">Reviewer Resources</a>
     </div>
   </div>
@@ -249,7 +254,7 @@
     <div class="card" style="max-width: 780px; margin: 0 auto; background: var(--surface);">
       <div class="card-label">Research (not in the product)</div>
       <h3 style="margin-top: 4px;">NFET-SC-512 candidate primitive</h3>
-      <p style="margin-top: 10px;">Qira LLC is separately developing a candidate cryptographic primitive called NFET-SC-512 and an AEAD construction called BRY-NFET-AEAD-512. <strong>It is a research artifact, not part of this product.</strong> It has not been reviewed by any credentialed cryptographer and is not integrated into BRY-NFET-SX. The product above continues to use ChaCha20-Poly1305 exclusively for secrecy.</p>
+      <p style="margin-top: 10px;">Qira LLC is separately developing a candidate cryptographic primitive called NFET-SC-512 and an AEAD construction called BRY-NFET-AEAD-512. <strong>It is a research artifact, not part of this product.</strong> It has not been reviewed by any credentialed cryptographer and is not integrated into QEV. The product above continues to use the ChaCha20-Poly1305 family exclusively for secrecy.</p>
       <p style="margin-top: 10px;">The spec, reference implementation, 18 pinned test vectors, and a first-pass self-attack report are published for external evaluation at <a href="https://github.com/TheArtOfSound/nfet-primitive">github.com/TheArtOfSound/nfet-primitive</a>. If you are a cryptographer willing to review or attack it, please do &mdash; credible findings will be acknowledged publicly.</p>
       <div style="margin-top: 14px;">
         <a href="https://github.com/TheArtOfSound/nfet-primitive" class="btn btn-sm btn-outline" target="_blank" rel="noopener">Research repository (GitHub)</a>
@@ -260,9 +265,9 @@
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
-    Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
-    This security page last updated: 2026-04-15.<br>
+    QEV v0.29.0 &mdash; Policy-aware encrypted envelope &amp; vault platform (formerly BRY-NFET-SX).<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305 family). Not a new cryptographic primitive.<br>
+    This security page last updated: 2026-07-29.<br>
     &copy; 2026 Qira LLC. All rights reserved.
   </div>
 </footer>
@@ -272,7 +277,7 @@
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
         crossorigin="anonymous"></script>
 </body>
 </html>

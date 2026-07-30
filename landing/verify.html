@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Integrity | BRY-NFET-SX</title>
-  <meta name="description" content="Independently verify the integrity of the BRY-NFET-SX site using an ed25519 public key. Every file is SHA-256 hashed and the manifest is signed with ed25519.">
+  <title>Site Integrity | QEV</title>
+  <meta name="description" content="Independently verify the integrity of the QEV site using an ed25519 public key. Every file is SHA-256 hashed and the manifest is signed with ed25519.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://secure.imagineqira.com/verify">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://secure.imagineqira.com/verify">
-  <meta property="og:title" content="Site Integrity | BRY-NFET-SX">
+  <meta property="og:title" content="Site Integrity | QEV">
   <meta property="og:description" content="ed25519-signed site manifest with a published public key. Anyone with the public key can verify the signature independently, no operator cooperation required.">
-  <meta property="og:site_name" content="BRY-NFET-SX">
-  <link rel="stylesheet" href="/styles.css?v=0.29.0">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+  <meta property="og:site_name" content="QEV">
+  <link rel="stylesheet" href="/styles.css?v=0.29.0"></head>
 <body>
 
 <nav>
@@ -22,10 +21,10 @@
     <div class="nav-links">
       <a href="/">Product</a>
       <a href="/security">Security</a>
+      <a href="/trust/">Trust</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
       <a href="/contact">Contact</a>
-      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
         </div>
   </div>
 </nav>
@@ -56,7 +55,7 @@
       <div class="card">
         <div class="card-label">Step 3</div>
         <h3>Anyone can verify</h3>
-        <p>Because ed25519 is an asymmetric signature scheme, anyone who fetches the public key and the manifest can verify the signature locally — no secret required. A ready-to-run verifier is available in the project repo at <code>scripts/verify_site_integrity.py</code> and uses only the Python <code>cryptography</code> library.</p>
+        <p>Because ed25519 is an asymmetric signature scheme, anyone who fetches the public key and the manifest can verify the signature locally — no secret required. A ready-to-run verifier is published in the <a href="https://github.com/TheArtOfSound/qev-platform" rel="noopener">qev-platform</a> repo at <code>scripts/verify_site_integrity.py</code> and uses only the Python <code>cryptography</code> library.</p>
       </div>
     </div>
   </div>
@@ -65,9 +64,10 @@
 <section class="alt-bg">
   <div class="wrap">
     <div class="heading">Integrity record</div>
-    <div class="desc">The current signed integrity record for this site.</div>
+    <div class="desc">The signed integrity record for this site, fetched from <code>/site-integrity.json</code> when this page loads. It is not a hard-coded copy, so the file count and the <code>signed_at</code> timestamp you see below are the deployed ones. Any count or timestamp quoted in the examples further down this page is illustrative only.</div>
     <div class="card" style="max-width: 720px;">
       <div id="integrity-loading">Loading integrity record...</div>
+      <noscript><p style="font-size: 0.86rem;">This block is fetched with JavaScript, so with scripting disabled nothing appears here. Download <a href="/site-integrity.json">/site-integrity.json</a> directly instead &mdash; it is the same file this page would have loaded.</p></noscript>
       <pre id="integrity-record" style="display:none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto; white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere; max-height: 500px;"></pre>
       <div id="integrity-error" style="display:none; color: var(--amber-text);">Could not load the integrity record. The file may not have been generated yet.</div>
     </div>
@@ -83,18 +83,19 @@
     <div class="desc">Two checks: (1) the ed25519 signature over the manifest, and (2) the SHA-256 of each file. Neither check requires anything beyond the public key and the manifest.</div>
 
     <div class="card" style="max-width: 780px;">
-      <h3>Option A &mdash; One-liner with the bundled verifier</h3>
-      <p style="margin-top: 10px;">The project repo ships a standalone verifier that does both checks using only the Python <code>cryptography</code> library.</p>
-      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">git clone https://github.com/TheArtOfSound/nfet-primitive  # any project checkout works
+      <h3>Option A &mdash; Run the bundled verifier</h3>
+      <p style="margin-top: 10px;">The <code>qev-platform</code> repo ships a standalone verifier that does both checks using only the Python <code>cryptography</code> library.</p>
+      <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">git clone https://github.com/TheArtOfSound/qev-platform
+cd qev-platform
 uv run python scripts/verify_site_integrity.py --url https://secure.imagineqira.com</pre>
-      <p style="margin-top: 10px; font-size: 0.86rem;">Output on success:</p>
+      <p style="margin-top: 10px; font-size: 0.86rem;">Illustrative output on success. The file count is whatever the manifest lists when you run it, so do not treat the number below as a fixed expectation — read it from the record above:</p>
       <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 8px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">Step 1: ed25519 signature...
   OK
 Step 2: SHA-256 file hashes...
-  OK (21 files)
+  OK (&lt;N&gt; files, matching file_count in the manifest)
 
 VERIFIED. The manifest is signed by the holder of the ed25519 private
-key corresponding to the committed public key, and every file's SHA-256
+key corresponding to the published public key, and every file's SHA-256
 matches.</pre>
     </div>
 
@@ -113,9 +114,17 @@ pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(pub_hex))
 record = json.loads(urllib.request.urlopen(BASE + "/site-integrity.json").read())
 
 # 2. Strip the signature block and reconstruct the signed bytes exactly
-#    as the signer did: domain separator + canonical JSON.
+#    as the signer did: the domain separator bytes above, with nothing
+#    appended to them, immediately followed by COMPACT canonical JSON --
+#    sorted keys, separators (',', ':') so there is no whitespace, and
+#    ensure_ascii=False. Any other formatting (indent=2, default
+#    separators, an extra delimiter after the domain) yields different
+#    bytes and pub.verify() below will raise InvalidSignature.
 manifest = {k: v for k, v in record.items() if k != "signature"}
-signed_bytes = DOMAIN + json.dumps(manifest, indent=2, sort_keys=True).encode()
+canonical = json.dumps(
+    manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+).encode("utf-8")
+signed_bytes = DOMAIN + canonical
 
 # 3. Verify. Raises InvalidSignature on mismatch.
 pub.verify(bytes.fromhex(record["signature"]["signature_hex"]), signed_bytes)
@@ -127,13 +136,14 @@ for name, expected in record["files"].items():
     actual = hashlib.sha256(body).hexdigest()
     assert actual == expected, f"{name}: {actual} != {expected}"
     print(f"  {name}: OK")</pre>
+      <p style="margin-top: 12px; font-size: 0.86rem;"><strong>Known discrepancy &mdash; trust the construction above, not the prose in the record:</strong> the record's <code>signature.canonical_json_note</code> field writes the domain separator with a trailing <code>||</code>. That is wrong: the signature verifies over the separator with nothing appended to it. That note lives inside the <code>signature</code> block, which is stripped out before signing, so it is not covered by the signature and carries no cryptographic weight either way.</p>
     </div>
 
     <div class="card" style="max-width: 780px; margin-top: 20px;">
       <h3>Option C &mdash; Just check a single file's hash</h3>
       <p style="margin-top: 10px;">If you trust the signed manifest itself (because you already checked the ed25519 signature, or because you're only worried about over-the-wire tampering with a single file), you can just compare a SHA-256 digest with <code>shasum</code>:</p>
       <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 0.82rem; color: var(--text-secondary); overflow-x: auto;">curl -s https://secure.imagineqira.com/ | shasum -a 256
-# compare against files.index.html in the integrity record below</pre>
+# compare against files["index.html"] in the integrity record above</pre>
     </div>
   </div>
 </section>
@@ -167,11 +177,11 @@ for name, expected in record["files"].items():
 
 <div class="cta-block">
   <div class="wrap">
-    <h2>See the full platform</h2>
-    <p>The same signing and verification workflow is available for your own artifacts.</p>
+    <h2>Where to look next</h2>
+    <p>What is hardened, what is not, and what has never been independently assessed are all stated on the security pages.</p>
     <div class="cta-actions">
-      <a href="/app/" class="btn btn-primary">Live Demo</a>
-      <a href="/security" class="btn btn-outline">Security Posture</a>
+      <a href="/security" class="btn btn-primary">Security Posture</a>
+      <a href="/audit-status/" class="btn btn-outline">Audit Status</a>
       <a href="/contact" class="btn btn-outline">Contact Us</a>
     </div>
   </div>
@@ -179,7 +189,7 @@ for name, expected in record["files"].items():
 
 <footer>
   <div class="wrap">
-    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    QEV v0.29.0 &mdash; Policy-aware encrypted envelope &amp; vault platform (formerly BRY-NFET-SX).<br>
     Built on standard authenticated encryption (ChaCha20-Poly1305). Not a new cryptographic primitive.<br>
     &copy; 2026 Qira LLC. All rights reserved.
   </div>
@@ -204,7 +214,7 @@ fetch('/site-integrity.json')
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
         crossorigin="anonymous"></script>
 </body>
 </html>

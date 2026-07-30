@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vault | BRY-NFET-SX</title>
+  <title>Vault | QEV (Qira Encryption Vault)</title>
   <meta name="description" content="Encrypt a message in your browser. The plaintext never leaves this tab. Save the vault file. Share the password on a different channel. The simplest secure messaging tool you can verify yourself.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://secure.imagineqira.com/vault">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://secure.imagineqira.com/vault">
-  <meta property="og:title" content="Vault | BRY-NFET-SX">
+  <meta property="og:title" content="Vault | QEV (Qira Encryption Vault)">
   <meta property="og:description" content="Encrypt a message in your browser. Plaintext never leaves the tab. XChaCha20-Poly1305 + Argon2id, all running locally.">
-  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta property="og:site_name" content="QEV">
 
   <link rel="stylesheet" href="/styles.css?v=0.29.0">
 
@@ -43,7 +43,11 @@
     .vault-mode-btn.vault-mode-active {
       border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg);
     }
-    .vault-mode-btn h4 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    /* Was an <h4> inside a <button> — invalid content model, and it broke
+       the heading outline. Now a styled span; the visual result is the same. */
+    .vault-mode-btn .vault-mode-btn-title {
+      display: block; font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    }
     .vault-mode-btn p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
 
     .vault-form-group { margin-bottom: 18px; }
@@ -96,7 +100,7 @@
       margin-top: 24px; padding: 18px; border-radius: 8px;
       border: 1px solid var(--accent-border); background: var(--accent-bg);
     }
-    .vault-result h4 { font-size: 0.92rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .vault-result h3 { font-size: 0.92rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
     .vault-result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; margin-bottom: 14px; }
     .vault-result pre {
       background: var(--bg); border: 1px solid var(--border-subtle);
@@ -288,7 +292,98 @@
       font-size: 0.78rem; color: var(--text-secondary);
       word-break: break-all;
     }
-    .vault-result-envelope strong { color: var(--text); display: block; margin-bottom: 4px; }  </style>
+    .vault-result-envelope strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    /* ---- Clear button (wipes decrypted output + inputs) ----
+       Starts hidden and is un-hidden by the small script at the end of
+       this page. A Clear button that cannot actually clear anything
+       would be worse than none at all, so it only appears once its
+       handler is attached. */
+    .vault-clearbtn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px; padding: 11px 18px; margin-top: 14px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; text-align: center;
+    }
+    .vault-clearbtn:hover { border-color: var(--text-dim); background: var(--surface); }
+    .vault-clearbtn[hidden] { display: none !important; }
+    .vault-clear-note, .vault-fineprint {
+      font-size: 0.78rem; color: var(--text-dim); margin-top: 6px; line-height: 1.5;
+    }
+
+    /* ---- Accessibility: target size (WCAG 2.2 AA, 2.5.8) ----
+       Every control below was measured under 24x24 CSS px at 375px wide.
+       They are raised to 44px where the control already owns its line,
+       so nothing moves horizontally and no layout is redesigned. */
+    main { display: block; }
+    nav { padding: 4px 0; }   /* offsets the taller links: nav height ~unchanged */
+    .logo, .nav-links a {
+      display: inline-flex; align-items: center; min-height: 44px;
+    }
+    .vault-knob-body .vault-knob-tip-toggle {
+      display: inline-flex; align-items: center;
+      min-height: 44px; padding: 4px 6px; margin-left: -6px;
+    }
+    .vault-pw-toggle, .vault-knob-regen-btn { min-height: 44px; }
+    .vault-dropzone label {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px;
+    }
+    /* Inline links in body copy (e.g. /verify) were 13-17px tall.
+       Vertical padding on an inline element enlarges the clickable box
+       without changing line height, so the text does not move. */
+    main p a, main li a, main .desc a { padding: 5px 2px; }
+
+    /* Keyboard focus was only visible on inputs. Every control needs it. */
+    .vault-knob-tip-toggle:focus-visible, .vault-pw-toggle:focus-visible,
+    .vault-knob-regen-btn:focus-visible, .vault-mode-btn:focus-visible,
+    .vault-preset-btn:focus-visible, .vault-bigbtn:focus-visible,
+    .vault-clearbtn:focus-visible, .vault-dropzone label:focus-visible,
+    main a:focus-visible, nav a:focus-visible, footer a:focus-visible,
+    .btn:focus-visible {
+      outline: 3px solid var(--accent); outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --text-secondary: #2f3540;
+        --text-dim: #414852;      /* #8590a2 was under 4.5:1 on white */
+        --border: #6b7480;
+        --border-subtle: #8d95a1;
+      }
+      main a, footer a, .nav-links a { text-decoration: underline; }
+      .vault-knob-locked-pill, .vault-status-info { color: var(--text); }
+    }
+
+    @media (forced-colors: active) {
+      /* box-shadow is dropped in forced-colors mode, so the selected
+         state of the mode and preset buttons needs a real outline. */
+      .vault-mode-btn, .vault-preset-btn, .vault-knob-regen-btn,
+      .vault-pw-toggle, .vault-bigbtn, .vault-clearbtn, .vault-dropzone label {
+        border: 1px solid ButtonText;
+      }
+      .vault-mode-btn.vault-mode-active, .vault-preset-btn.vault-preset-active {
+        outline: 3px solid Highlight; outline-offset: 2px;
+      }
+      .vault-status, .vault-result, .vault-result-warn, .vault-knob-tip,
+      .vault-load-banner, .vault-knob-locked-pill, .vault-result-envelope {
+        border: 1px solid CanvasText;
+      }
+      .vault-knob-num { border: 1px solid CanvasText; }
+      .vault-pw-strength-fill { forced-color-adjust: none; background: Highlight; }
+    }
+  </style>
 </head>
 <body>
 
@@ -300,13 +395,16 @@
     <div class="nav-links">
       <a href="/">Product</a>
       <a href="/security">Security</a>
-      <a href="/vault">Vault</a>
+      <a href="/vault" aria-current="page">Vault</a>
       <a href="/downloads">Download</a>
-      <a href="/contact">Contact</a>
-      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+      <a href="/platform/">Platform</a>
+      <a href="/trust/">Trust</a>
+      <a href="/contact/">Contact</a>
     </div>
   </div>
 </nav>
+
+<main>
 
 <header class="hero">
   <div class="wrap">
@@ -329,7 +427,7 @@
 <section>
   <div class="wrap">
     <div class="label">Who this is for</div>
-    <div class="heading">If any of these are you, this is built for you</div>
+    <h2 class="heading">If any of these are you, this is built for you</h2>
     <div class="desc">Not everyone needs browser-only secret sharing. These are the specific cases where everything else is worse.</div>
     <div class="g2">
       <div class="card">
@@ -338,7 +436,7 @@
       </div>
       <div class="card">
         <h3>You want to verify nothing leaks</h3>
-        <p>Signal requires trusting Signal. Email with a passphrase leaks metadata. Cloud password managers put ciphertext on someone else's hardware. Here you can open DevTools, perform an encrypt, perform a decrypt, and see zero network requests. The <code>Content-Security-Policy</code> on this page is <code>connect-src 'none'</code> &mdash; the browser itself refuses to let the page call anywhere.</p>
+        <p>Signal requires trusting Signal. Email with a passphrase leaks metadata. Cloud password managers put ciphertext on someone else's hardware. Here you can open DevTools, perform an encrypt, perform a decrypt, and see zero network requests. That is not just a promise about our code: this page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'none'</code>, so the browser itself refuses to let the page open a connection &mdash; no <code>fetch</code>, no <code>XMLHttpRequest</code>, no WebSocket, no beacon. Check both yourself in DevTools: the Network tab shows no requests after load, and the response headers on this page's own entry show the policy. What that header cannot do is stop a compromised server from serving you a different page in the first place &mdash; for that, see the integrity check below.</p>
       </div>
       <div class="card">
         <h3>You share the receiving end with someone non-technical</h3>
@@ -346,7 +444,7 @@
       </div>
       <div class="card">
         <h3>You want to verify the page itself wasn't tampered with</h3>
-        <p>The JavaScript is SRI-locked inside the HTML. The HTML is SHA-256 signed by the BRY-NFET-SX site integrity workflow. Compare the hashes on <a href="/verify">/verify</a> against what your browser loaded. If they match, the page you just ran is the published, signed version.</p>
+        <p>The JavaScript is SRI-locked inside this HTML, so the browser will not run a script whose bytes don't match the hash written here. That check cannot cover the HTML itself &mdash; a server that rewrote this page would rewrite the hashes with it. The HTML is covered separately: its SHA-256 hash is listed in a manifest that is signed with Ed25519, published at <a href="/verify">/verify</a>. Compare the manifest hash for <code>vault/index.html</code> against the bytes your browser loaded. If they match, the page you just ran is the published, signed version.</p>
       </div>
     </div>
   </div>
@@ -356,16 +454,16 @@
 <section>
   <div class="wrap">
     <div class="label">Encrypt</div>
-    <div class="heading" id="vault-mode-headline">Encrypt a note for yourself</div>
+    <h2 class="heading" id="vault-mode-headline">Encrypt a note for yourself</h2>
     <div class="desc" id="vault-mode-helper">Type a message and a password. Save the vault file. Remember the password. You can decrypt it later on any device.</div>
 
     <div class="vault-mode-row">
       <button type="button" id="vault-mode-self" class="vault-mode-btn vault-mode-active">
-        <h4>Encrypt a note for yourself</h4>
+        <span class="vault-mode-btn-title">Encrypt a note for yourself</span>
         <p>For private notes, secrets, or anything you want to keep but not in the clear. You alone need the password.</p>
       </button>
       <button type="button" id="vault-mode-share" class="vault-mode-btn">
-        <h4>Send a secret to someone</h4>
+        <span class="vault-mode-btn-title">Send a secret to someone</span>
         <p>For one-off secrets shared with a person you can talk to on a separate channel. You both need the password.</p>
       </button>
     </div>
@@ -395,17 +493,17 @@
             <div class="vault-knob-tip" id="tip-password">
               This phrase is the only thing that opens the box. It is never sent anywhere &mdash; it stays in your head. You need the <em>exact</em> same phrase to open the box later.
               <br><br>
-              <strong>Pick a phrase, not a word.</strong> A 6-character password is crackable in hours on a single GPU. Four random words (like <code>river-purple-dragon-cloud</code>) would take trillions of years at the same cost. The generator below picks 4 random words for you.
+              <strong>Pick a phrase, not a word.</strong> A 6-character password is crackable in hours on a single GPU. The generator below does better: it picks 4 words at random from the standard EFF long wordlist (7,776 words) and appends 2 random digits, which is about 58 bits of entropy (7776<sup>4</sup> &times; 100 &asymp; 2<sup>58.3</sup>). An attacker who could test a million Argon2id guesses per second &mdash; far more than a single GPU manages against the Strong lock setting &mdash; would still average thousands of years. That figure is arithmetic about the generator, not a guarantee about hardware you can't see, and it drops as attack hardware improves. A phrase you invented yourself has no such number: it is only as strong as it is unpredictable.
               <br><br>
               If you forget the phrase, the box CANNOT be opened. There is no reset, no recovery, no backdoor.
             </div>
             <!-- Generator button promoted ABOVE the input: it is the path
                  of least resistance for non-technical users. -->
             <div class="vault-pw-helper" style="margin-bottom: 10px; margin-top: 8px;">
-              <button type="button" id="vault-pw-generate">Can't think of one? Pick 4 random words for me</button>
+              <button type="button" id="vault-pw-generate">Can't think of one? Pick 4 random words + 2 digits for me</button>
             </div>
             <div class="vault-pw-row">
-              <input type="password" id="vault-encrypt-password" autocomplete="new-password" spellcheck="false" autocapitalize="off" required placeholder="Type a phrase &mdash; 4+ random words is strong">
+              <input type="password" id="vault-encrypt-password" autocomplete="new-password" spellcheck="false" autocapitalize="off" required placeholder="Type a phrase, or use the generator above">
               <button type="button" class="vault-pw-toggle" data-vault-reveal-target="vault-encrypt-password">Show</button>
             </div>
             <div class="vault-pw-strength" id="vault-pw-strength">
@@ -413,6 +511,7 @@
               <div class="vault-pw-strength-label">(empty)</div>
             </div>
             <div id="vault-pw-hint" class="vault-pw-hint"></div>
+            <p class="vault-fineprint">What the bar measures: length, character variety, and how many words you typed. It cannot tell whether you picked those words at random, so read it as a floor, not a score. The only phrase here with a known strength is a generated one &mdash; about 58 bits.</p>
           </div>
         </div>
 
@@ -453,11 +552,11 @@
             </div>
             <div class="vault-mode-row" style="margin-top: 8px;">
               <button type="button" id="vault-mode-self" class="vault-mode-btn vault-mode-active">
-                <h4>Just for me</h4>
+                <span class="vault-mode-btn-title">Just for me</span>
                 <p>A private note. Only you need the secret phrase.</p>
               </button>
               <button type="button" id="vault-mode-share" class="vault-mode-btn">
-                <h4>Share with someone</h4>
+                <span class="vault-mode-btn-title">Share with someone</span>
                 <p>For a friend. Tell them the secret phrase over a different channel.</p>
               </button>
             </div>
@@ -518,7 +617,8 @@
             <div class="vault-knob-tip" id="tip-schema">
               The version of the locked box format. Version 2 is what we make today &mdash; it uses a random data key that is itself locked by your phrase. Older Version 1 boxes still open on this page. If we ever change the format again, future versions will get a new number.
             </div>
-            <div class="vault-knob-locked-pill">BRY-NFET-SX VAULT V2 (made by version 0.29.0)</div>
+            <div class="vault-knob-locked-pill">Vault format V2 &mdash; schema BRY-NFET-SX-VAULT-V2 (cannot be changed)</div>
+            <p class="vault-fineprint">The build that made a box is recorded inside the box itself, in its <code>version</code> field &mdash; read it in the box JSON after you lock one, or on the details line when you open one. This page does not print a build number here, because the number would only be a copy that can drift out of step with the code actually running.</p>
           </div>
         </div>
 
@@ -527,7 +627,7 @@
       </form>
 
       <div id="vault-encrypt-result" class="vault-result vault-hidden">
-        <h4>Locked! Save the box file and remember your secret phrase.</h4>
+        <h3>Locked! Save the box file and remember your secret phrase.</h3>
         <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 8px;">To open this box later you need <strong>two things</strong>: the box file (download below) and the secret phrase you typed (only in your head).</p>
         <div class="vault-result-actions">
           <button type="button" id="vault-download-btn" class="btn btn-sm btn-primary">Download box file</button>
@@ -553,7 +653,7 @@
 <section class="alt-bg">
   <div class="wrap">
     <div class="label">Decrypt</div>
-    <div class="heading">Open a vault</div>
+    <h2 class="heading">Open a vault</h2>
     <div class="desc">Drop or paste a vault file, type the password, get the message back.</div>
 
     <div class="card vault-card-tight" style="max-width: 880px;">
@@ -579,12 +679,15 @@
         </div>
         <button type="submit" id="vault-decrypt-submit" class="vault-bigbtn" disabled>Open it!</button>
         <div id="vault-decrypt-status" class="vault-status"></div>
+        <button type="button" class="vault-clearbtn" data-vault-clear hidden>Clear &mdash; wipe the message, the vault text and the password</button>
+        <p class="vault-clear-note">Nothing here was ever sent anywhere, but a decrypted message stays on screen until you clear it or close the tab. On a borrowed or shared computer, clear it before you walk away.</p>
       </form>
 
       <div id="vault-decrypt-result" class="vault-result vault-hidden">
-        <h4>Decrypted message</h4>
+        <h3>Decrypted message</h3>
         <pre id="vault-decrypt-result-text"></pre>
         <div class="vault-result-meta" id="vault-decrypt-result-meta"></div>
+        <button type="button" class="vault-clearbtn" data-vault-clear hidden>Clear &mdash; wipe the message, the vault text and the password</button>
       </div>
     </div>
   </div>
@@ -594,7 +697,7 @@
 <section>
   <div class="wrap">
     <div class="label">Honest Threat Model</div>
-    <div class="heading">What this protects, and what it does not</div>
+    <h2 class="heading">What this protects, and what it does not</h2>
     <div class="desc">Every security tool needs honest framing. Here is the one for this one.</div>
     <div class="g2">
       <div class="card">
@@ -604,16 +707,17 @@
           <li>Integrity of every byte of the vault &mdash; flipping any bit breaks decryption with a clear error</li>
           <li>Every byte of metadata (salt, both nonces, KDF parameters, schema, version, mode, created_at, both AEAD algorithms) is bound into the authentication tag</li>
           <li>A random data key encrypts your message; the secret phrase only unwraps that data key. The phrase is never the sole root of secrecy</li>
-          <li>The JavaScript on this page is integrity-protected via Subresource Integrity &mdash; the browser refuses to execute a modified version</li>
-          <li>Plaintext exists only in this browser tab. Zero network requests after page load. Verify in DevTools.</li>
+          <li>The JavaScript on this page is integrity-protected via Subresource Integrity &mdash; the browser refuses to execute a script whose bytes don't match the SHA-384 hash written in this HTML. That binds the scripts to this page; it does not prove this page is the published one (see the column on the right)</li>
+          <li>Plaintext exists only in this browser tab. Zero network requests after page load, enforced by a <code>connect-src 'none'</code> Content-Security-Policy header, not just by our code. Verify both in DevTools. Nothing is cached for offline use &mdash; there is no service worker &mdash; so the page keeps working while this tab stays open, and reloading it needs the network again</li>
         </ul>
       </div>
       <div class="card">
         <h3>What this does not protect</h3>
         <ul>
           <li>Against anyone who has the secret phrase &mdash; protect it like you would a house key</li>
-          <li>Against weak phrases &mdash; Argon2id raises the cost but does not make a one-word phrase strong. Use 4+ random words or the generator</li>
-          <li>Against a compromised host server that ships malicious JavaScript at serve time &mdash; mitigated but not eliminated by SRI and the integrity-signed page. This is the real weakest link; if it matters, verify the signed integrity record on <a href="/verify">/verify</a></li>
+          <li>Against weak phrases &mdash; Argon2id raises the cost but does not make a one-word phrase strong. The generator gives you 4 random words from a 7,776-word list plus 2 digits, about 58 bits; a phrase you invent yourself has no measurable number attached to it</li>
+          <li>Against a compromised host server that ships a malicious page at serve time &mdash; SRI cannot catch this, because SRI hashes live in the HTML and a rewritten page carries rewritten hashes. The <code>connect-src 'none'</code> header cannot catch it either, since a substituted page would come with its own headers. Only the separately signed integrity manifest covers the HTML. This is the real weakest link; if it matters, verify the signed integrity record on <a href="/verify">/verify</a></li>
+          <li>Against someone who walks up to the screen after you decrypt &mdash; the message stays visible in this tab until you press Clear or close it</li>
           <li>Against endpoint compromise &mdash; keyloggers, malware, screen recorders, shoulder-surfers</li>
           <li>Against forgetting the phrase &mdash; if you lose it, the vault is permanently unrecoverable. There is no backdoor, no reset, no recovery. There is also no recovery keyslot (today)</li>
           <li>This is not end-to-end messaging like Signal &mdash; there is no key exchange, no forward secrecy, no identity verification. It is a vault you share the phrase to</li>
@@ -627,7 +731,7 @@
 <section class="alt-bg">
   <div class="wrap">
     <div class="label">How It Works</div>
-    <div class="heading">Standard primitives. Standard library. No magic.</div>
+    <h2 class="heading">Standard primitives. Standard library. No magic.</h2>
     <div class="desc">If you know cryptography, you can read the source. If you don't, here is the short version.</div>
     <div class="g3">
       <div class="card">
@@ -653,14 +757,14 @@
 <section>
   <div class="wrap">
     <div class="label">Verify This Page</div>
-    <div class="heading">Don't trust us. Check the page yourself.</div>
-    <div class="desc">The integrity story is layered: the JavaScript is bound to the HTML by Subresource Integrity, the HTML is signed by the BRY-NFET-SX site integrity workflow.</div>
+    <h2 class="heading">Don't trust us. Check the page yourself.</h2>
+    <div class="desc">The integrity story is layered, and each layer covers something the others can't: Subresource Integrity binds the scripts to this HTML, and the HTML itself is covered by a separately signed integrity manifest.</div>
     <div class="card" style="max-width: 880px;">
       <h3>Three things to check</h3>
       <ol style="margin-top: 12px; color: var(--text-secondary); font-size: 0.88rem;">
-        <li style="margin-bottom: 10px;"><strong>SRI.</strong> View the source of this page and look at the <code>integrity</code> attribute on the two <code>&lt;script&gt;</code> tags. The browser refuses to execute either script if the loaded bytes don't match the SHA-384 hash. If the page rendered and the form is enabled, SRI passed.</li>
-        <li style="margin-bottom: 10px;"><strong>Site integrity.</strong> Visit <a href="/verify">/verify</a> and download the integrity record. <code>vault/index.html</code>, <code>vault/chat.js</code>, and <code>vault/sodium.js</code> are listed there with their SHA-256 hashes.</li>
-        <li style="margin-bottom: 10px;"><strong>Network silence.</strong> Open DevTools, switch to the Network tab, perform an encrypt and a decrypt. Confirm zero network requests after the initial page load. The Content-Security-Policy on this page sets <code>connect-src 'none'</code> &mdash; the browser blocks any attempt to call out.</li>
+        <li style="margin-bottom: 10px;"><strong>SRI &mdash; and what it can't tell you.</strong> View the source of this page and look at the <code>integrity</code> attribute on the three <code>&lt;script&gt;</code> tags: <code>/vault/sodium.js</code>, <code>/vault/chat.js</code>, and <code>/site-verify.js</code>. The browser refuses to execute any script whose bytes don't match its SHA-384 hash, so if the page rendered and the form is enabled, all three scripts match the hashes written in this HTML. That is the whole of what SRI proves. It binds the scripts to this HTML file and nothing more &mdash; it cannot detect a rewritten HTML page, because a server that rewrote the page would rewrite the hashes in the same edit. Step 2 is the layer that covers the HTML.</li>
+        <li style="margin-bottom: 10px;"><strong>Site integrity &mdash; this is the one that covers the page.</strong> Visit <a href="/verify">/verify</a> and download the integrity record. <code>vault/index.html</code>, <code>vault/chat.js</code>, and <code>vault/sodium.js</code> are listed there with their SHA-256 hashes, and the record itself is signed with Ed25519. Hash the bytes your browser actually loaded and compare. Cross-checking here is what turns "the scripts match this page" into "this page is the published one".</li>
+        <li style="margin-bottom: 10px;"><strong>Network silence.</strong> Open DevTools, switch to the Network tab, perform an encrypt and a decrypt, and confirm there are no requests after the initial page load. That silence is enforced, not merely observed: this page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'none'</code>, so the browser blocks any attempt to call out. Read it for yourself in the same tab &mdash; click this page's own entry in the Network list, open Headers, and look under Response Headers for <code>content-security-policy</code>. If that header is not there, nothing is being enforced, so check rather than take our word for it. And note the limit: the policy stops this page from calling out; it cannot stop a compromised server from serving you a different page with different headers. That is what step 2 is for.</li>
       </ol>
     </div>
   </div>
@@ -678,6 +782,7 @@
     </div>
   </div>
 </div>
+</main>
 
 <footer>
   <div class="wrap">
@@ -694,7 +799,7 @@
         integrity="sha384-xE+e4s598d4A0BKvbnkYaqRYutiZTg3KzqnWK51WA6h0yoCZ3uuV52KsntFIWScg"
         crossorigin="anonymous"></script>
 <script src="/vault/chat.js?v=0.30.0"
-        integrity="sha384-/pk1zT1lRQIVk0fSv5w2l00586HPhaPG/EMCVZN6ESLvpTgg65zOF4I5SScXK4LN"
+        integrity="sha384-zBUatVdsBBTkwpUTbCYuHNR/cQmGM/fR4jX9FFkabO32HOnH62cfGLEsHJ9K4r74"
         crossorigin="anonymous"></script>
 
 
@@ -702,7 +807,7 @@
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
         crossorigin="anonymous"></script>
 </body>
 </html>

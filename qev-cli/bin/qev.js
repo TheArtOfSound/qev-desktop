@@ -18,7 +18,8 @@
 //               The content ciphertext is not decrypted or re-encrypted.
 //
 //   qev gen-phrase
-//               Print a freshly generated 4-word passphrase.
+//               Print a freshly generated 4-word passphrase (7776-word EFF
+//               list + 2 digits, about 58 bits of entropy).
 //
 //   qev self-test
 //               Run round-trip + tamper + wrong-phrase + rewrap self-tests.

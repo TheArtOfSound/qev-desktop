@@ -11,7 +11,7 @@
   <meta property="og:url" content="https://secure.imagineqira.com/downloads">
   <meta property="og:title" content="Download QEV — Offline Encryption Vault for Mac and Windows">
   <meta property="og:description" content="Free. Open source. No accounts. No servers. Encrypt a message, send the file anywhere, remember the phrase.">
-  <meta property="og:site_name" content="BRY-NFET-SX">
+  <meta property="og:site_name" content="QEV">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="QEV — Offline Encryption Vault">
   <meta name="twitter:description" content="Free. Mac + Windows + Android + CLI. Offline forever.">
@@ -328,8 +328,7 @@
       margin-left: auto;
       margin-right: auto;
     }
-  </style>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+  </style></head>
 <body>
 
 <nav>
@@ -340,14 +339,15 @@
       <a href="/security">Security</a>
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
+      <a href="/status/">Status</a>
+      <a href="/trust/">Trust</a>
       <a href="/contact">Contact</a>
-      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
         </div>
   </div>
 </nav>
 
 <!-- ============================ HERO ============================ -->
-<header class="dl-hero">
+<header class="dl-hero" id="products">
   <div class="wrap">
     <div class="price-tag">Free &middot; Open source</div>
     <h1>QEV &mdash; Qira Encryption Vault</h1>
@@ -377,15 +377,38 @@
           <strong>v0.29.0 highlights:</strong> macOS Keychain-wrapped private key &middot; per-chat lock/unlock with the shared phrase never saved &middot; locked chats display as copyable ciphertext so you can still scroll, select, and decrypt elsewhere (Open-a-vault tab or <a href="/vault">/vault</a>) &middot; <strong>refreshed chat UI</strong> with bigger tap targets, smoother peer switching, and a proper mobile back-button flow. Existing installs migrate automatically on first launch.
         </p>
         <details class="dl-install-help">
-          <summary>Mac says "can't verify"? Here's the fix (10 seconds)</summary>
+          <summary>macOS will say it can't verify this app &mdash; why, and what to do</summary>
+          <p class="dl-install-why" style="border-top:none;">
+            <strong>Read this first.</strong> This build is <strong>not signed with an Apple Developer
+            certificate and not notarized by Apple</strong>. At most it carries an ad-hoc signature,
+            which identifies nobody. macOS is telling you the truth: it cannot verify who built this
+            app. So check the SHA-256 of the file you downloaded first
+            (<a href="#verify-download">Verify what you downloaded</a>), then decide.
+          </p>
           <ol>
             <li>Open the <code>.dmg</code> and drag <strong>QEV.app</strong> into your <strong>Applications</strong> folder.</li>
-            <li>Open <strong>Terminal</strong> (search "Terminal" in Spotlight).</li>
-            <li>Paste this and press Enter:<br><code>xattr -cr /Applications/QEV.app && open /Applications/QEV.app</code></li>
-            <li>QEV opens. Done. You only do this once &mdash; after that, double-click works normally.</li>
+            <li><strong>macOS 11&ndash;14:</strong> Control-click (right-click) <strong>QEV</strong> in Applications, choose <strong>Open</strong>, then <strong>Open</strong> again in the dialog.</li>
+            <li><strong>macOS 15 and newer:</strong> Control-click no longer opens blocked apps. Double-click QEV once and let macOS refuse it, then open <strong>System Settings &rarr; Privacy &amp; Security</strong>, find the message about QEV being blocked, and click <strong>Open Anyway</strong>.</li>
+            <li>You approve the app once. After that, double-click works normally. No Terminal, no <code>sudo</code>.</li>
           </ol>
           <p class="dl-install-why">
-            <strong>Why does this happen?</strong> The app isn't signed with a $99/year Apple Developer certificate yet, so macOS Gatekeeper blocks it by default. The command above removes the browser's quarantine flag. The app itself is safe &mdash; same code that passes 362 tests, same binary CI produced from the public source.
+            <strong>If macOS still refuses</strong> &mdash; some versions report an unsigned app as
+            "damaged" &mdash; removing the download-quarantine flag is the step that helps:<br>
+            <code>xattr -dr com.apple.quarantine /Applications/QEV.app</code><br>
+            Run this only after the SHA-256 matched. It deletes one attribute, the marker that says
+            the file arrived from the internet. It does not make the app verified and it tells you
+            nothing about who built it &mdash; the hash check is the part that does. Add
+            <code>sudo</code> in front only if you get "Operation not permitted".
+          </p>
+          <p class="dl-install-why">
+            <strong>Why this happens at all:</strong> signing requires a $99/year Apple Developer
+            certificate that hasn't been bought yet, so Gatekeeper has nothing to check. These
+            installers are produced by the public build workflow
+            (<code>.github/workflows/qev-build.yml</code>) in the
+            <a href="https://github.com/TheArtOfSound/qev-desktop">open-source repo</a>, but there is
+            no reproducible-build attestation, so you cannot independently prove this file came out of
+            that workflow. You can prove the hash. Versions, test counts, and what has and hasn't been
+            assessed are on <a href="/status/">/status/</a>.
           </p>
         </details>
       </div>
@@ -399,14 +422,22 @@
           <strong>v0.29.0 has everything the Mac has:</strong> device pairing (QR &amp; safety number), encrypted chat with relay delivery, per-chat lock/unlock, identity backup/restore, and the same vault format &mdash; cross-platform compatible with QEV v0.29.0 on Mac and Android.
         </p>
         <details class="dl-install-help">
-          <summary>Windows SmartScreen warning on first launch?</summary>
+          <summary>Windows SmartScreen will warn you &mdash; why, and what to do</summary>
+          <p class="dl-install-why" style="border-top:none;">
+            <strong>Read this first.</strong> These installers are <strong>not Authenticode-signed</strong>,
+            so Windows has no publisher identity to check and SmartScreen flags them as unrecognized.
+            The warning is correct.
+          </p>
           <ol>
-            <li>Click <strong>"More info"</strong> (small link under the warning).</li>
-            <li>Click <strong>"Run anyway"</strong>.</li>
-            <li>The installer runs normally. This only happens once.</li>
+            <li>Check the file's SHA-256 with the <code>Get-FileHash</code> command in <a href="#verify-download">Verify what you downloaded</a>.</li>
+            <li>If it does <strong>not</strong> match the published hash, delete the file and don't run it.</li>
+            <li>If it matches and you want to proceed: run the installer, click <strong>"More info"</strong> in the SmartScreen dialog, then <strong>"Run anyway"</strong>.</li>
           </ol>
           <p class="dl-install-why">
-            <strong>Why?</strong> The MSI isn't yet Authenticode-signed with an EV certificate, so Windows SmartScreen flags it as unrecognized. The binary is the same one built by the public GitHub Actions workflow from the open-source Rust sources.
+            An EV Authenticode certificate is what would remove this warning honestly, and it hasn't
+            been bought yet. Until then Windows genuinely cannot tell you who built this installer.
+            The binaries come from the public build workflow in the open-source repo, but that link
+            isn't independently verifiable &mdash; the hash is.
           </p>
         </details>
       </div>
@@ -415,16 +446,125 @@
         <p>arm64 &middot; Android 7.0+</p>
         <span class="size">~38 MB APK</span>
         <a href="/downloads/QEV-0.29.0-release.apk" class="dl-card-btn" download>Download .apk</a>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          Sideload build. The APK is signed with a throwaway keystore that CI generates on each run
+          (see <code>qev-build.yml</code>), not with a stable release key &mdash; so the signature
+          identifies nobody, and a later build signed with a different throwaway key may refuse to
+          install over this one (you'd uninstall first). Check the SHA-256 before you install:
+          <a href="#verify-download">Verify what you downloaded</a>.
+        </p>
       </div>
       <div class="dl-os-card">
-        <h4>Linux / CLI <span class="dl-beta-tag">beta</span></h4>
-        <p>Node 18.17+ &middot; same vault format</p>
-        <span class="size">~17 KB tarball</span>
+        <h4>Linux / CLI <span class="dl-beta-tag">CLI v0.30.0 &middot; npm</span></h4>
+        <p>Node 18.17+ &middot; same Vault V2 format &middot; versioned separately from the apps</p>
         <code class="dl-card-cmd">npm i -g @bryan237l/qev-cli</code>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          <strong>Interactive use only &mdash; not for scripts or CI.</strong> <code>qev</code> always
+          prompts for the phrase on a terminal and refuses to read one from piped stdin ("phrases must
+          be typed interactively"). There is no <code>--phrase</code> flag and no environment-variable
+          equivalent. That is deliberate &mdash; a phrase sitting in a CI variable or a shell history
+          isn't a secret any more &mdash; but it does mean the CLI is for a human at a terminal, and
+          cannot be used for unattended automation.
+        </p>
       </div>
     </div>
+
+    <p style="max-width:820px;margin:22px auto 0;font-size:0.8rem;color:var(--text-dim);line-height:1.6;text-align:left;">
+      <strong>Which version is which:</strong> the macOS, Windows and Android downloads above are
+      <strong>app build v0.29.0</strong>. The CLI is a separately versioned npm package
+      (<strong>v0.30.0</strong>). The encrypted file format all of them read and write is
+      <strong>Vault V2</strong>, which is versioned on its own and does not track the app number.
+      <a href="/status/">/status/</a> is the authoritative version and test matrix &mdash; if this page
+      ever disagrees with it, /status/ is right.
+    </p>
   </div>
 </header>
+
+<!-- ================= VERIFY WHAT YOU DOWNLOADED ================= -->
+<section id="verify-download">
+  <div class="wrap">
+    <div class="label">Before you install</div>
+    <div class="heading">Verify what you downloaded</div>
+    <div class="desc">
+      None of these builds are signed by Apple or Microsoft, so your operating system cannot tell you
+      where the file came from. What you <em>can</em> do is confirm that the bytes on your disk are the
+      bytes this site published &mdash; and the hashes below are themselves inside an Ed25519-signed
+      manifest, so you don't have to take this page's word for them either.
+    </div>
+
+    <p style="max-width:820px;margin:0 auto 8px;font-size:0.9rem;color:var(--text-secondary);">
+      <strong>macOS / Linux</strong> &mdash; in Terminal, on the file you downloaded:
+    </p>
+    <code class="dl-card-cmd" style="max-width:820px;margin:0 auto 18px;">shasum -a 256 ~/Downloads/QEV_0.29.0_aarch64.dmg</code>
+
+    <p style="max-width:820px;margin:0 auto 8px;font-size:0.9rem;color:var(--text-secondary);">
+      <strong>Windows</strong> &mdash; in PowerShell:
+    </p>
+    <code class="dl-card-cmd" style="max-width:820px;margin:0 auto 18px;">Get-FileHash -Algorithm SHA256 "$HOME\Downloads\QEV_0.29.0_x64_en-US.msi"</code>
+
+    <p style="max-width:820px;margin:0 auto 20px;font-size:0.9rem;color:var(--text-secondary);line-height:1.7;">
+      Compare the output with the matching row below. Case doesn't matter &mdash; PowerShell prints
+      uppercase, <code>shasum</code> prints lowercase. If it does not match, delete the file and don't
+      install it.
+    </p>
+
+    <table class="dl-vs-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>SHA-256</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>QEV_0.29.0_aarch64.dmg<br><span style="color:var(--text-dim);font-size:0.8em;">macOS app build v0.29.0</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">6bcf9af45084ecd609050c64ad082d18e7c995f819ac101a00f44fbaa2b33b8d</td>
+        </tr>
+        <tr>
+          <td>QEV_0.29.0_x64_en-US.msi<br><span style="color:var(--text-dim);font-size:0.8em;">Windows installer, app build v0.29.0</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">6158f3edebcd3e5bba3a5da15c276e4c86e3df8f252fdc031d1238f6ec0b1171</td>
+        </tr>
+        <tr>
+          <td>QEV_0.29.0_x64-setup.exe<br><span style="color:var(--text-dim);font-size:0.8em;">Windows setup .exe, app build v0.29.0</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">e4ef7d8c7a30aed90e6a191e5089af682fb2b8cfc624ffce90621100a88e700c</td>
+        </tr>
+        <tr>
+          <td>QEV-0.29.0-release.apk<br><span style="color:var(--text-dim);font-size:0.8em;">Android sideload, app build v0.29.0</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">0f625b397b4f7ffe4b2f847f9f4d87401f6d0fc3a6fe6132c15fac7cda998dae</td>
+        </tr>
+        <tr>
+          <td>QiraLink-0.1.0-alpha.0-aarch64.dmg<br><span style="color:var(--text-dim);font-size:0.8em;">Qira Link alpha (separate product)</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">cd3e002297425454189607c654b3d72fd4e28f2097251d54d768b51b8ae8550f</td>
+        </tr>
+        <tr>
+          <td>qira-link-install.sh<br><span style="color:var(--text-dim);font-size:0.8em;">optional install script &mdash; verify it before running it</span></td>
+          <td style="font-family:ui-monospace,Menlo,Monaco,monospace;font-size:0.72rem;word-break:break-all;user-select:all;-webkit-user-select:all;">c097902c5244dfe2fbec5e370df0e5c59a82e7844c46c267e9b5f4abce05e4a1</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="max-width:820px;margin:24px auto 0;font-size:0.86rem;color:var(--text-secondary);line-height:1.7;">
+      <strong>Where these hashes come from.</strong> Every file this site serves &mdash; including each
+      artifact in the table &mdash; is SHA-256 hashed into
+      <a href="/site-integrity.json">/site-integrity.json</a>, and that manifest is signed with an
+      Ed25519 key whose public half is published at
+      <a href="/site-signer.ed25519.pub">/site-signer.ed25519.pub</a>.
+      <a href="/verify">/verify</a> shows how to check that signature yourself. So the chain you can
+      walk without trusting us is: verify the signature over the manifest, then check your file against
+      the manifest. <strong>If this table ever disagrees with the signed manifest, the manifest is
+      right and this page is stale.</strong>
+    </p>
+
+    <p style="max-width:820px;margin:14px auto 0;font-size:0.86rem;color:var(--text-secondary);line-height:1.7;">
+      <strong>What a matching hash proves, and what it doesn't.</strong> It proves you received the
+      exact bytes this site published, unaltered in transit. It does <em>not</em> prove the software is
+      safe, and it is <strong>not a substitute for operating-system code signing</strong>, which is
+      still absent here. Signing and notarization are what let macOS and Windows vouch for a publisher
+      before the code runs; buying those certificates is our job, not yours. The CLI is installed from
+      npm rather than from this site, so it is not covered by this manifest.
+    </p>
+  </div>
+</section>
 
 <!-- ===================== QIRA LINK (sibling product) ===================== -->
 <section style="max-width:1060px;margin:0 auto;padding:40px 24px;">
@@ -436,23 +576,52 @@
       No accounts. No VPN provider. No exit nodes. Just your devices reaching your devices, from anywhere.
     </p>
 
-    <!-- ===== One-line install (easiest path for macOS) ===== -->
-    <div style="padding:18px;border:1px solid var(--accent);border-radius:10px;background:rgba(99,102,241,0.07);margin-bottom:18px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff;font-size:0.65rem;font-weight:800;letter-spacing:0.06em;">RECOMMENDED</span>
-        <strong style="font-size:0.95rem;">Install on macOS in one command</strong>
+    <!-- ===== Install: manual steps first, script second ===== -->
+    <div style="padding:18px;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,0.10);margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-size:0.65rem;font-weight:800;letter-spacing:0.06em;">UNSIGNED ALPHA</span>
+        <strong style="font-size:0.95rem;">Install it by hand &mdash; steps you can see</strong>
       </div>
       <p style="color:var(--text-dim);font-size:0.82rem;line-height:1.5;margin:0 0 10px;">
-        Open <strong>Terminal</strong> (<kbd>⌘</kbd>+<kbd>Space</kbd>, type "Terminal", Enter) and paste:
+        This alpha is not signed by Apple, so macOS will refuse it on first launch. That refusal is
+        correct. Do this in order:
       </p>
-      <pre style="background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:6px;overflow-x:auto;margin:0 0 6px;font-size:0.75rem;line-height:1.4;"><code>curl -fsSL https://secure.imagineqira.com/downloads/qira-link-install.sh | bash</code></pre>
+      <ol style="color:var(--text-dim);font-size:0.82rem;line-height:1.6;padding-left:22px;margin:0 0 10px;">
+        <li>Download the DMG below, then check its SHA-256 (<a href="#verify-download" style="color:var(--accent);">Verify what you downloaded</a>). If it doesn't match, stop there.</li>
+        <li>Double-click the DMG and drag <strong>Qira Link</strong> into <strong>Applications</strong>.</li>
+        <li>Control-click <strong>Qira Link</strong> in Applications &rarr; <strong>Open</strong>. On macOS 15 and newer, double-click it once, let macOS refuse it, then use <strong>System Settings &rarr; Privacy &amp; Security &rarr; Open Anyway</strong>.</li>
+        <li>Only if macOS still refuses, see the troubleshooting section at the bottom of this card.</li>
+      </ol>
       <p style="color:var(--text-dim);font-size:0.75rem;margin:6px 0 0;">
-        Downloads the DMG, copies Qira Link.app to <code>/Applications</code>, clears macOS
-        quarantine, launches it. Prompts for your sudo password once.
-        <a href="/downloads/qira-link-install.sh" style="color:var(--accent);text-decoration:underline;">Read the script first</a>
-        if you'd rather see what it's doing.
+        The manual path needs no Terminal and no sudo password.
       </p>
     </div>
+
+    <details style="margin-bottom:18px;padding:12px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.10);">
+      <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;color:var(--text);">There is an install script &mdash; download and read it before you run it</summary>
+      <div style="margin-top:10px;font-size:0.85rem;color:var(--text-dim);line-height:1.55;">
+        <p>
+          We deliberately don't ask you to pipe a URL into a shell. Piping means running code you never
+          saw, from a server you're still deciding whether to trust, with <code>sudo</code> in it.
+          Fetch it, verify it, read it, then run it:
+        </p>
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>cd ~/Downloads
+curl -fL -O https://secure.imagineqira.com/downloads/qira-link-install.sh
+shasum -a 256 qira-link-install.sh   # compare with the table in "Verify what you downloaded"
+less qira-link-install.sh            # read it: it uses sudo
+bash qira-link-install.sh</code></pre>
+        <p>
+          <strong>Everything it does:</strong> downloads the alpha DMG to <code>/tmp</code>, mounts it,
+          copies <code>Qira Link.app</code> into <code>/Applications</code> using <code>sudo</code>
+          (that's what the password prompt is for), removes the download-quarantine flag, ad-hoc signs
+          the bundle if macOS reports it as damaged, unmounts the DMG, and launches the app.
+        </p>
+        <p>
+          The manual steps above reach the same result without a script and without sudo. Prefer them
+          unless you're comfortable reading bash.
+        </p>
+      </div>
+    </details>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px;">
       <div class="dl-os-card">
@@ -461,10 +630,8 @@
         <span class="size">~4 MB DMG</span>
         <a href="/downloads/QiraLink-0.1.0-alpha.0-aarch64.dmg" class="dl-card-btn" download>Download .dmg</a>
         <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
-          Prefer manual? Three steps after downloading:
-          <strong>double-click the DMG</strong>, <strong>drag "Qira Link" onto the Applications folder</strong>,
-          then <strong>right-click Qira Link in /Applications → Open</strong>.
-          The right-click is needed because this alpha isn't yet signed by Apple.
+          Unsigned alpha. Follow the numbered steps above, starting with the SHA-256 check
+          (<a href="#verify-download">Verify what you downloaded</a>).
         </p>
       </div>
       <div class="dl-os-card" style="opacity:0.75;">
@@ -526,21 +693,33 @@
       <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;color:var(--text);">Troubleshooting: "Qira Link cannot be opened" or "Qira Link is damaged"</summary>
       <div style="margin-top:10px;font-size:0.85rem;color:var(--text-dim);line-height:1.55;">
         <p>
-          Both messages mean the same thing: macOS Gatekeeper blocks unsigned binaries by
-          default. The one-liner installer above handles this automatically; if you're
-          installing by hand, here's the cleanup:
+          Both messages mean the same thing: this alpha is unsigned, and macOS Gatekeeper blocks
+          unsigned binaries by default. That is the OS doing its job, not a bug. Before you work around
+          it, confirm you actually have the file we published &mdash; check the DMG's SHA-256 against the
+          <a href="#verify-download" style="color:var(--accent);">table above</a>. If the hash doesn't
+          match, stop; nothing below is safe to do.
         </p>
+        <p>If the hash matched and you still want to run this alpha:</p>
         <ol style="padding-left:22px;">
           <li style="margin-bottom:10px;">
-            <strong>Clear the quarantine flag on the installed app:</strong>
-<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>sudo xattr -cr "/Applications/Qira Link.app"
+            <strong>Remove the download-quarantine flag on the installed app:</strong>
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>xattr -dr com.apple.quarantine "/Applications/Qira Link.app"
 open "/Applications/Qira Link.app"</code></pre>
+            This removes one specific attribute &mdash; the marker saying the file came from the
+            internet &mdash; rather than wiping every extended attribute. It does not make the app
+            verified. Add <code>sudo</code> in front only if you get "Operation not permitted".
           </li>
           <li style="margin-bottom:10px;">
-            <strong>If it still says "damaged"</strong> (Sonoma / Sequoia are stricter), also re-sign it locally:
-<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>sudo codesign --force --deep --sign - "/Applications/Qira Link.app"
+            <strong>If it still says "damaged"</strong> (Sonoma / Sequoia are stricter), ad-hoc sign it locally:
+<pre style="background:rgba(0,0,0,0.25);padding:8px;border-radius:6px;overflow-x:auto;margin:6px 0;font-size:0.75rem;line-height:1.4;"><code>codesign --force --deep --sign - "/Applications/Qira Link.app"
 open "/Applications/Qira Link.app"</code></pre>
-            The <code>- </code>after <code>--sign</code> is a literal minus sign. It tells <code>codesign</code> to produce an ad-hoc (cert-less) signature, which is enough to convince Gatekeeper the app hasn't been tampered with since install.
+            The <code>-</code> after <code>--sign</code> is a literal minus sign: it produces an ad-hoc,
+            certificate-less signature. <strong>Be clear about what that is.</strong> Apple Silicon
+            requires every binary to carry at least an ad-hoc signature before it will run, so this can
+            make the app launchable. It carries <strong>no authenticity at all</strong> &mdash; anyone
+            can ad-hoc sign anything, and the signature you just created is your own, made on your own
+            machine. It says nothing about who wrote the code or whether it was altered before it
+            reached you. The SHA-256 check in the previous step is the part that tells you something.
           </li>
           <li>
             <strong>Can't find Qira Link.app?</strong> Your browser may have put the DMG somewhere other than Downloads.
@@ -550,7 +729,9 @@ open "/Applications/Qira Link.app"</code></pre>
           </li>
         </ol>
         <p style="margin-top:12px;font-size:0.8rem;">
-          All of this goes away the minute we sign the shipping build with an Apple Developer ID certificate. It's an alpha-only chore.
+          None of this is a substitute for signing. It goes away when the shipping build is signed with
+          an Apple Developer ID certificate and notarized by Apple &mdash; that costs $99/year and
+          hasn't been bought yet.
         </p>
       </div>
     </details>
@@ -735,12 +916,13 @@ open "/Applications/Qira Link.app"</code></pre>
       </div>
       <div class="card">
         <h3>Site integrity is signed</h3>
-        <p>Every file on this site is SHA-256 hashed and the manifest is signed with ed25519. The <a href="/site-signer.ed25519.pub">public key</a> is published. Anyone can verify the signature against the manifest independently.</p>
+        <p>Every file on this site is SHA-256 hashed and the manifest is signed with ed25519 — including the installers on this page, so you can check a download against it. The <a href="/site-signer.ed25519.pub">public key</a> is published. Anyone can verify the signature against the manifest independently.</p>
         <a href="/verify" class="btn btn-sm btn-outline" style="margin-top: 12px;">How to verify</a>
+        <a href="#verify-download" class="btn btn-sm btn-outline" style="margin-top: 12px;">Download hashes</a>
       </div>
       <div class="card">
-        <h3>No telemetry, no network</h3>
-        <p>The app makes zero network requests after launch. You can verify this yourself with DevTools or a packet sniffer. It has no analytics, no crash reporting, no update-check pings — nothing leaves your machine unless you explicitly export a file.</p>
+        <h3>No telemetry; the vault itself is offline</h3>
+        <p>No analytics, no crash reporting, no update-check pings. Encrypting and decrypting a vault happens entirely on your machine — that path never touches the network, and you can confirm it with a packet sniffer. Device pairing and encrypted chat are the exception: those features deliver messages through a relay, so they do use the network when you use them. If you want the strictly offline path, use the vault on its own. See <a href="/security">Security</a> for the pairing and chat trust model.</p>
       </div>
     </div>
   </div>
@@ -761,7 +943,10 @@ open "/Applications/Qira Link.app"</code></pre>
 
 <footer>
   <div class="wrap">
-    QEV v0.29.0 &middot; Free &amp; open source &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC<br>
+    QEV desktop &amp; mobile app build v0.29.0 &middot; CLI v0.30.0 on npm &middot; portable Vault V2 format
+    &middot; versions and test counts: <a href="/status/" style="color:var(--accent);">/status/</a><br>
+    Installers are unsigned &mdash; <a href="#verify-download" style="color:var(--accent);">check the SHA-256</a><br>
+    Free &amp; open source &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC<br>
     <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">Source on GitHub</a>
     &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
     &middot; <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">Contact</a>
@@ -773,7 +958,7 @@ open "/Applications/Qira Link.app"</code></pre>
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
         crossorigin="anonymous"></script>
 </body>
 </html>

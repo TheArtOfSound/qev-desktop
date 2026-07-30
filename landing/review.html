@@ -14,8 +14,7 @@
   <meta property="og:site_name" content="BRY-NFET-SX">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Reviewer Resources | BRY-NFET-SX">
-  <link rel="stylesheet" href="/styles.css?v=0.29.0">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+  <link rel="stylesheet" href="/styles.css?v=0.29.0"></head>
 <body>
 
 <nav>
@@ -27,7 +26,7 @@
       <a href="/vault">Vault</a>
       <a href="/downloads">Download</a>
       <a href="/contact">Contact</a>
-      <a href="/app/" class="btn btn-sm btn-primary">Live Demo</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Open Vault</a>
         </div>
   </div>
 </nav>
@@ -47,9 +46,9 @@
     <div class="g2">
       <div class="card">
         <div class="card-label">Step 1</div>
-        <h3>Live Demo</h3>
-        <p>The full product is running at secure.imagineqira.com/app/. Start with the Demo Flow tab for a guided walkthrough of the end-to-end workflow: build envelopes, compare policies, export signed bundles, verify trust.</p>
-        <a href="/app/" class="btn btn-sm btn-primary">Open Live Demo</a>
+        <h3>Open Vault</h3>
+        <p>The browser vault is running at secure.imagineqira.com/vault. It seals and opens Vault V2 packages entirely in the tab — no account, no server. The earlier policy/envelope demo dashboard is not currently hosted here; the capture gateway it previewed is a pilot, described at <a href="/platform/">/platform/</a>.</p>
+        <a href="/vault" class="btn btn-sm btn-primary">Open Vault</a>
       </div>
       <div class="card">
         <div class="card-label">Step 2</div>
@@ -93,7 +92,7 @@
       <h3>Generate review artifacts</h3>
       <p>If you have the repository locally, run the preparation script to generate a saved envelope, a signed bundle, and a verification summary:</p>
       <pre style="background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 16px; margin-top: 16px; font-size: 0.84rem; color: var(--text-secondary); overflow-x: auto;">uv run python scripts/prepare_review_artifacts.py</pre>
-      <p style="margin-top: 14px;">Artifacts land under data/review/, data/runs/, and data/bundles/. All secrets used are printed in the output. You can also run the full workflow interactively through the <a href="/app/">live demo</a> without any local setup.</p>
+      <p style="margin-top: 14px;">Artifacts land under data/review/, data/runs/, and data/bundles/. All secrets used are printed in the output. You can also run the full workflow interactively through the <a href="/vault">browser vault</a> without any local setup.</p>
     </div>
   </div>
 </section>
@@ -128,7 +127,7 @@
     <h2>Ready to review</h2>
     <p>Start with the live demo or contact us for a guided technical session.</p>
     <div class="cta-actions">
-      <a href="/app/" class="btn btn-primary">Open Live Demo</a>
+      <a href="/vault" class="btn btn-primary">Open Vault</a>
       <a href="/contact" class="btn btn-outline">Contact Us</a>
     </div>
   </div>
@@ -147,7 +146,7 @@
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-cQS6tny4Dpx5LjJCxy114O7AfgYbzwYqfaxzPOwAJ9SbGAd+7Udd9+S7zj0VKJHS"
         crossorigin="anonymous"></script>
 </body>
 </html>
