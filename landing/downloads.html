@@ -455,7 +455,7 @@
         </p>
       </div>
       <div class="dl-os-card">
-        <h4>Linux / CLI <span class="dl-beta-tag">CLI v0.30.0 &middot; npm</span></h4>
+        <h4>Linux / CLI <span class="dl-beta-tag">CLI v0.31.0 &middot; npm</span></h4>
         <p>Node 18.17+ &middot; same Vault V2 format &middot; versioned separately from the apps</p>
         <code class="dl-card-cmd">npm i -g @bryan237l/qev-cli</code>
         <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
@@ -466,19 +466,42 @@
           isn't a secret any more &mdash; but it does mean the CLI is for a human at a terminal, and
           cannot be used for unattended automation.
         </p>
+        <p class="dl-install-why" style="margin-top:8px;font-size:0.8rem;">
+          <strong>Only one published package name is ours.</strong> The CLI is published as
+          <code>@bryan237l/qev-cli</code> (v0.31.0) and nothing else.
+          <code>@imagineqira/qev-cli</code> is a brand-aligned name we intend to use later; it is
+          <strong>not published</strong>, and as of 2026-07-30 the entire <code>@imagineqira</code>
+          npm scope is unregistered. If you ever see a package under that name, it did not come from
+          us &mdash; check back here, or against <a href="/status/">/status/</a>, before installing it.
+        </p>
       </div>
     </div>
 
     <p style="max-width:820px;margin:22px auto 0;font-size:0.8rem;color:var(--text-dim);line-height:1.6;text-align:left;">
       <strong>Which version is which:</strong> the macOS, Windows and Android downloads above are
       <strong>app build v0.29.0</strong>. The CLI is a separately versioned npm package
-      (<strong>v0.30.0</strong>). The encrypted file format all of them read and write is
+      (<strong>v0.31.0</strong>). The encrypted file format all of them read and write is
       <strong>Vault V2</strong>, which is versioned on its own and does not track the app number.
       <a href="/status/">/status/</a> is the authoritative version and test matrix &mdash; if this page
       ever disagrees with it, /status/ is right.
     </p>
   </div>
 </header>
+
+<!-- Scope strip. Present in production but absent from origin/main, so the
+     audit-remediation branch dropped it. Restored: it is the only place the
+     download page tells a buyer that these binaries are the Envelope Core
+     and NOT the commercial capture gateway, and it carries the honest
+     cross-links to versions and trust marks. -->
+<div class="wrap" style="max-width:1060px;margin:0 auto;padding:0 24px 8px;">
+  <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.5;">
+    <strong>Downloads = Envelope Core + optional Qira Link.</strong>
+    Commercial capture gateway (connectors, Field Service evidence):
+    <a href="/platform/">/platform/</a> &middot;
+    Versions &amp; test counts: <a href="/status/">/status/</a> &middot;
+    Trust marks: <a href="/trust/">/trust/</a>
+  </p>
+</div>
 
 <!-- ================= VERIFY WHAT YOU DOWNLOADED ================= -->
 <section id="verify-download">
@@ -943,7 +966,7 @@ open "/Applications/Qira Link.app"</code></pre>
 
 <footer>
   <div class="wrap">
-    QEV desktop &amp; mobile app build v0.29.0 &middot; CLI v0.30.0 on npm &middot; portable Vault V2 format
+    QEV desktop &amp; mobile app build v0.29.0 &middot; CLI v0.31.0 on npm &middot; portable Vault V2 format
     &middot; versions and test counts: <a href="/status/" style="color:var(--accent);">/status/</a><br>
     Installers are unsigned &mdash; <a href="#verify-download" style="color:var(--accent);">check the SHA-256</a><br>
     Free &amp; open source &middot; XChaCha20-Poly1305 + Argon2id &middot; &copy; 2026 Qira LLC<br>

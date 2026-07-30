@@ -207,7 +207,7 @@ fetch('/site-integrity.json')
   .catch(function() {
     document.getElementById('integrity-loading').style.display = 'none';
     document.getElementById('integrity-error').style.display = 'block';
-    // Keep the server-rendered summary visible on fetch failure (F-007).
+    // Keep server-rendered summary visible (F-007)
     // Hiding it would leave a JS-disabled or offline reader with nothing
     // at all, which is worse than a snapshot labelled as a snapshot.
   });
