@@ -1,0 +1,42 @@
+name: QEV site integrity contract
+
+on:
+  pull_request:
+    paths:
+      - "landing/**"
+      - "scripts/sign_site_content.py"
+      - "tests/test_site_integrity_contract.py"
+      - ".github/workflows/site-integrity-contract.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "landing/**"
+      - "scripts/sign_site_content.py"
+      - "tests/test_site_integrity_contract.py"
+      - ".github/workflows/site-integrity-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install verifier dependency
+        run: python -m pip install --disable-pip-version-check cryptography
+
+      - name: Run integrity contract tests
+        run: python -m unittest tests/test_site_integrity_contract.py -v
+
+      - name: Verify SRI and enumerate every signed deployment file
+        run: python scripts/sign_site_content.py --list-files
