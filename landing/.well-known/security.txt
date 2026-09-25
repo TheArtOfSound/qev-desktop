@@ -1,0 +1,24 @@
+# security.txt for secure.imagineqira.com (RFC 9116)
+# Added 2026-07-29: the site previously returned 404 here, which is a
+# poor look for a security product and leaves researchers guessing.
+
+Contact: mailto:bryanleonard@imagineqira.com
+Expires: 2027-07-29T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://secure.imagineqira.com/.well-known/security.txt
+Policy: https://secure.imagineqira.com/security
+
+# Please use the subject line "Security Review" so reports route correctly.
+#
+# Scope and honesty notes, so you do not waste your time:
+#   * QEV uses standard primitives (XChaCha20-Poly1305, Argon2id,
+#     Ed25519, SHA-256). We are not asking anyone to break those.
+#   * There is NO third-party security audit. Installers are not
+#     Apple-notarized or Authenticode-signed. See /audit-status/.
+#   * Site integrity is Ed25519-signed and independently verifiable:
+#     https://secure.imagineqira.com/verify
+#   * Please do not test against the production relay or gateway.
+#     Use synthetic data and local builds.
+#
+# There is no bug bounty. We cannot pay for reports. We will credit
+# researchers who want credit, and we will publish fixes.

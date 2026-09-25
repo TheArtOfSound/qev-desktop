@@ -1,0 +1,194 @@
+# ============================================================
+# THE ACTUAL DEPLOYED VHOST for secure.imagineqira.com.
+# Pulled from the live server 2026-07-30 after deployment.
+#
+# deploy/nginx-secure.conf claimed to mirror production but did
+# not: it was missing 19 location blocks the live config had,
+# including the /platform/ gateway proxy and every extensionless
+# URL route. Deploying it would have broken the site. Keep THIS
+# file as the source of truth and diff before touching nginx.
+# ============================================================
+server {
+    server_name secure.imagineqira.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    root /var/www/secure-imagineqira;
+
+    # Security headers — 2026-07-30 audit remediation.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+
+    index index.html;
+
+    location ~* \.(js|css|svg|woff2|woff|ttf|png|jpg|jpeg|webp|ico|json|xml|txt|pub)$ {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        expires 7d;
+        access_log off;
+        add_header Cache-Control "public";
+    }
+
+    # Integrity-critical: no GA sub_filter (hashes must match on-disk / site-integrity.json)
+    location = /verify {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files /verify.html =404;
+        add_header Cache-Control "no-cache" always;
+    }
+    location = /verify.html {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+    }
+    location = /site-integrity.json {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+        add_header Content-Type "application/json";
+    }
+    location = /site-signer.ed25519.pub {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+    }
+    location = /site-verify.js {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+    }
+    location ^~ /vault/ {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri $uri/ $uri.html =404;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    location = /app/ { return 302 /vault/; }
+    location = /app { return 302 /vault/; }
+    location /app/ { return 302 /vault/; }
+
+
+
+    # Trailing-slash + alias fixes (HTML shells live as *.html)
+    location = /security/ { return 301 /security; }
+    location = /verify/ { return 301 /verify; }
+    location = /privacy/ { return 301 /privacy; }
+    location = /privacy { try_files /privacy.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+    location = /security { try_files /security.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+    location = /review { return 302 /platform/; }
+    location = /review/ { return 302 /platform/; }
+    location = /docs/threat-model { return 301 /threat-model/; }
+    location = /docs/threat-model/ { return 301 /threat-model/; }
+
+    # Cached-route rescue: /downloads/ and /challenge/ are binary dirs — serve pages
+    location = /downloads/ { try_files /downloads.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+    location = /downloads { try_files /downloads.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+    location = /challenge/ { try_files /challenge.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+    location = /challenge { try_files /challenge.html =404; add_header Cache-Control "no-cache" always; add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; add_header X-Content-Type-Options "nosniff" always; add_header X-Frame-Options "DENY" always; add_header Referrer-Policy "no-referrer" always; add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always; add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always; }
+
+    # QEV commercial platform gateway
+    location /platform/ {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        proxy_pass http://127.0.0.1:7443/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+        add_header Cache-Control "no-store" always;
+    }
+    location = /platform {
+        return 302 /platform/;
+    }
+
+    # Default HTML pages may load GA after paint
+    location / {
+        # audit 2026-07-30: add_header does not inherit into a location
+        # that declares any of its own, so the set is repeated here.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), payment=()" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" always;
+        try_files $uri $uri/ $uri.html =404;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    ssl_certificate /etc/letsencrypt/live/pti.imagineqira.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/pti.imagineqira.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+server {
+    if ($host = secure.imagineqira.com) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80;
+    listen [::]:80;
+    server_name secure.imagineqira.com;
+    return 404;
+}

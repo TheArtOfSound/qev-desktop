@@ -21,6 +21,7 @@
     "manifest.json",
     "signature.json"
   ],
-  "verification_note": "The master key and signer secret for this bundle are held offline and not present on any server. Verification of the signature and manifest integrity is possible today without secrets. Decryption requires the master key, which will be published at reveal_at.",
-  "reveal_status": "pending"
+  "verification_note": "The master key and signer secret for this bundle are held offline and are not present on any server. TWO DIFFERENT PROPERTIES, do not conflate them: (1) MANIFEST INTEGRITY is verifiable today with no secrets - recompute the SHA-256 of each file and compare against manifest.json. (2) The AUTHENTICATION TAG in signature.json is HMAC-SHA256 keyed with the inline master key. HMAC is symmetric, so verifying it REQUIRES that secret; it is not a public-key signature and cannot be checked by a third party until the key is revealed. Anyone holding the key can also forge it. Decryption likewise requires the master key, which was scheduled for publication at reveal_at.",
+  "reveal_status": "pending",
+  "reveal_note": "As of 2026-07-29 the reveal_at deadline of 2026-04-21 has passed and the master key has NOT been published; reveal_status remains 'pending'. Until the key is published the commit-reveal property this challenge depends on is unfulfilled, and the reveal_commitment below cannot be checked by anyone."
 }

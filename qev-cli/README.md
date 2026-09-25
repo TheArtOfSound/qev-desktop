@@ -104,13 +104,18 @@ qev unlock creds.vault | base64 -d > secrets.bin
 
 ### `qev gen-phrase`
 
-Prints a freshly generated 4-word passphrase. Roughly ~37 bits of entropy — use
-it as a starting point, or prefer a longer phrase you chose yourself.
+Prints a freshly generated passphrase: four words drawn with libsodium's
+`randombytes_uniform` from the 7776-word EFF long wordlist, plus two random
+digits. That is about 58 bits of entropy (51.7 bits from the words, 6.6 from the
+digits). Type a longer phrase yourself if you want more.
 
 ```sh
 $ qev gen-phrase
-river-purple-dragon-cloud-47
+gear-unexposed-rerun-scuttle-50
 ```
+
+The phrase shown above is an illustration printed in documentation. Do not use
+it — run the command and use your own output.
 
 ### `qev self-test`
 

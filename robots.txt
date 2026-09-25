@@ -1,0 +1,16 @@
+# GitHub Pages mirror of qev-desktop (theartofsound.github.io/qev-desktop/).
+#
+# The canonical, Ed25519-signed site is https://secure.imagineqira.com.
+# This Pages surface serves an UNSIGNED build: its scripts carry no
+# Subresource Integrity attributes and it is not covered by the signed
+# manifest at https://secure.imagineqira.com/site-integrity.json.
+#
+# Crawling is deliberately ALLOWED so that search engines can read the
+# noindex directive injected into the built pages. Blocking here instead
+# would stop crawlers fetching the page and therefore stop them ever
+# seeing the noindex, leaving already-indexed URLs to linger.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://secure.imagineqira.com/sitemap.xml

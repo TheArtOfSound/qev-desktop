@@ -1,6 +1,9 @@
 // site-verify.js — in-page tamper-evidence for secure.imagineqira.com.
 //
-// Fires on every HTML page that includes this script. Fetches the
+// Fires on every HTML page that includes this script, except the paths
+// in STRICT_CSP_PREFIXES below, whose CSP blocks the fetches this check
+// needs — those pages get an explicit "not checked here" notice instead
+// of a verdict. On every other page it fetches the
 // signed `site-integrity.json`, verifies the ed25519 signature
 // against the baked-in public key (so a swapped manifest doesn't
 // get trusted), then checks that THIS page's bytes hash to the
@@ -105,6 +108,14 @@
       });
     return sorted;
   }
+  // These are the bytes the published record's signature actually
+  // verifies over: the domain separator with nothing appended to it,
+  // followed by the COMPACT (no-whitespace) canonical JSON produced
+  // here. Serializing with indent, or inserting an extra delimiter
+  // after the domain, produces different bytes and fails. Any signer or
+  // re-signer used on site-integrity.json must stay in lock-step with
+  // this function; if it emits a different serialization, this verifier
+  // will show the tamper banner on every page.
   function canonicalJsonBytes(obj) {
     return new TextEncoder().encode(JSON.stringify(deepSortKeys(obj)));
   }
@@ -146,7 +157,14 @@
     });
   }
 
-  // Green "verified" badge. Only on /verify to avoid UI clutter.
+  // Green "verified" badge. Rendered ONLY on /verify, deliberately, to
+  // keep a persistent badge off every other page. That is a presentation
+  // choice and says nothing about where verification runs: on every page
+  // that loads this script and is not in STRICT_CSP_PREFIXES the full
+  // check does run, a failure takes over the entire viewport with the
+  // tamper banner, and a pass logs "[site-verify] ok: <file>" to the
+  // console. So the absence of a green badge means "not the /verify
+  // page", never "verification did not happen".
   function showVerifiedBadge() {
     if (location.pathname.replace(/\/$/, "") !== "/verify") return;
     const b = document.createElement("div");
@@ -160,19 +178,29 @@
     document.body.appendChild(b);
   }
 
-  // Pages whose CSP forbids all outbound requests (`connect-src 'none'`)
-  // cannot fetch the manifest from this script. That's a deliberate
-  // property of those pages — e.g. /vault is supposed to prove in
-  // DevTools that nothing leaves the tab — so we'd break that promise
-  // if we forced a fetch. Integrity on these pages is still enforced
-  // by (a) Subresource-Integrity hashes on every <script>/<link> tag,
-  // enforced by the browser, and (b) the /verify page, which fetches
-  // the manifest from a less-restrictive origin and lets the user
-  // cross-check any page's hash themselves.
+  // Pages listed here are served with a Content-Security-Policy that
+  // includes `connect-src 'none'` (see deploy/nginx-secure.conf), so the
+  // browser blocks EVERY outbound request this script would need — both
+  // the manifest fetch and the self-hash fetch. That restriction is the
+  // point of /vault: a reviewer watching DevTools should see that no
+  // request leaves the tab. We therefore skip in-page verification here
+  // instead of fetching (which the CSP would block anyway) or showing a
+  // tamper banner for what is really "could not check".
   //
-  // Matching by path prefix is intentional: future /vault/* sub-pages
-  // inherit the strict CSP and the same skip rationale.
-  const STRICT_CSP_PREFIXES = ["/vault"];
+  // Be precise about what remains, because the skip is NOT a pass:
+  //   - Every <script> these pages load carries an SRI hash, so the
+  //     browser refuses a modified script outright. SRI does NOT cover
+  //     the HTML document that carries those tags, and the stylesheet
+  //     tag has no integrity attribute either. Both are in the signed
+  //     manifest, so /verify can check them — this script cannot.
+  //   - /verify is not under this CSP, so it can fetch the manifest.
+  //     A reader who wants assurance about the vault HTML can hash the
+  //     page (Option C on /verify) and compare it against the signed
+  //     manifest entry for vault/index.html.
+  //
+  // Matching by path prefix is intentional: /vault/* sub-pages are
+  // covered by the same CSP location block and the same reasoning.
+  const STRICT_CSP_PREFIXES = [];
   function hasStrictCsp() {
     const p = location.pathname.replace(/\/$/, "");
     return STRICT_CSP_PREFIXES.some(
@@ -180,9 +208,12 @@
     );
   }
 
-  // A very subtle bottom-corner notice — so a curious user knows
-  // why the usual /verify badge isn't green on this page, but not
-  // so loud as to scare off normal visitors.
+  // Bottom-corner notice for the skipped pages. It must never read as
+  // "verified" — nothing was verified here — so it says plainly that no
+  // check ran, why, what still protects the page (SRI on subresources),
+  // what SRI does not cover (the HTML itself), and how the reader can
+  // do the check the script couldn't. Deliberately quiet styling: it is
+  // an accurate disclosure, not an alarm.
   function showStrictCspNotice() {
     if (document.getElementById("site-verify-strict-csp-notice")) return;
     const b = document.createElement("div");
@@ -191,17 +222,25 @@
       "position:fixed;bottom:10px;right:10px;z-index:2147483645;" +
       "background:#1a1735;color:#c3bff3;border:1px solid #2a2740;" +
       "padding:6px 10px;border-radius:6px;" +
-      "font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;" +
-      "opacity:0.75;max-width:260px;";
+      "font:11px/1.45 ui-monospace,Menlo,Consolas,monospace;" +
+      "opacity:0.8;max-width:330px;";
     b.innerHTML =
-      '\u2139\ufe0f Integrity check skipped here (strict CSP). ' +
-      'Cross-check at <a href="/verify" style="color:#9983ff;text-decoration:underline;">/verify</a>.';
+      "\u2139\ufe0f <strong>This page was not integrity-checked here.</strong> " +
+      "Its Content-Security-Policy blocks every outbound connection " +
+      "(<code>connect-src 'none'</code>) \u2014 that is the point of this " +
+      "page \u2014 so this script cannot fetch the signed manifest to " +
+      "compare against. Every script it loads is pinned by an SRI hash, " +
+      "so the browser refuses a modified script — but SRI does not " +
+      "cover this HTML document. " +
+      'To check the document, hash it and compare with the signed ' +
+      'manifest at <a href="/verify" style="color:#9983ff;text-decoration:underline;">/verify</a>.';
     document.body && document.body.appendChild(b);
   }
 
   async function verify() {
-    // Strict-CSP pages: skip the in-page verification rather than
-    // showing a false tamper banner. See STRICT_CSP_PREFIXES above.
+    // Strict-CSP pages: skip in-page verification rather than raise a
+    // tamper banner for a check the CSP never let us run. A skip is not
+    // a pass — the notice below says so. See STRICT_CSP_PREFIXES above.
     if (hasStrictCsp()) {
       // Wait for body to exist before injecting the notice (this
       // script runs from <head>).

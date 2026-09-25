@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy | QEV — Qira Encryption Vault</title>
-  <meta name="description" content="QEV privacy policy. We don't collect data. We can't read your vaults. There is no account, no server-side storage of your content, and no tracking.">
-  <link rel="stylesheet" href="/styles.css">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XV71TRRR8Z"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XV71TRRR8Z");</script></head>
+  <meta name="description" content="QEV privacy policy. We cannot read your vaults. There is no account, no analytics, and no server-side storage of your content. The one exception — relay connection metadata — is disclosed in full.">
+  <link rel="stylesheet" href="/styles.css">  <link rel="canonical" href="https://secure.imagineqira.com/privacy">
+</head>
 <body>
 <nav>
   <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
-    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">BRY-NFET-SX</a>
+    <a href="/" style="font-weight:800;font-size:1rem;color:var(--text);text-decoration:none;">QEV</a>
     <div class="nav-links" style="display:flex;gap:14px;font-size:0.82rem;">
       <a href="/security">Security</a>
       <a href="/vault">Vault</a>
@@ -22,22 +22,23 @@
 
 <div style="max-width:680px;margin:0 auto;padding:60px 24px;">
   <h1 style="font-size:1.8rem;margin:0 0 24px;">Privacy Policy</h1>
-  <p style="color:var(--text-dim);margin-bottom:32px;">Last updated: April 16, 2026</p>
+  <p style="color:var(--text-dim);margin-bottom:32px;">Last updated: July 29, 2026</p>
 
   <h2>The short version</h2>
-  <p>QEV does not collect, store, transmit, or process your personal data. We cannot read your vaults. There is no account, no analytics, no tracking, no cookies, and no server-side storage of your content.</p>
+  <p>We cannot read your vaults. Encryption and decryption happen on your device, your phrase never reaches us, and there is no account and no server-side storage of your vault content. This site runs no analytics of any kind and sets no cookies. There is exactly one place where anything about you is observable, and it is spelled out below rather than buried: the optional relay server necessarily sees your IP address.</p>
 
   <h2>What QEV does</h2>
   <p>QEV encrypts messages on your device using a phrase you choose. The encrypted output (a <code>.vault.json</code> file) never leaves your device unless you explicitly send it somewhere. The phrase never leaves your head (or your keyboard, briefly).</p>
 
   <h2>What we collect</h2>
-  <p><strong>Nothing.</strong></p>
+  <p><strong>Nothing from inside your vaults, and nothing that identifies you to us.</strong> One exception exists — the optional relay server, described below. It never touches your content.</p>
   <ul>
     <li>No account creation — there are no usernames, passwords, or email addresses.</li>
-    <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, no server-side log analysis of page views.</li>
-    <li>No cookies — the site sets zero cookies. No access gate, no login.</li>
-    <li>No telemetry — the desktop, Android, and CLI apps make zero network calls after installation. The web vault at <code>/vault</code> runs under <code>Content-Security-Policy: connect-src 'none'</code>, which means the browser itself refuses to let the page call anywhere.</li>
-    <li>No crash reporting — if the app crashes, the crash stays on your machine. We never see it.</li>
+    <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, and no server-side analysis of page views. Every page on this site is served from our own server with no third-party scripts, no tag manager, and no measurement IDs. You can confirm this without trusting us: open DevTools, load any page, and check the Network tab — every request goes to <code>secure.imagineqira.com</code> and nowhere else. The list of files we serve is itself covered by the Ed25519-signed manifest at <a href="/verify">/verify</a>.</li>
+    <li>No cookies — we set zero cookies anywhere on this site, and there is no access gate and no login. The <code>/vault</code> page additionally writes nothing to <code>localStorage</code>, <code>sessionStorage</code>, or <code>IndexedDB</code>.</li>
+    <li>No telemetry from the web vault — the <code>/vault</code> page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'self'</code>, so the browser refuses any connection to a third-party host. Same-origin requests remain possible — libsodium fetches its WebAssembly module that way — but nothing can reach an outside server. Do not take our word for it — read the header yourself: <code>curl -sI https://secure.imagineqira.com/vault/ | grep -i content-security-policy</code>. That header is scoped to the vault page; it is not a claim about every page on this site.</li>
+    <li>No telemetry in the apps — with one precision that matters: no telemetry is not the same as no network. The CLI (<code>@bryan237l/qev-cli</code>) contains no networking code whatsoever; its only dependency is libsodium, and the published package has no HTTP, socket, or <code>fetch</code> call in it. The desktop app <em>does</em> open network connections, but only for features you deliberately invoke — device pairing, encrypted chat, and relay delivery, described in the next section — and its source contains no analytics, crash-reporting, or update-check code. The Android build's source is not in the public repository, so you cannot check it the same way; treat "no telemetry" there as our stated design intent rather than as something you or we have measured. No independent auditor has certified any of this.</li>
+    <li>No crash reporting — the desktop app and the CLI contain no crash-reporting or error-telemetry component. If they crash, the crash stays on your machine.</li>
   </ul>
 
   <h2>The relay server</h2>
@@ -47,25 +48,27 @@
     <li>The <strong>sender's static public key</strong> (learned during the Noise XK handshake)</li>
     <li>The <strong>opaque encrypted envelope</strong> (ciphertext — we cannot read it)</li>
     <li>A <strong>timestamp</strong> and the envelope's <strong>size</strong></li>
+    <li>The <strong>source IP address and port</strong> of your connection — see below, because this one deserves more than a bullet</li>
   </ul>
-  <p>The server does <strong>NOT</strong> see: your name, device label, IP address (beyond what TCP requires), message content, vault phrase, or any metadata inside the envelope.</p>
-  <p>Envelopes are deleted from the relay after the recipient fetches them (or after 30 days if never fetched).</p>
+  <p>The server does <strong>NOT</strong> see: your name, device label, message content, vault phrase, or any metadata inside the envelope.</p>
+
+  <p><strong>On IP addresses.</strong> An earlier version of this page listed your IP address as something the relay does not see, "beyond what TCP requires." That was self-negating and we have removed it. Stated plainly: <strong>the relay sees the source IP address of every connection</strong>, because TCP cannot return a response without one. It also writes that address down — on every completed Noise XK handshake the server logs a line containing the remote IP address and port next to the sender's static public key (<code>tauri-app/src-tauri/relay/src/service.rs</code>, in <code>handle_connection</code>, at the default <code>info</code> log level). The operator can therefore correlate an IP address with a public key and a time.</p>
+  <p>We do not currently publish a retention or rotation policy for those server logs, so do not assume they are discarded. If IP-level unlinkability matters to you, do not rely on the relay for it: route the connection over Tor or a VPN, or skip the relay entirely and move the <code>.vault.json</code> file by hand through any channel you like. The vault file is self-contained — the relay is a convenience, never a requirement.</p>
+  <p>Envelopes are deleted from the relay once the recipient fetches them, and unfetched envelopes are evicted after 30 days (the relay's default <code>retention_hours</code> is 720; see <code>relay/src/config.rs</code>). The relay's deployed configuration file is not published, so treat that number as an operator commitment rather than something you can verify from outside.</p>
 
   <h2>Third parties</h2>
-  <p>QEV has no third-party dependencies that process your data:</p>
+  <p>Nothing you put into a vault is processed by a third party. At the site level there is exactly one, and it only applies if you install the CLI:</p>
   <ul>
-    <li>No ad networks</li>
-    <li>No analytics providers</li>
-    <li>No CDN (all assets served directly from our server)</li>
-    <li>No payment processor (the software is free)</li>
+    <li><strong>npm</strong> — the CLI package (<code>@bryan237l/qev-cli</code>) is distributed via npmjs.com, and npm's own privacy policy applies to the download transaction. The CLI itself makes zero network calls once installed.</li>
   </ul>
-  <p>The npm package (<code>@bryan237l/qev-cli</code>) is distributed via npmjs.com. npm's own privacy policy applies to the download transaction, but the CLI itself makes zero network calls.</p>
+  <p>Beyond that: no analytics provider, no ad networks, no tag manager, no payment processor (the software is free), and no CDN. Every asset on this site is served directly from our own server. Ten pages here did previously carry a Google Analytics tag; it was removed on 2026-07-29, and the site's Content-Security-Policy now permits no third-party host at all, so the browser would block one even if it were reintroduced by mistake.</p>
 
   <h2>Open source</h2>
-  <p>The source code is available at <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">github.com/TheArtOfSound/qev-desktop</a>. You can audit every claim on this page by reading the code.</p>
+  <p>The source code is available at <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">github.com/TheArtOfSound/qev-desktop</a>. The license that actually governs it is whatever the <a href="https://github.com/TheArtOfSound/qev-desktop/blob/main/LICENSE" style="color:var(--accent);">LICENSE file in that repository</a> says — read it there rather than trusting a license name typed onto a marketing page.</p>
+  <p>Most of this page is checkable against that source: the vault page, the CLI, the desktop app, and the relay server code are all in it. Three things are not. The <code>Content-Security-Policy</code> header on <code>/vault</code> is server configuration, so read it off the live HTTP response instead. The relay's deployed config file and the retention of its server logs are operator-side, so they rest on the disclosure above. And the Android build is not in that repository at all.</p>
 
   <h2>Children</h2>
-  <p>QEV is not directed at children under 13. We do not knowingly collect data from anyone, including children.</p>
+  <p>QEV is not directed at children under 13. We do not knowingly collect personal data from anyone, child or adult. The one exception is the site analytics disclosed above, which we do not use to identify any visitor and which gives us no way to determine a visitor's age.</p>
 
   <h2>Changes</h2>
   <p>If this policy ever changes, the update will be committed to the repository with a clear diff. The <code>Last updated</code> date at the top of this page will reflect the change.</p>
@@ -82,7 +85,7 @@
      manifest at /site-integrity.json. If the page was modified
      after signing, the script renders a red "tampered" banner. -->
 <script src="/site-verify.js?v=2026-04-19"
-        integrity="sha384-3WqDGwnBC4ShR6woVWkzUPVZe7SP/w7VRWnc4ysY1Xa7yQfFuwfIPk1eWe46fvCM"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
         crossorigin="anonymous"></script>
 </body>
 </html>

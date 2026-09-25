@@ -1,0 +1,335 @@
+<title>QEV Trust Marks — a design system for bounded claims</title>
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f8fa; --raised:#eef0f4;
+  --border:#dfe3e9; --border-strong:#c4cad4;
+  --ink:#16181d; --body:#4a5261; --muted:#6b7280;
+  --accent:#1a56db; --verified:#0d7a4f; --caution:#9a6700;
+  --failed:#b3261e; --unproven:#6b7280;
+  --verified-bg:rgba(13,122,79,.08); --caution-bg:rgba(154,103,0,.09);
+  --failed-bg:rgba(179,38,30,.08); --unproven-bg:rgba(107,114,128,.08);
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:40px; --s7:64px;
+  --radius:6px; --maxw:960px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14161b; --surface:#1c1f26; --raised:#242832;
+  --border:#2f343f; --border-strong:#424957;
+  --ink:#eceef2; --body:#b6bcc8; --muted:#8b93a3;
+  --accent:#7ea2ff; --verified:#4ec99a; --caution:#e0b355;
+  --failed:#ff8a80; --unproven:#8b93a3;
+  --verified-bg:rgba(78,201,154,.12); --caution-bg:rgba(224,179,85,.12);
+  --failed-bg:rgba(255,138,128,.12); --unproven-bg:rgba(139,147,163,.12);
+}}
+:root[data-theme="dark"]{
+  --bg:#14161b; --surface:#1c1f26; --raised:#242832;
+  --border:#2f343f; --border-strong:#424957;
+  --ink:#eceef2; --body:#b6bcc8; --muted:#8b93a3;
+  --accent:#7ea2ff; --verified:#4ec99a; --caution:#e0b355;
+  --failed:#ff8a80; --unproven:#8b93a3;
+  --verified-bg:rgba(78,201,154,.12); --caution-bg:rgba(224,179,85,.12);
+  --failed-bg:rgba(255,138,128,.12); --unproven-bg:rgba(139,147,163,.12);
+}
+:root[data-theme="light"]{
+  --bg:#ffffff; --surface:#f7f8fa; --raised:#eef0f4;
+  --border:#dfe3e9; --border-strong:#c4cad4;
+  --ink:#16181d; --body:#4a5261; --muted:#6b7280;
+  --accent:#1a56db; --verified:#0d7a4f; --caution:#9a6700;
+  --failed:#b3261e; --unproven:#6b7280;
+  --verified-bg:rgba(13,122,79,.08); --caution-bg:rgba(154,103,0,.09);
+  --failed-bg:rgba(179,38,30,.08); --unproven-bg:rgba(107,114,128,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--s5)}
+h1,h2,h3{color:var(--ink);text-wrap:balance;margin:0}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);line-height:1.2;letter-spacing:-.02em}
+h2{font-size:1.25rem;letter-spacing:-.01em}
+h3{font-size:1rem}
+p{margin:0;max-width:66ch}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono)}
+
+/* ---- structural rhythm: one owner for vertical space ---- */
+section{padding:var(--s7) 0;border-top:1px solid var(--border)}
+section > .wrap{display:grid;gap:var(--s5)}
+.stack{display:grid;gap:var(--s3)}
+.stack-lg{display:grid;gap:var(--s4)}
+
+/* ---- eyebrow: encodes the finding id this fixes ---- */
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.fid{color:var(--failed);border:1px solid currentColor;border-radius:3px;
+  padding:1px 5px;font-size:.7rem}
+
+/* ---- masthead ---- */
+header.top{padding:var(--s7) 0 var(--s6)}
+header.top .wrap{display:grid;gap:var(--s4)}
+.lede{font-size:1.05rem;color:var(--body);max-width:62ch}
+.meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);
+  display:flex;gap:var(--s4);flex-wrap:wrap;padding-top:var(--s3);border-top:1px solid var(--border)}
+
+/* ---- the trust mark component ---- */
+.tm{display:grid;grid-template-columns:auto 1fr;
+  grid-template-areas:"glyph claim" ". scope";
+  gap:var(--s1) var(--s3);align-items:baseline;margin:0;
+  padding:var(--s3) var(--s4);border:1px solid var(--border);
+  border-left:3px solid var(--unproven);border-radius:var(--radius);
+  background:var(--unproven-bg)}
+.tm-glyph{grid-area:glyph;width:1.05em;height:1.05em;position:relative;top:.15em;color:var(--unproven)}
+.tm-glyph::before{content:"";position:absolute;inset:0;border:2px solid currentColor;border-radius:50%}
+.tm-glyph::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:currentColor}
+.tm-claim{grid-area:claim;font-size:.938rem;font-weight:600;color:var(--ink)}
+.tm-scope{grid-area:scope;font-family:var(--mono);font-size:.813rem;line-height:1.5;color:var(--body)}
+.tm[data-state="verified"]{border-left-color:var(--verified);background:var(--verified-bg)}
+.tm[data-state="verified"] .tm-glyph{color:var(--verified)}
+.tm[data-state="verified"] .tm-glyph::after{width:.5em;height:.26em;border-left:2px solid currentColor;
+  border-bottom:2px solid currentColor;background:none;transform:translate(-50%,-60%) rotate(-45deg)}
+.tm[data-state="caution"]{border-left-color:var(--caution);background:var(--caution-bg)}
+.tm[data-state="caution"] .tm-glyph{color:var(--caution)}
+.tm[data-state="caution"] .tm-glyph::after{width:2px;height:.42em;box-shadow:0 .3em 0 0 currentColor}
+.tm[data-state="failed"]{border-left-color:var(--failed);background:var(--failed-bg)}
+.tm[data-state="failed"] .tm-glyph{color:var(--failed)}
+.tm[data-state="failed"] .tm-glyph::after{width:.52em;height:2px;transform:translate(-50%,-50%) rotate(45deg)}
+.tm[data-state="unproven"] .tm-glyph::before{border-style:dashed}
+.tm[data-state="unproven"] .tm-glyph::after{width:.5em;height:2px}
+.tm-list{display:grid;gap:var(--s2);padding:0;margin:0;list-style:none}
+.tm-list>li{margin:0}
+
+/* ---- the anti-pattern, shown deliberately ---- */
+.badbadge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+  background:var(--verified);color:#fff;font-weight:700;font-size:.82rem;font-family:var(--sans)}
+:root[data-theme="dark"] .badbadge,:root:not([data-theme="light"]) .badbadge{color:#0b0d10}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .badbadge{color:#fff}}
+
+/* ---- compare grid ---- */
+.compare{display:grid;gap:var(--s4);grid-template-columns:1fr}
+@media(min-width:720px){.compare{grid-template-columns:1fr 1fr}}
+.pane{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
+  padding:var(--s4);display:grid;gap:var(--s3);align-content:start}
+.pane h3{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pane.bad h3{color:var(--failed)}
+.pane.good h3{color:var(--verified)}
+
+/* ---- swatches ---- */
+.swatches{display:grid;gap:var(--s2);grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.sw{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.sw-chip{height:52px;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px 8px}
+.sw-chip span{font-family:var(--mono);font-size:.68rem;color:#fff;opacity:.95}
+.sw-meta{padding:8px 10px;display:grid;gap:2px}
+.sw-name{font-family:var(--mono);font-size:.78rem;color:var(--ink)}
+.sw-ratio{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pass{color:var(--verified);font-weight:600}
+.fail{color:var(--failed);font-weight:600}
+
+/* ---- table ---- */
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:.85rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border)}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);background:var(--surface);font-weight:600}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+
+/* ---- target size demo ---- */
+.targets{display:flex;gap:var(--s5);flex-wrap:wrap;align-items:center}
+.tdemo{display:grid;gap:var(--s2);justify-items:center}
+.hit{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  border:1px dashed var(--border-strong);border-radius:4px;color:var(--accent);
+  font-family:var(--mono);font-size:.75rem;background:var(--surface);white-space:nowrap}
+.hit.small{width:73px;height:15px}
+.hit.ok{width:73px;height:15px}
+.hit.ok::before{content:"";position:absolute;left:50%;top:50%;width:73px;height:44px;
+  transform:translate(-50%,-50%);border:1px solid var(--verified);border-radius:6px;
+  background:var(--verified-bg)}
+.tlabel{font-family:var(--mono);font-size:.72rem;color:var(--muted);text-align:center}
+
+figure{margin:0;display:grid;gap:var(--s2)}
+figcaption{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.note{border-left:2px solid var(--border-strong);padding-left:var(--s4);color:var(--muted);font-size:.9rem}
+footer{padding:var(--s6) 0 var(--s7);border-top:1px solid var(--border);color:var(--muted);font-size:.82rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="eyebrow"><span>QEV design system</span><span class="fid">F-22</span><span class="fid">F-18</span></div>
+    <h1>Trust marks: a system for claims that state their own limits</h1>
+    <p class="lede">QEV already says the right thing in prose — <em>“badges link to scoped certificates, never ‘this whole company is secure’.”</em> Its interface didn’t have a component that enforced it. This is that component, plus the tokens it needs.</p>
+    <div class="meta">
+      <span>2026-07-29</span>
+      <span>landing/trust-marks.css</span>
+      <span>WCAG 2.2 AA verified, both themes</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>The thesis</span></div>
+    <h2>A verdict is a claim plus its scope</h2>
+    <p>The audit found three security claims that were false and two verification recipes that didn’t work. None of that came from bad cryptography — the cryptography was sound. It came from claims that had drifted loose from what was actually checked.</p>
+    <p>So the system’s one rule: <strong>a trust mark cannot render without a scope.</strong> The scope isn’t fine print, it’s a required child element. Omit it and the component visibly fails in development rather than shipping a bare green tick.</p>
+
+    <div class="compare">
+      <div class="pane bad">
+        <h3>The anti-pattern</h3>
+        <p><span class="badbadge">✓ Secure</span></p>
+        <p style="font-size:.88rem">Proves nothing, scopes nothing, and survives contact with reviewers only until someone asks “secure against what?” This is the badge QEV’s own trust page argues against.</p>
+      </div>
+      <div class="pane good">
+        <h3>The component</h3>
+        <p class="tm" data-state="verified">
+          <span class="tm-glyph" aria-hidden="true"></span>
+          <span class="tm-claim">Site manifest signature valid</span>
+          <span class="tm-scope">Ed25519 over 75 files. Proves the signer held the private key — not that the key belongs to who you think.</span>
+        </p>
+        <p style="font-size:.88rem">Same information density, but the limit travels with the claim. The scope line is monospace because in this product the factual half is always machine-derived.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>States</span><span class="fid">WCAG 1.4.1</span></div>
+    <h2>Four states, none carried by colour alone</h2>
+    <p>Each state has a distinct glyph shape as well as a hue, so the system survives greyscale, colour-blindness, and Windows forced-colors mode. The fourth state is the one the product was missing.</p>
+    <ul class="tm-list">
+      <li class="tm" data-state="verified">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Verified — the check ran and passed</span>
+        <span class="tm-scope">75/75 file digests matched the signed manifest.</span>
+      </li>
+      <li class="tm" data-state="caution">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Caution — passed, but narrower than it looks</span>
+        <span class="tm-scope">Bundle authenticated with HMAC-SHA256. Shared-secret authentication, not a public-key signature: anyone holding the key can forge it.</span>
+      </li>
+      <li class="tm" data-state="failed">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Failed — the check ran and did not pass</span>
+        <span class="tm-scope">Manifest signature did not verify over the canonical bytes.</span>
+      </li>
+      <li class="tm" data-state="unproven">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Not checked — no verdict was produced</span>
+        <span class="tm-scope">No third-party security audit has been performed. This is an absence of evidence, not a failure — and the product had no way to say it.</span>
+      </li>
+    </ul>
+    <p class="note">“Not checked” earns a state of its own because every page that lacked it had to choose between implying a check had happened and saying nothing. Both are worse than a dashed grey circle.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>Colour</span><span class="fid">contrast measured, not estimated</span></div>
+    <h2>Semantic colour is separate from the brand accent</h2>
+    <p>A verdict must never be mistaken for a call to action, so the blue that means “link” is not in the verdict scale. Every value below was computed against the ground it sits on; all pass AA body text (≥ 4.5:1) in both themes.</p>
+    <div class="swatches">
+      <div class="sw"><div class="sw-chip" style="background:#1a56db"><span>#1a56db</span></div>
+        <div class="sw-meta"><span class="sw-name">--tm-accent</span><span class="sw-ratio">6.18:1 <span class="pass">AA</span> · brand / links</span></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#0d7a4f"><span>#0d7a4f</span></div>
+        <div class="sw-meta"><span class="sw-name">--tm-verified</span><span class="sw-ratio">5.37:1 <span class="pass">AA</span></span></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#9a6700"><span>#9a6700</span></div>
+        <div class="sw-meta"><span class="sw-name">--tm-caution</span><span class="sw-ratio">4.87:1 <span class="pass">AA</span></span></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#b3261e"><span>#b3261e</span></div>
+        <div class="sw-meta"><span class="sw-name">--tm-failed</span><span class="sw-ratio">6.54:1 <span class="pass">AA</span> · was undefined</span></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#6b7280"><span>#6b7280</span></div>
+        <div class="sw-meta"><span class="sw-name">--tm-muted</span><span class="sw-ratio">4.83:1 <span class="pass">AA</span> · replaces ↓</span></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#8590a2"><span>#8590a2</span></div>
+        <div class="sw-meta"><span class="sw-name">--text-dim (old)</span><span class="sw-ratio">3.23:1 <span class="fail">FAIL</span> · retired</span></div></div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Token</th><th>Light</th><th class="num">Ratio</th><th>Dark</th><th class="num">Ratio</th></tr></thead>
+        <tbody>
+          <tr><td>ink</td><td><code>#16181d</code></td><td class="num">17.76</td><td><code>#eceef2</code></td><td class="num">15.58</td></tr>
+          <tr><td>body</td><td><code>#4a5261</code></td><td class="num">7.86</td><td><code>#b6bcc8</code></td><td class="num">9.49</td></tr>
+          <tr><td>muted</td><td><code>#6b7280</code></td><td class="num">4.83</td><td><code>#8b93a3</code></td><td class="num">5.86</td></tr>
+          <tr><td>accent</td><td><code>#1a56db</code></td><td class="num">6.18</td><td><code>#7ea2ff</code></td><td class="num">7.32</td></tr>
+          <tr><td>verified</td><td><code>#0d7a4f</code></td><td class="num">5.37</td><td><code>#4ec99a</code></td><td class="num">8.74</td></tr>
+          <tr><td>caution</td><td><code>#9a6700</code></td><td class="num">4.87</td><td><code>#e0b355</code></td><td class="num">9.26</td></tr>
+          <tr><td>failed</td><td><code>#b3261e</code></td><td class="num">6.54</td><td><code>#ff8a80</code></td><td class="num">7.93</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>Type</span></div>
+    <h2>Monospace is the vernacular, not the code font</h2>
+    <p>This product’s factual claims are digests, manifests, exit codes and verdicts. Monospace carries every one of them; the sans carries prose and persuasion. The split is semantic — if a line asserts something checkable, it is set in mono.</p>
+    <figure>
+      <div class="pane" style="background:var(--bg)">
+        <p class="tm-claim" style="font-size:1.375rem">Site integrity verified</p>
+        <p class="tm-scope">BRY-NFET-SX|SITE-INTEGRITY|V2 · ed25519 · 75/75 files · exit 0</p>
+      </div>
+      <figcaption>Claim in sans, evidence in mono. No webfont is loaded — the site serves zero third-party resources, and that property is worth more than a typeface.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>Target size</span><span class="fid">WCAG 2.2 · 2.5.8</span></div>
+    <h2>The hardest control to tap was the one explaining the cryptography</h2>
+    <p>At 375&nbsp;px the audit measured 17 controls below the 24&nbsp;px minimum. The worst were the eight “what is this?” buttons — 15&nbsp;px tall — which are exactly how a non-technical person learns what “secret number” and “scramble code” mean.</p>
+    <div class="targets">
+      <div class="tdemo">
+        <span class="hit small">what is this?</span>
+        <span class="tlabel">73 × 15 px<br><span class="fail">fails 2.5.8</span></span>
+      </div>
+      <div class="tdemo">
+        <span class="hit ok">what is this?</span>
+        <span class="tlabel">same glyph, 73 × 44 px hit area<br><span class="pass">passes</span></span>
+      </div>
+    </div>
+    <p class="note"><code>.tm-target</code> grows the hit area with a positioned pseudo-element, so the control keeps its light visual weight. Nothing about the page’s density changes.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span>Applied</span></div>
+    <h2>The audit’s own verdicts, rendered in the system</h2>
+    <p>The real test of a trust language is whether it can state bad news as fluently as good. These are actual findings, in the component:</p>
+    <ul class="tm-list">
+      <li class="tm" data-state="verified">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Vault round-trip is byte-exact</span>
+        <span class="tm-scope">227 chars incl. emoji, CJK, backslashes, trailing whitespace. XChaCha20-Poly1305 + Argon2id, memlimit 96 MiB as documented.</span>
+      </li>
+      <li class="tm" data-state="verified">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">KDF-downgrade attack rejected</span>
+        <span class="tm-scope">memlimit clamped to 8–256 MiB. An attacker cannot rewrite a vault to make offline cracking cheap.</span>
+      </li>
+      <li class="tm" data-state="caution">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Generated passphrase strengthened to ~58 bits</span>
+        <span class="tm-scope">Was 180 words, all a–e, ≈36.6 bits. Now the EFF long list: 7776 words, ≈58.3 bits — 3.5M× harder. Still weaker than a phrase you invent yourself.</span>
+      </li>
+      <li class="tm" data-state="failed">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Public challenge reveal is overdue</span>
+        <span class="tm-scope">reveal_at 2026-04-21, still pending at 2026-07-29 — 98 days. Bundle authentication is HMAC, unverifiable by third parties today.</span>
+      </li>
+      <li class="tm" data-state="unproven">
+        <span class="tm-glyph" aria-hidden="true"></span>
+        <span class="tm-claim">Desktop, chat and relay behaviour</span>
+        <span class="tm-scope">Not verified. Would require installing unsigned, un-notarized binaries and bypassing Gatekeeper. Declined.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Tokens and components ship as <code>landing/trust-marks.css</code>. Contrast ratios computed with the WCAG 2.x relative-luminance formula against each token’s actual ground. Nothing here is loaded from a third party.</p>
+  </div>
+</footer>

@@ -1,0 +1,423 @@
+<title>QEV Vault — redesigned flow</title>
+<style>
+:root{
+  --bg:#fff; --surface:#f7f8fa; --raised:#eef0f4; --border:#dfe3e9; --border-strong:#c4cad4;
+  --ink:#16181d; --body:#4a5261; --muted:#6b7280;
+  --accent:#1a56db; --accent-ink:#fff; --accent-soft:rgba(26,86,219,.08);
+  --verified:#0d7a4f; --caution:#9a6700; --failed:#b3261e;
+  --verified-bg:rgba(13,122,79,.08); --caution-bg:rgba(154,103,0,.09); --failed-bg:rgba(179,38,30,.08);
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:8px; --tap:44px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#14161b;--surface:#1c1f26;--raised:#242832;--border:#2f343f;--border-strong:#424957;
+  --ink:#eceef2;--body:#b6bcc8;--muted:#8b93a3;
+  --accent:#7ea2ff;--accent-ink:#0b0d10;--accent-soft:rgba(126,162,255,.12);
+  --verified:#4ec99a;--caution:#e0b355;--failed:#ff8a80;
+  --verified-bg:rgba(78,201,154,.12);--caution-bg:rgba(224,179,85,.12);--failed-bg:rgba(255,138,128,.12);
+}}
+:root[data-theme="dark"]{
+  --bg:#14161b;--surface:#1c1f26;--raised:#242832;--border:#2f343f;--border-strong:#424957;
+  --ink:#eceef2;--body:#b6bcc8;--muted:#8b93a3;
+  --accent:#7ea2ff;--accent-ink:#0b0d10;--accent-soft:rgba(126,162,255,.12);
+  --verified:#4ec99a;--caution:#e0b355;--failed:#ff8a80;
+  --verified-bg:rgba(78,201,154,.12);--caution-bg:rgba(224,179,85,.12);--failed-bg:rgba(255,138,128,.12);
+}
+:root[data-theme="light"]{
+  --bg:#fff;--surface:#f7f8fa;--raised:#eef0f4;--border:#dfe3e9;--border-strong:#c4cad4;
+  --ink:#16181d;--body:#4a5261;--muted:#6b7280;
+  --accent:#1a56db;--accent-ink:#fff;--accent-soft:rgba(26,86,219,.08);
+  --verified:#0d7a4f;--caution:#9a6700;--failed:#b3261e;
+  --verified-bg:rgba(13,122,79,.08);--caution-bg:rgba(154,103,0,.09);--failed-bg:rgba(179,38,30,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--body);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.page{max-width:840px;margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}
+h1,h2,h3{color:var(--ink);margin:0;text-wrap:balance}
+h1{font-size:1.5rem;letter-spacing:-.02em}
+h2{font-size:1.15rem;letter-spacing:-.01em}
+h3{font-size:.95rem}
+p{margin:0;max-width:62ch}
+.mono{font-family:var(--mono)}
+.stack{display:grid;gap:var(--s3)}
+.stack-lg{display:grid;gap:var(--s5)}
+
+/* ---------- annotation frame (this is a spec, not the product) ---------- */
+.spec{border:1px dashed var(--border-strong);border-radius:var(--r);padding:var(--s4);
+  background:var(--surface);display:grid;gap:var(--s2);margin-bottom:var(--s5)}
+.spec .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.why{border-left:2px solid var(--accent);padding-left:var(--s4);margin:var(--s4) 0;
+  font-size:.87rem;color:var(--muted)}
+.why b{color:var(--ink);font-weight:600}
+
+/* ---------- app shell ---------- */
+.app{border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04)}
+.appbar{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);
+  border-bottom:1px solid var(--border);background:var(--surface)}
+.brand{font-weight:800;letter-spacing:-.02em;color:var(--ink);font-size:.95rem}
+.appbar .grow{flex:1}
+.pill{font-family:var(--mono);font-size:.7rem;padding:3px 8px;border-radius:999px;
+  border:1px solid var(--border-strong);color:var(--muted);white-space:nowrap}
+.pill.ok{color:var(--verified);border-color:currentColor;background:var(--verified-bg)}
+
+/* ---------- mode switch ---------- */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border)}
+.mode{appearance:none;border:0;background:none;font:inherit;cursor:pointer;
+  padding:var(--s4) var(--s3);min-height:var(--tap);color:var(--muted);font-weight:600;
+  border-bottom:2px solid transparent;display:flex;flex-direction:column;gap:2px;align-items:center}
+.mode small{font-weight:400;font-size:.78rem;opacity:.85}
+.mode[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);background:var(--accent-soft)}
+.mode:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* ---------- steps ---------- */
+.body{padding:var(--s5) var(--s4)}
+@media(min-width:640px){.body{padding:var(--s5)}}
+.steps{display:grid;gap:var(--s5)}
+.step{display:grid;grid-template-columns:auto 1fr;gap:var(--s3) var(--s4);align-items:start}
+.stepno{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.75rem;font-weight:700;
+  background:var(--raised);color:var(--muted);border:1px solid var(--border)}
+.step[data-done="true"] .stepno{background:var(--verified-bg);color:var(--verified);border-color:currentColor}
+.step[data-active="true"] .stepno{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.stepbody{display:grid;gap:var(--s3);min-width:0}
+.steptitle{font-weight:650;color:var(--ink);font-size:1rem}
+.stephint{font-size:.87rem;color:var(--muted)}
+
+/* ---------- fields ---------- */
+label{font-weight:600;color:var(--ink);font-size:.9rem;display:block}
+textarea,input[type=text],input[type=password]{
+  width:100%;font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--border-strong);border-radius:var(--r);padding:var(--s3);
+  min-height:var(--tap);resize:vertical}
+textarea{min-height:120px;font-family:var(--mono);font-size:.875rem;line-height:1.55}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.count{font-family:var(--mono);font-size:.75rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+
+/* phrase */
+.phrasebox{display:grid;gap:var(--s2)}
+.phrase{display:flex;gap:var(--s2);align-items:stretch;flex-wrap:wrap}
+.phrase input{flex:1;min-width:200px;font-family:var(--mono);font-size:.95rem;letter-spacing:.01em}
+.meter{display:grid;gap:6px}
+.bars{display:flex;gap:4px}
+.bar{height:5px;flex:1;border-radius:3px;background:var(--raised)}
+.bar.on{background:var(--verified)}
+.bar.warn{background:var(--caution)}
+.bar.bad{background:var(--failed)}
+.mtext{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+
+/* buttons — all >= 44px */
+.btn{appearance:none;font:inherit;font-weight:600;cursor:pointer;border-radius:var(--r);
+  min-height:var(--tap);padding:0 var(--s4);display:inline-flex;align-items:center;
+  justify-content:center;gap:var(--s2);border:1px solid var(--border-strong);
+  background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn:hover{background:var(--raised)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.primary[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.btn.ghost{background:none;border-color:transparent;color:var(--accent)}
+.btn.danger{color:var(--failed);border-color:currentColor;background:var(--failed-bg)}
+.btnrow{display:flex;gap:var(--s2);flex-wrap:wrap}
+
+/* the handoff — the moment the old design under-weighted */
+.handoff{border:1px solid var(--caution);background:var(--caution-bg);border-radius:var(--r);
+  padding:var(--s4);display:grid;gap:var(--s3)}
+.channels{display:grid;gap:var(--s3);grid-template-columns:1fr}
+@media(min-width:560px){.channels{grid-template-columns:1fr auto 1fr}}
+.chan{border:1px solid var(--border);border-radius:var(--r);background:var(--bg);padding:var(--s3);
+  display:grid;gap:4px}
+.chan .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chan .v{font-weight:650;color:var(--ink);font-size:.92rem}
+.chan .h{font-size:.8rem;color:var(--muted)}
+.vs{display:grid;place-items:center;font-family:var(--mono);font-size:.72rem;color:var(--caution);
+  font-weight:700;letter-spacing:.06em}
+
+/* receipt — crypto params as evidence, not input */
+details.receipt{border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
+details.receipt>summary{cursor:pointer;padding:var(--s3) var(--s4);min-height:var(--tap);
+  display:flex;align-items:center;gap:var(--s2);font-weight:600;color:var(--ink);font-size:.9rem;
+  list-style:none}
+details.receipt>summary::-webkit-details-marker{display:none}
+details.receipt>summary::before{content:"▸";color:var(--muted);font-size:.8rem;transition:transform .15s}
+details.receipt[open]>summary::before{transform:rotate(90deg)}
+details.receipt>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:var(--s2) var(--s4);padding:0 var(--s4) var(--s4);
+  font-family:var(--mono);font-size:.8rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;color:var(--ink);word-break:break-all}
+
+/* result / plaintext */
+.result{border:1px solid var(--verified);background:var(--verified-bg);border-radius:var(--r);padding:var(--s4);display:grid;gap:var(--s3)}
+.result pre{margin:0;font-family:var(--mono);font-size:.85rem;white-space:pre-wrap;word-break:break-word;
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:var(--s3);max-height:220px;overflow:auto;color:var(--ink)}
+.err{border:1px solid var(--failed);background:var(--failed-bg);color:var(--failed);
+  border-radius:var(--r);padding:var(--s3) var(--s4);font-size:.9rem}
+.warnline{display:flex;gap:var(--s2);align-items:flex-start;font-size:.85rem;color:var(--body)}
+.warnline b{color:var(--ink)}
+.hidden{display:none !important}
+
+/* drop zone */
+.drop{border:2px dashed var(--border-strong);border-radius:var(--r);padding:var(--s5) var(--s4);
+  text-align:center;display:grid;gap:var(--s2);background:var(--surface);cursor:pointer;min-height:var(--tap)}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop .big{font-weight:650;color:var(--ink)}
+.drop .sm{font-size:.82rem;color:var(--muted)}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="page">
+
+  <div class="spec">
+    <span class="tag">Interactive prototype — click through it</span>
+    <p style="font-size:.9rem">A redesign of the browser vault flow. Every control here is real and responds; no cryptography runs, and no data leaves this page. Sized for a phone first — try it narrow.</p>
+  </div>
+
+  <div class="stack-lg">
+    <div class="stack">
+      <h1>Sealing a secret should be three decisions, not eleven</h1>
+      <p>The audited vault asks the user to confront <span class="mono">secret number</span>, <span class="mono">scramble code</span>, <span class="mono">lock recipe</span> and <span class="mono">box style</span> as form fields before they can act — four cryptographic internals presented as choices, each with a 15&nbsp;px “what is this?” button. None of them are decisions a person can meaningfully make: three are auto-generated and the fourth cannot be changed.</p>
+      <p>Meanwhile the two moments that genuinely decide whether this works — <b style="color:var(--ink)">send the phrase on a different channel</b> and <b style="color:var(--ink)">lose the phrase and it is gone forever</b> — were plain paragraphs below the fold.</p>
+      <div class="why"><b>The redesign inverts that.</b> Generated values move out of the form and into a receipt shown after sealing, where they are evidence rather than input. The handoff and the irreversibility get the layout weight instead.</div>
+    </div>
+
+    <!-- ================= APP ================= -->
+    <div class="app">
+      <div class="appbar">
+        <span class="brand">QEV</span>
+        <span class="grow"></span>
+        <span class="pill ok" title="Enforced by a Content-Security-Policy response header">connect-src 'none'</span>
+        <span class="pill">offline once loaded</span>
+      </div>
+
+      <div class="modes" role="tablist">
+        <button class="mode" role="tab" aria-selected="true" id="tab-seal">Seal something<small>Lock text into a file</small></button>
+        <button class="mode" role="tab" aria-selected="false" id="tab-open">Open a vault<small>Get the text back</small></button>
+      </div>
+
+      <!-- ---------- SEAL ---------- -->
+      <div class="body" id="pane-seal">
+        <div class="steps">
+
+          <div class="step" data-active="true" data-done="false" id="s1">
+            <div class="stepno">1</div>
+            <div class="stepbody">
+              <div class="steptitle">What are you protecting?</div>
+              <textarea id="plaintext" placeholder="Paste a password, a recovery phrase, an access token, a note…" aria-label="Text to protect"></textarea>
+              <div class="count"><span id="ptcount">0</span> / 262,144 characters</div>
+            </div>
+          </div>
+
+          <div class="step" data-active="false" data-done="false" id="s2">
+            <div class="stepno">2</div>
+            <div class="stepbody">
+              <div class="steptitle">Your phrase</div>
+              <div class="stephint">This is the only thing that opens it. We generated a strong one — keep it, or type your own.</div>
+              <div class="phrasebox">
+                <div class="phrase">
+                  <input type="text" id="phrase" spellcheck="false" autocomplete="off" aria-label="Secret phrase">
+                  <button class="btn" id="regen" type="button">New phrase</button>
+                  <button class="btn" id="copyphrase" type="button">Copy</button>
+                </div>
+                <div class="meter">
+                  <div class="bars" id="bars" aria-hidden="true"></div>
+                  <div class="mtext" id="mtext"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step" data-active="false" data-done="false" id="s3">
+            <div class="stepno">3</div>
+            <div class="stepbody">
+              <div class="steptitle">Seal it</div>
+              <div class="warnline">
+                <span aria-hidden="true">⚠</span>
+                <span><b>There is no recovery.</b> If the phrase is lost, the contents are gone permanently — no reset, no backdoor, no support request that can undo it.</span>
+              </div>
+              <div class="btnrow">
+                <button class="btn primary" id="seal" type="button" disabled>Seal it</button>
+                <span class="mtext" id="sealhint" style="align-self:center">Add text and a phrase first</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- sealed state -->
+        <div id="sealed" class="hidden" style="margin-top:var(--s5)">
+          <div class="stack">
+            <div class="result">
+              <h3>Sealed. Two things now exist, and they must travel separately.</h3>
+              <div class="btnrow">
+                <button class="btn primary" type="button">Download vault file</button>
+                <button class="btn" type="button">Copy as text</button>
+                <button class="btn danger" id="clear1" type="button">Clear everything</button>
+              </div>
+            </div>
+
+            <div class="handoff">
+              <h3 style="font-size:.95rem">Send these on different channels</h3>
+              <div class="channels">
+                <div class="chan">
+                  <span class="k">Channel A</span>
+                  <span class="v">The vault file</span>
+                  <span class="h">Email, Slack, a shared drive — anywhere. It is useless on its own.</span>
+                </div>
+                <div class="vs">AND NOT<br>THE SAME<br>PLACE</div>
+                <div class="chan">
+                  <span class="k">Channel B</span>
+                  <span class="v">The phrase</span>
+                  <span class="h">Say it out loud, text it, hand it over on paper. Never in the same thread as the file.</span>
+                </div>
+              </div>
+              <p style="font-size:.85rem;color:var(--body)">If both arrive in one inbox, anyone who reaches that inbox has everything. That single habit is what this tool depends on.</p>
+            </div>
+
+            <details class="receipt">
+              <summary>What was used to seal this</summary>
+              <dl class="kv">
+                <dt>format</dt><dd>BRY-NFET-SX-VAULT-V2</dd>
+                <dt>cipher</dt><dd>XChaCha20-Poly1305</dd>
+                <dt>key derivation</dt><dd>Argon2id · ops 4 · mem 96 MiB</dd>
+                <dt>salt</dt><dd>nsO2-JsIMVq0W2o1nL9kyA</dd>
+                <dt>nonce</dt><dd>c-_0we8vLkL7iHw4faNfoe1w0Fakfn51</dd>
+                <dt>envelope id</dt><dd>d9d8719875788645e595326b849d246e…</dd>
+              </dl>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- OPEN ---------- -->
+      <div class="body hidden" id="pane-open">
+        <div class="steps">
+          <div class="step" data-active="true"><div class="stepno">1</div>
+            <div class="stepbody">
+              <div class="steptitle">The vault file</div>
+              <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose or drop a vault file">
+                <span class="big" id="dropbig">Drop the file here</span>
+                <span class="sm" id="dropsm">or tap to choose · .vault.json or a recovery sheet</span>
+              </div>
+            </div>
+          </div>
+          <div class="step" data-active="false"><div class="stepno">2</div>
+            <div class="stepbody">
+              <div class="steptitle">The phrase</div>
+              <div class="stephint">Type it from the channel it arrived on — not pasted from the same message as the file.</div>
+              <input type="password" id="openphrase" placeholder="Your secret phrase" aria-label="Phrase to open the vault">
+              <div class="btnrow">
+                <button class="btn primary" id="open" type="button">Open it</button>
+                <button class="btn danger hidden" id="clear2" type="button">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="openerr" class="err hidden" style="margin-top:var(--s4)"></div>
+        <div id="opened" class="hidden" style="margin-top:var(--s4)">
+          <div class="result">
+            <h3>Opened</h3>
+            <pre id="openedtext"></pre>
+            <div class="warnline"><span aria-hidden="true">👁</span><span>This is on screen now. <b>Clear it</b> before you walk away — especially on a shared or borrowed machine.</span></div>
+            <div class="btnrow">
+              <button class="btn" type="button">Copy</button>
+              <button class="btn danger" id="clear3" type="button">Clear from screen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= NOTES ================= -->
+    <div class="stack">
+      <h2>What changed, and why</h2>
+
+      <div class="why"><b>Eleven fields became three.</b> Salt, nonce, KDF profile and format version are no longer inputs. They are generated, then reported in a receipt after the fact. A user cannot make a better choice than the default for any of them, so asking was pure cognitive load.</div>
+
+      <div class="why"><b>The phrase is generated by default, not blank.</b> The audited page started empty and disabled the button until the phrase was strong enough — so the first thing a new user met was a refusal. Now a strong phrase is already there and the meter explains what it is worth. (The generator itself was the finding: 180 words all starting a–e, ~36.6 bits. It now draws on 7,776 words for ~58 bits.)</div>
+
+      <div class="why"><b>The handoff got the layout.</b> “Send the file and the phrase through different channels” was a sentence under the fold. It is now a two-column diagram at the moment it becomes actionable — right after sealing, which is the only time the user can still act on it.</div>
+
+      <div class="why"><b>Clearing is a control, not a page reload.</b> The audit found decrypted plaintext stayed rendered on screen after a later failed unlock, with no way to remove it. Every screen that can show plaintext now has an explicit destructive-styled Clear.</div>
+
+      <div class="why"><b>Every target is at least 44&nbsp;px.</b> Seventeen controls measured under the 24&nbsp;px WCAG 2.2 minimum, the worst being the 15&nbsp;px buttons that explained the cryptography. The explanations are now inline text at the step that needs them, so there is nothing tiny left to tap.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const WORDS = ['harbor','tundra','ember','quartz','lantern','marigold','cobalt','thicket','vellum','pumice',
+                 'sorrel','kindling','basalt','wicker','solstice','plover','cinder','fathom','juniper','mistral'];
+  function gen(){
+    const pick = () => WORDS[Math.floor(Math.random()*WORDS.length)];
+    return [pick(),pick(),pick(),pick()].join('-') + '-' + String(Math.floor(Math.random()*100)).padStart(2,'0');
+  }
+  // Illustrative strength only — the real build measures against the shipped 7776-word list.
+  function strength(p){
+    if(!p) return {n:0,label:'No phrase yet',cls:'bad'};
+    const words = p.split(/[-\s]+/).filter(w=>/^[a-z]{3,}$/i.test(w)).length;
+    const bits = Math.round(words*12.9 + (/\d/.test(p)?6.6:0));
+    if(bits >= 55) return {n:4,label:bits+' bits — strong. Generated phrases land here.',cls:'on'};
+    if(bits >= 40) return {n:3,label:bits+' bits — good for most uses.',cls:'on'};
+    if(bits >= 25) return {n:2,label:bits+' bits — weak against an offline attack on a stolen file.',cls:'warn'};
+    return {n:1,label:'Too weak. Use four or more unrelated words.',cls:'bad'};
+  }
+  function paint(){
+    const p = $('#phrase').value.trim();
+    const s = strength(p);
+    $('#bars').innerHTML = [0,1,2,3].map(i=>`<span class="bar ${i<s.n?s.cls:''}"></span>`).join('');
+    $('#mtext').textContent = s.label;
+    const hasText = $('#plaintext').value.trim().length > 0;
+    const ok = hasText && s.n >= 3;
+    $('#seal').disabled = !ok;
+    $('#sealhint').textContent = ok ? 'Ready' : (!hasText ? 'Add something to protect' : 'Phrase is too weak');
+    $('#s1').dataset.done = hasText; $('#s1').dataset.active = !hasText;
+    $('#s2').dataset.done = s.n>=3; $('#s2').dataset.active = hasText && s.n<3;
+    $('#s3').dataset.active = ok;
+    $('#ptcount').textContent = $('#plaintext').value.length.toLocaleString();
+  }
+  $('#phrase').value = gen();
+  ['input','change'].forEach(e=>{ $('#plaintext').addEventListener(e,paint); $('#phrase').addEventListener(e,paint); });
+  $('#regen').addEventListener('click',()=>{ $('#phrase').value = gen(); paint(); });
+  $('#copyphrase').addEventListener('click',function(){ const b=this; b.textContent='Copied'; setTimeout(()=>b.textContent='Copy',1200); });
+  $('#seal').addEventListener('click',()=>{ $('#sealed').classList.remove('hidden');
+    $('#sealed').scrollIntoView({behavior:'smooth',block:'start'}); });
+  function wipeSeal(){ $('#plaintext').value=''; $('#phrase').value=gen(); $('#sealed').classList.add('hidden'); paint(); }
+  $('#clear1').addEventListener('click',wipeSeal);
+
+  // tabs
+  function show(seal){
+    $('#tab-seal').setAttribute('aria-selected',seal); $('#tab-open').setAttribute('aria-selected',!seal);
+    $('#pane-seal').classList.toggle('hidden',!seal); $('#pane-open').classList.toggle('hidden',seal);
+  }
+  $('#tab-seal').addEventListener('click',()=>show(true));
+  $('#tab-open').addEventListener('click',()=>show(false));
+
+  // open pane
+  let picked=false;
+  const drop=$('#drop');
+  function choose(){ picked=true; $('#dropbig').textContent='secret.vault.json'; $('#dropsm').textContent='912 bytes · BRY-NFET-SX-VAULT-V2 · tap to replace'; }
+  drop.addEventListener('click',choose);
+  drop.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();} });
+  ['dragover','dragenter'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over'); if(t==='drop') choose();}));
+  $('#open').addEventListener('click',()=>{
+    const err=$('#openerr'), out=$('#opened');
+    if(!picked){ err.textContent='Choose a vault file first.'; err.classList.remove('hidden'); out.classList.add('hidden'); return; }
+    if(!$('#openphrase').value){ err.textContent='That phrase did not open this vault. Check for a typo, and that you typed it from the channel it arrived on.'; err.classList.remove('hidden'); out.classList.add('hidden'); return; }
+    err.classList.add('hidden');
+    $('#openedtext').textContent = 'db-admin-rotation-2026-Q3\nuser: svc_rotate\npass: 7Kq!vR2m@Ld9';
+    out.classList.remove('hidden'); $('#clear2').classList.remove('hidden');
+  });
+  function wipeOpen(){ $('#opened').classList.add('hidden'); $('#openerr').classList.add('hidden');
+    $('#openphrase').value=''; $('#openedtext').textContent=''; $('#clear2').classList.add('hidden'); }
+  $('#clear2').addEventListener('click',wipeOpen); $('#clear3').addEventListener('click',wipeOpen);
+
+  paint();
+})();
+</script>

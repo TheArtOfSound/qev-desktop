@@ -6,7 +6,12 @@
   --border-subtle: #eceef2;
   --text: #1a1d23;
   --text-secondary: #555d6e;
-  --text-dim: #8590a2;
+  /* Was #8590a2 = 3.23:1 on white, 2.90:1 on --surface-raised: below the
+     WCAG 2.2 AA 4.5:1 minimum for body text on every ground this site
+     uses. #646c7a clears 4.5:1 on all three (4.76 worst case, on
+     --surface-raised) while keeping the slight blue bias toward the
+     accent. Audit finding F-18. */
+  --text-dim: #646c7a;
   --accent: #1a56db;
   --accent-dim: #1447b8;
   --accent-bg: rgba(26, 86, 219, 0.06);
