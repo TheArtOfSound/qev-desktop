@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV Status, Versions & Test Matrix</title>
+  <meta name="description" content="Single source of truth for QEV product hierarchy, versions, test counts by component, and capability labels.">
+  <link rel="canonical" href="https://secure.imagineqira.com/status/">
+  <meta property="og:title" content="QEV Status, Versions & Test Matrix">
+  <meta property="og:url" content="https://secure.imagineqira.com/status/">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0}
+    th,td{border:1px solid var(--border);padding:.5rem .6rem;text-align:left;vertical-align:top}
+    th{background:var(--surface)}
+    .a{background:var(--green-bg)}.p{background:var(--amber-bg)}.x{background:#fdecea}.pl{background:var(--surface)}
+    .note{background:var(--surface);border-left:4px solid var(--accent);padding:.75rem 1rem;margin:1rem 0;font-size:.92rem;color:var(--text-secondary)}
+    .status-body{max-width:900px}
+    .status-body h1{font-size:clamp(1.5rem,3vw,1.9rem);margin:0 0 12px}
+    .status-body h2{font-size:1.15rem;margin:28px 0 10px}
+    .status-body p,.status-body li{color:var(--text-secondary);font-size:.92rem}
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+<section style="padding:48px 0 64px">
+  <div class="wrap status-body">
+
+  
+  <h1>QEV status, versions &amp; test matrix</h1>
+  <p><strong>Last updated:</strong> 2026-07-29 · <strong>Purpose:</strong> one place for versions and test counts so marketing pages never invent numbers.</p>
+
+  <div class="note">
+    <strong>Product hierarchy (one stack)</strong><br>
+    <strong>1. Envelope Core</strong> — portable Vault V2 (browser, desktop, CLI)<br>
+    <strong>2. Capture Gateway</strong> — customer-controlled event → package pipeline<br>
+    <strong>3. Connectors</strong> — webhook, portal, photo/file, file-watch (more planned)<br>
+    <strong>4. Flow Packs</strong> — Field Service (pilot); AI/legal/devops packs planned<br>
+    <strong>5. Verify</strong> — multi-verdict package review + seal certificates<br>
+    <strong>6. Control Plane</strong> — optional; not required for local pilot · no customer plaintext
+  </div>
+
+  <h2>Capability labels</h2>
+  <table>
+    <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="a"><strong>Available</strong></td><td>Works today on a public or pilot surface</td></tr>
+      <tr><td class="p"><strong>Preview</strong></td><td>Controlled-use; limited trust model; not enterprise-hardened</td></tr>
+      <tr><td class="pl"><strong>Planned</strong></td><td>Designed / scaffolded; not ready for production claims</td></tr>
+      <tr><td class="x"><strong>Not assessed</strong></td><td>No independent third-party security audit completed</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Component matrix</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Version</th>
+        <th>Status</th>
+        <th>Tests (source)</th>
+        <th>Vault V2</th>
+        <th>Evidence Bundle V1</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Product preview demo (site /app history)</td>
+        <td>0.29.0</td>
+        <td class="p">Preview</td>
+        <td><strong>258</strong> (220 product + 38 vault-tool) — as published on main product page</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>Desktop / mobile apps (downloads)</td>
+        <td>0.29.0</td>
+        <td class="p">Preview · unsigned installers</td>
+        <td><strong>362</strong> — download-page claim for that binary pipeline; different suite from the 258 product tests</td>
+        <td class="a">R/W</td>
+        <td class="pl">Planned open</td>
+      </tr>
+      <tr>
+        <td>CLI npm package</td>
+        <td>0.30.0</td>
+        <td class="a">Available</td>
+        <td>Built-in <code>qev self-test</code> + package <code>node --test</code> suite (historically documented as ~26 cases — not the same as 258/362)</td>
+        <td class="a">R/W</td>
+        <td class="pl">Planned</td>
+      </tr>
+      <tr>
+        <td>Browser vault <code>/vault</code></td>
+        <td>0.29.x / V2 format</td>
+        <td class="a">Available</td>
+        <td>Included in vault-tool portion of product testing; crypto self-test in page</td>
+        <td class="a">R/W</td>
+        <td class="x">No</td>
+      </tr>
+      <tr>
+        <td>qev-platform gateway</td>
+        <td>0.3.x pilot</td>
+        <td class="p">Preview pilot</td>
+        <td>Monorepo Vitest (packages + gateway) — run <code>pnpm test</code> in <a href="https://github.com/TheArtOfSound/qev-platform">qev-platform</a>; count is CI-generated, not hand-edited on marketing pages</td>
+        <td class="a">Seals via V2</td>
+        <td class="a">Write/verify</td>
+      </tr>
+      <tr>
+        <td>Qira Link</td>
+        <td>0.1.0-alpha</td>
+        <td class="pl">Sibling alpha</td>
+        <td>Separate product — not counted in QEV product 258</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Why test counts differ</h2>
+  <p>They are <strong>different codebases and suites</strong>, not “failed tests missing from the homepage.”</p>
+  <ul>
+    <li><strong>258</strong> — product preview / policy-demo path (as stated on the main site).</li>
+    <li><strong>362</strong> — desktop binary pipeline claim on the downloads page.</li>
+    <li><strong>CLI self-test</strong> — small focused suite for the npm package only.</li>
+    <li><strong>qev-platform</strong> — separate Vitest monorepo for the commercial gateway.</li>
+  </ul>
+  <p>Never mix these numbers into one “QEV has N tests” claim without naming the component.</p>
+
+  <h2>Official package names (today)</h2>
+  <table>
+    <thead><tr><th>Package</th><th>Name</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>CLI (published)</td>
+        <td><code>@bryan237l/qev-cli</code></td>
+        <td>Install: <code>npm i -g @bryan237l/qev-cli</code> · v0.30.0 on npm</td>
+      </tr>
+      <tr>
+        <td>Platform monorepo packages</td>
+        <td><code>@imagineqira/qev-*</code></td>
+        <td>Workspace packages in GitHub; not all published to npm yet</td>
+      </tr>
+      <tr>
+        <td>Future brand alignment</td>
+        <td><code>@imagineqira/qev-cli</code></td>
+        <td><strong>Planned</strong> rename/publish; until then use <code>@bryan237l/qev-cli</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>What is live on this host</h2>
+  <ul>
+    <li><a href="/vault">Envelope Core (browser vault)</a> — Available</li>
+    <li><a href="/platform/">Capture Gateway pilot</a> — Preview</li>
+    <li><a href="/field-service-evidence/">Field Service flow docs</a> — Preview</li>
+    <li><a href="/trust/">Trust program</a> — Compatible / Pilot certs only; no Protected badge</li>
+    <li><a href="/audit-status/">Audit status</a> — Not independently assessed</li>
+    <li><a href="/verify">Site integrity</a> — Ed25519-signed manifest</li>
+  </ul>
+
+  <h2>What is not claimed</h2>
+  <ul>
+    <li>Not production-ready multi-tenant SaaS</li>
+    <li>No formal third-party security audit</li>
+    <li>No KMS/HSM · no formal key rotation/revocation</li>
+    <li>Installers not Apple-notarized / Authenticode-signed yet</li>
+    <li>No “QEV Protected Workflow” public badge yet</li>
+  </ul>
+
+  <p style="margin-top:2rem;font-size:.9rem;color:#556">
+    Source of this page: <a href="https://github.com/TheArtOfSound/qev-platform">qev-platform</a> ·
+    Gate A honesty · Update when versions change · Do not hand-edit counts on marketing pages without updating this matrix.
+  </p>
+
+  </div>
+</section>
+<footer>
+  <div class="wrap">
+    QEV status · <a href="/docs/">Docs</a> · <a href="/trust/">Trust</a> · <a href="/verify">Site Integrity</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+<script src="/site-verify.js?v=2026-04-19" integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi" crossorigin="anonymous"></script>
+</body>
+</html>

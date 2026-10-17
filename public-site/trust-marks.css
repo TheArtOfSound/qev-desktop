@@ -1,0 +1,338 @@
+/* ============================================================
+   QEV trust marks & design tokens
+   ------------------------------------------------------------
+   Added by the 2026-07-29 audit remediation.
+
+   Why this file exists
+   --------------------
+   The audit found two visual problems that are really the same
+   problem:
+
+     F-22  The site reads as two products. The QEV-branded pages
+           (/pricing, /status, /trust) are light and use one nav;
+           the BRY-NFET-SX pages (/vault, /verify, /security) are
+           dark and use another. Same company, two identities.
+
+     F-18  Trust state was carried by colour alone, and several
+           controls failed WCAG 2.2 AA target size. --text-dim
+           (#8590a2) failed AA body contrast at 3.23:1.
+
+   The fix is not "pick nicer colours". It is to give the product
+   ONE way to state a trust verdict, and to make that way carry
+   the thing the product already says better than anyone:
+
+     "Badges link to scoped certificates - never 'this whole
+      company is secure'."           - /trust/
+     "reported as separate checks, not a vague 'secure' badge"
+                                     - homepage FAQ
+
+   So a verdict here is never a lone green tick. Every mark is a
+   CLAIM plus its SCOPE, and .tm-scope is a required child, not
+   decoration. If you find yourself wanting a bare green badge,
+   that is the anti-pattern this file exists to prevent.
+
+   Every colour below was measured, not eyeballed. Contrast
+   ratios are against the ground each token is used on; all pass
+   WCAG 2.2 AA for body text (>= 4.5:1) in BOTH themes.
+   ============================================================ */
+
+:root {
+  /* --- neutrals -------------------------------------------------
+     Biased very slightly blue, toward the accent, so the greys
+     read as chosen rather than inherited. */
+  --tm-bg:              #ffffff;
+  --tm-surface:         #f7f8fa;
+  --tm-surface-raised:  #eef0f4;
+  --tm-border:          #dfe3e9;
+  --tm-border-strong:   #c4cad4;
+
+  --tm-ink:             #16181d;   /* 17.76:1 on bg */
+  --tm-body:            #4a5261;   /*  7.86:1 on bg */
+  --tm-muted:           #646c7a;   /*  5.29:1 on bg, 4.76:1 worst case
+                                       (on --tm-surface-raised) - replaces
+                                       --text-dim #8590a2, which was
+                                       3.23:1 on white and 2.90:1 on the
+                                       raised surface: AA FAIL on every
+                                       ground this site actually uses */
+
+  /* --- semantic verdict colours -------------------------------
+     Deliberately separate from the brand accent. A verdict must
+     never be mistaken for a call to action. */
+  --tm-accent:          #1a56db;   /* 6.18:1 - brand / links     */
+  --tm-verified:        #0d7a4f;   /* 5.37:1 - check passed      */
+  --tm-caution:         #9a6700;   /* 4.87:1 - passed, but scoped
+                                       narrower than you may think */
+  --tm-failed:          #b3261e;   /* 6.54:1 - check failed      */
+  --tm-unproven:        #646c7a;   /* 5.29:1 - NOT CHECKED. Not a
+                                       failure. The audit found the
+                                       product had no way to say
+                                       this, so pages either implied
+                                       a check had run or said
+                                       nothing at all. */
+
+  --tm-verified-bg:  rgba(13, 122, 79, 0.08);
+  --tm-caution-bg:   rgba(154, 103, 0, 0.09);
+  --tm-failed-bg:    rgba(179, 38, 30, 0.08);
+  --tm-unproven-bg:  rgba(100, 108, 122, 0.08);
+
+  /* --- type ---------------------------------------------------
+     Monospace is not "the code font" here, it is the product's
+     native vernacular: digests, manifests, exit codes, verdicts.
+     It carries every factual claim. The sans carries prose. No
+     webfont is loaded - the site serves zero third-party
+     resources and that property is worth more than a typeface. */
+  --tm-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+             'Helvetica Neue', Arial, sans-serif;
+  --tm-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --tm-step--1: 0.813rem;
+  --tm-step-0:  0.938rem;
+  --tm-step-1:  1.125rem;
+  --tm-step-2:  1.375rem;
+  --tm-step-3:  1.875rem;
+
+  /* --- spacing & shape --------------------------------------- */
+  --tm-space-1: 4px;
+  --tm-space-2: 8px;
+  --tm-space-3: 12px;
+  --tm-space-4: 16px;
+  --tm-space-5: 24px;
+  --tm-radius:  6px;
+
+  /* WCAG 2.2 AA 2.5.8 minimum target is 24px. The audit measured
+     17 controls below it, worst at 15px - including the eight
+     "what is this?" buttons that explain the cryptography. 44px
+     is the comfortable target; 24px is the floor. */
+  --tm-target-min: 24px;
+  --tm-target:     44px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tm-bg:             #14161b;
+    --tm-surface:        #1c1f26;
+    --tm-surface-raised: #242832;
+    --tm-border:         #2f343f;
+    --tm-border-strong:  #424957;
+
+    --tm-ink:            #eceef2;  /* 15.58:1 */
+    --tm-body:           #b6bcc8;  /*  9.49:1 */
+    --tm-muted:          #8b93a3;  /*  5.86:1 */
+
+    --tm-accent:         #7ea2ff;  /*  7.32:1 */
+    --tm-verified:       #4ec99a;  /*  8.74:1 */
+    --tm-caution:        #e0b355;  /*  9.26:1 */
+    --tm-failed:         #ff8a80;  /*  7.93:1 */
+    --tm-unproven:       #8b93a3;  /*  5.86:1 */
+
+    --tm-verified-bg: rgba(78, 201, 154, 0.12);
+    --tm-caution-bg:  rgba(224, 179, 85, 0.12);
+    --tm-failed-bg:   rgba(255, 138, 128, 0.12);
+    --tm-unproven-bg: rgba(139, 147, 163, 0.12);
+  }
+}
+
+/* The viewer's explicit toggle must beat the OS preference in
+   BOTH directions, so both are restated rather than relying on
+   the media query alone. */
+:root[data-theme="dark"] {
+  --tm-bg: #14161b; --tm-surface: #1c1f26; --tm-surface-raised: #242832;
+  --tm-border: #2f343f; --tm-border-strong: #424957;
+  --tm-ink: #eceef2; --tm-body: #b6bcc8; --tm-muted: #8b93a3;
+  --tm-accent: #7ea2ff; --tm-verified: #4ec99a; --tm-caution: #e0b355;
+  --tm-failed: #ff8a80; --tm-unproven: #8b93a3;
+  --tm-verified-bg: rgba(78,201,154,0.12); --tm-caution-bg: rgba(224,179,85,0.12);
+  --tm-failed-bg: rgba(255,138,128,0.12); --tm-unproven-bg: rgba(139,147,163,0.12);
+}
+:root[data-theme="light"] {
+  --tm-bg: #ffffff; --tm-surface: #f7f8fa; --tm-surface-raised: #eef0f4;
+  --tm-border: #dfe3e9; --tm-border-strong: #c4cad4;
+  --tm-ink: #16181d; --tm-body: #4a5261; --tm-muted: #646c7a;
+  --tm-accent: #1a56db; --tm-verified: #0d7a4f; --tm-caution: #9a6700;
+  --tm-failed: #b3261e; --tm-unproven: #646c7a;
+  --tm-verified-bg: rgba(13,122,79,0.08); --tm-caution-bg: rgba(154,103,0,0.09);
+  --tm-failed-bg: rgba(179,38,30,0.08); --tm-unproven-bg: rgba(100,108,122,0.08);
+}
+
+/* ============================================================
+   The trust mark
+   ------------------------------------------------------------
+   <p class="tm" data-state="verified">
+     <span class="tm-glyph" aria-hidden="true"></span>
+     <span class="tm-claim">Site manifest signature</span>
+     <span class="tm-scope">Ed25519 over 75 files - proves the
+       signer held the key, not that the key is who you think</span>
+   </p>
+
+   State is carried by glyph AND text AND colour, never colour
+   alone (WCAG 1.4.1). The glyph is drawn in CSS so it inherits
+   currentColor and needs no icon font or third-party asset.
+   ============================================================ */
+
+.tm {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "glyph claim" ".     scope";
+  gap: var(--tm-space-1) var(--tm-space-3);
+  align-items: baseline;
+  margin: 0;
+  padding: var(--tm-space-3) var(--tm-space-4);
+  border: 1px solid var(--tm-border);
+  border-left: 3px solid var(--tm-unproven);
+  border-radius: var(--tm-radius);
+  background: var(--tm-unproven-bg);
+  font-family: var(--tm-sans);
+}
+
+.tm-glyph {
+  grid-area: glyph;
+  width: 1.05em;
+  height: 1.05em;
+  position: relative;
+  top: 0.15em;
+  flex: none;
+  color: var(--tm-unproven);
+}
+/* Glyphs: a tick, a bang, a cross, a dash - distinguishable
+   without colour, and legible at 16px. */
+.tm-glyph::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.tm-glyph::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: currentColor;
+}
+
+.tm-claim {
+  grid-area: claim;
+  font-size: var(--tm-step-0);
+  font-weight: 600;
+  color: var(--tm-ink);
+  text-wrap: balance;
+}
+
+/* Required. A claim without a scope is the exact anti-pattern
+   this component exists to prevent, so an unscoped mark is made
+   visibly wrong rather than silently shipping. */
+.tm-scope {
+  grid-area: scope;
+  font-family: var(--tm-mono);
+  font-size: var(--tm-step--1);
+  line-height: 1.5;
+  color: var(--tm-body);
+}
+.tm:not(:has(.tm-scope)) {
+  outline: 2px dashed var(--tm-failed);
+  outline-offset: 2px;
+}
+.tm:not(:has(.tm-scope))::after {
+  content: "unscoped trust mark - state what this does NOT prove";
+  grid-area: scope;
+  font-family: var(--tm-mono);
+  font-size: var(--tm-step--1);
+  color: var(--tm-failed);
+}
+
+.tm[data-state="verified"] { border-left-color: var(--tm-verified); background: var(--tm-verified-bg); }
+.tm[data-state="verified"] .tm-glyph { color: var(--tm-verified); }
+.tm[data-state="verified"] .tm-glyph::after {
+  width: 0.5em; height: 0.26em;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  background: none;
+  transform: translate(-50%, -60%) rotate(-45deg);
+}
+
+.tm[data-state="caution"] { border-left-color: var(--tm-caution); background: var(--tm-caution-bg); }
+.tm[data-state="caution"] .tm-glyph { color: var(--tm-caution); }
+.tm[data-state="caution"] .tm-glyph::after {
+  width: 2px; height: 0.42em;
+  box-shadow: 0 0.3em 0 0 currentColor;   /* the dot of the "!" */
+}
+
+.tm[data-state="failed"] { border-left-color: var(--tm-failed); background: var(--tm-failed-bg); }
+.tm[data-state="failed"] .tm-glyph { color: var(--tm-failed); }
+.tm[data-state="failed"] .tm-glyph::after {
+  width: 0.52em; height: 2px;
+  box-shadow: none;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.tm[data-state="failed"] .tm-glyph::before { border-style: solid; }
+.tm[data-state="failed"] .tm-claim::after {
+  content: "";
+  display: inline-block;
+  width: 0.52em; height: 2px;
+  background: currentColor;
+  transform: rotate(-45deg) translateY(-0.35em);
+}
+
+/* "Not checked" is a first-class state, not an absence. */
+.tm[data-state="unproven"] { border-left-color: var(--tm-unproven); background: var(--tm-unproven-bg); }
+.tm[data-state="unproven"] .tm-glyph { color: var(--tm-unproven); }
+.tm[data-state="unproven"] .tm-glyph::after {
+  width: 0.5em; height: 2px;
+}
+.tm[data-state="unproven"] .tm-glyph::before { border-style: dashed; }
+
+/* ============================================================
+   Verdict list - the "separate checks, not one badge" pattern
+   ============================================================ */
+.tm-list {
+  display: grid;
+  gap: var(--tm-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.tm-list > li { margin: 0; }
+
+/* ============================================================
+   Target size - WCAG 2.2 AA 2.5.8
+   Applies a real hit area without changing visual size, so the
+   "what is this?" affordances keep their light look.
+   ============================================================ */
+.tm-target {
+  position: relative;
+  min-width: var(--tm-target-min);
+  min-height: var(--tm-target-min);
+}
+.tm-target::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, var(--tm-target));
+  height: max(100%, var(--tm-target));
+  transform: translate(-50%, -50%);
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--tm-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Windows high-contrast / forced-colors: system colours replace
+   ours, so state must survive on shape alone. It does - glyphs
+   and the dashed "unproven" border are non-colour signals. */
+@media (forced-colors: active) {
+  .tm { border: 1px solid CanvasText; border-left-width: 3px; }
+  .tm-glyph { forced-color-adjust: none; }
+}

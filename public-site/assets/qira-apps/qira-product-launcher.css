@@ -1,0 +1,570 @@
+/* Generated for shadow DOM host isolation — classes use qira-launcher__ prefix */
+/**
+ * Qira Apps launcher — Google-style app grid.
+ * Clean circular trigger, soft elevated panel, 3-column icon grid.
+ * Self-contained (no Tailwind). Hosts may override via CSS variables.
+ */
+
+.qira-launcher {
+  /* Surfaces */
+  --ql-bg: #ffffff;
+  --ql-panel: #ffffff;
+  --ql-border: rgba(60, 64, 67, 0.12);
+  --ql-text: #202124;
+  --ql-muted: #5f6368;
+  --ql-muted2: #80868b;
+  --ql-hover: #f1f3f4;
+  --ql-scrim: rgba(32, 33, 36, 0.4);
+  --ql-focus: #1a73e8;
+  --ql-here-bg: #e8f0fe;
+  --ql-here-fg: #1967d2;
+  --ql-soon-bg: #f1f3f4;
+  --ql-soon-fg: #5f6368;
+  --ql-tile-border: transparent;
+  --ql-icon-bg: #f1f3f4;
+  --ql-icon-fg: #3c4043;
+  /* Soft multi-layer elevation (Google-like) */
+  --ql-shadow:
+    0 1px 2px rgba(60, 64, 67, 0.15),
+    0 2px 6px 2px rgba(60, 64, 67, 0.1);
+  --ql-radius: 28px;
+  --ql-trigger-border: transparent;
+  --ql-trigger-fg: #5f6368;
+  --ql-trigger-hover-bg: #f1f3f4;
+  --ql-trigger-hover-fg: #202124;
+  --ql-trigger-active-bg: #e8eaed;
+  position: relative;
+  flex-shrink: 0;
+  font-family: "Google Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.qira-launcher[data-theme="dark"] {
+  --ql-bg: #202124;
+  --ql-panel: #292a2d;
+  --ql-border: rgba(255, 255, 255, 0.1);
+  --ql-text: #e8eaed;
+  --ql-muted: #9aa0a6;
+  --ql-muted2: #80868b;
+  --ql-hover: #3c4043;
+  --ql-scrim: rgba(0, 0, 0, 0.55);
+  --ql-focus: #8ab4f8;
+  --ql-here-bg: rgba(138, 180, 248, 0.16);
+  --ql-here-fg: #8ab4f8;
+  --ql-soon-bg: rgba(154, 160, 166, 0.16);
+  --ql-soon-fg: #9aa0a6;
+  --ql-tile-border: transparent;
+  --ql-icon-bg: #3c4043;
+  --ql-icon-fg: #e8eaed;
+  --ql-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.4),
+    0 4px 8px 3px rgba(0, 0, 0, 0.25);
+  --ql-trigger-border: transparent;
+  --ql-trigger-fg: #9aa0a6;
+  --ql-trigger-hover-bg: #3c4043;
+  --ql-trigger-hover-fg: #e8eaed;
+  --ql-trigger-active-bg: #5f6368;
+}
+
+/* ── Trigger: circular 3×3 grid, no chrome ── */
+.qira-launcher__trigger {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--ql-trigger-fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.qira-launcher__trigger:hover {
+  background: var(--ql-trigger-hover-bg);
+  color: var(--ql-trigger-hover-fg);
+}
+
+.qira-launcher__trigger:active {
+  background: var(--ql-trigger-active-bg);
+}
+
+.qira-launcher__trigger:focus-visible {
+  outline: 2px solid var(--ql-focus);
+  outline-offset: 2px;
+}
+
+.qira-launcher__trigger[aria-expanded="true"] {
+  background: var(--ql-trigger-hover-bg);
+  color: var(--ql-trigger-hover-fg);
+}
+
+/* ── Desktop panel ── */
+.qira-launcher__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 50;
+  width: min(100vw - 1.5rem, 20.5rem);
+  max-width: calc(100vw - 1.5rem);
+  /* visible so tips aren't clipped; grid handles its own scroll */
+  overflow: visible;
+  border-radius: var(--ql-radius);
+  border: 1px solid var(--ql-border);
+  background: var(--ql-panel);
+  box-shadow: var(--ql-shadow);
+  box-sizing: border-box;
+  /* Opacity-only open — transform creates a containing block that traps fixed tips */
+  animation: qira-launcher-pop 0.14s ease-out;
+}
+
+@keyframes qira-launcher-pop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.qira-launcher__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 0;
+  padding: 1rem 1.25rem 0.35rem;
+}
+
+.qira-launcher__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ql-text);
+  line-height: 1.35;
+}
+
+.qira-launcher__close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ql-muted);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.qira-launcher__close:hover {
+  background: var(--ql-hover);
+  color: var(--ql-text);
+}
+
+.qira-launcher__close:focus-visible {
+  outline: 2px solid var(--ql-focus);
+  outline-offset: 2px;
+}
+
+/* 3-column Google-style grid */
+.qira-launcher__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.15rem 0.25rem;
+  padding: 0.5rem 0.85rem 1.1rem;
+  box-sizing: border-box;
+}
+
+/* ── Tile: icon above label, no card chrome ── */
+.qira-launcher__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  min-height: 0;
+  min-width: 0;
+  padding: 0.65rem 0.35rem 0.55rem;
+  border-radius: 1rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  box-sizing: border-box;
+}
+
+a.qira-launcher__tile:hover,
+.qira-launcher__tile:hover {
+  background: var(--ql-hover);
+}
+
+.qira-launcher__tile:focus-visible {
+  outline: 2px solid var(--ql-focus);
+  outline-offset: 1px;
+}
+
+.qira-launcher__tile--current {
+  background: color-mix(in srgb, var(--ql-focus) 8%, transparent);
+}
+
+.qira-launcher__tile--current:hover {
+  background: color-mix(in srgb, var(--ql-focus) 12%, transparent);
+}
+
+.qira-launcher__tile--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.qira-launcher__tile--disabled:hover {
+  background: transparent;
+}
+
+.qira-launcher__tile-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  gap: 0;
+}
+
+/* Soft rounded-square app icon */
+.qira-launcher__icon {
+  display: inline-flex;
+  height: 3.25rem;
+  width: 3.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.1rem;
+  /* Soft brand plate when product sets --ql-product-soft; else neutral */
+  background: var(--ql-product-soft, var(--ql-icon-bg));
+  color: var(--ql-icon-fg);
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+  /* Avoid layout shift while mark paints */
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.qira-launcher__tile:hover .qira-launcher__icon {
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+}
+
+.qira-launcher__tile--current .qira-launcher__icon {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ql-product-accent, var(--ql-focus)) 70%, transparent);
+}
+
+/* Full-color product marks fill the plate (real brand artwork, not mono strokes) */
+.qira-launcher__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Dark theme: keep full-color marks; soften plate slightly */
+.qira-launcher[data-theme="dark"] .qira-launcher__icon {
+  background: color-mix(in srgb, var(--ql-product-accent, #9aa0a6) 22%, #3c4043);
+}
+
+/* Status sits under the name as a micro-label, not a corner chip */
+.qira-launcher__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qira-launcher__badge--here {
+  background: var(--ql-here-bg);
+  color: var(--ql-here-fg);
+}
+
+.qira-launcher__badge--soon {
+  background: var(--ql-soon-bg);
+  color: var(--ql-soon-fg);
+}
+
+.qira-launcher__badge--research {
+  background: color-mix(in srgb, #7c3aed 14%, transparent);
+  color: #6d28d9;
+}
+
+.qira-launcher[data-theme="dark"] .qira-launcher__badge--research {
+  background: color-mix(in srgb, #a78bfa 20%, transparent);
+  color: #c4b5fd;
+}
+
+.qira-launcher__name {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--ql-text);
+  line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Description hidden in Google-style grid — available via tooltip / aria */
+.qira-launcher__desc {
+  display: none;
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--ql-muted);
+  line-height: 1.3;
+}
+
+.qira-launcher__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tooltip wrap — tips themselves render in a body portal (fixed) */
+.qira-launcher__tooltip-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+/*
+ * High-contrast tip: always solid light surface + dark text so it stays
+ * readable on both light and dark host themes (Ledger dark was unreadable).
+ */
+.qira-launcher__tooltip,
+.qira-launcher__tooltip--portal {
+  box-sizing: border-box;
+  z-index: 2147483646;
+  width: max-content;
+  max-width: min(17.5rem, calc(100vw - 1rem));
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(60, 64, 67, 0.2);
+  background: #ffffff;
+  color: #202124;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, 0.2),
+    0 4px 12px rgba(60, 64, 67, 0.18);
+  pointer-events: none;
+  text-align: left;
+}
+
+/* Fallback in-panel tip (if portal unavailable) — place below tile, never clipped */
+.qira-launcher__tooltip:not(.qira-launcher__tooltip--portal) {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.4rem);
+  bottom: auto;
+  transform: translateX(-50%);
+  z-index: 80;
+}
+
+.qira-launcher__tooltip[hidden] {
+  display: none !important;
+}
+
+/* Scrim — desktop: invisible hit-area off; mobile: dimmed */
+.qira-launcher__scrim {
+  display: none;
+}
+
+/*
+ * Body-portal surface (Web Component / React mobile open).
+ * Escapes sticky/backdrop-filter containing blocks.
+ */
+.qira-launcher--portal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  z-index: 2147483000;
+  pointer-events: none;
+  font-family: "Google Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.qira-launcher--portal .qira-launcher__scrim,
+.qira-launcher--portal .qira-launcher__panel {
+  pointer-events: auto;
+}
+
+.qira-launcher[data-open="true"].qira-launcher--portal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+}
+
+@media (max-width: 640px) {
+  .qira-launcher__trigger {
+    height: 44px;
+    width: 44px;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .qira-launcher__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--ql-scrim);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .qira-launcher--portal .qira-launcher__scrim {
+    position: absolute;
+    z-index: 1;
+  }
+
+  .qira-launcher__panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    z-index: 2147483001;
+    width: auto;
+    max-width: none;
+    max-height: min(78dvh, 32rem);
+    border-radius: 1.5rem;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    overscroll-behavior: contain;
+    padding-bottom: 0;
+    box-sizing: border-box;
+    /* opacity only — no transform (traps fixed tooltips) */
+    animation: qira-launcher-sheet 0.18s ease-out;
+  }
+
+  @keyframes qira-launcher-sheet {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .qira-launcher--portal .qira-launcher__panel {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .qira-launcher__header {
+    flex-shrink: 0;
+    padding: 1.1rem 1rem 0.25rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .qira-launcher__close {
+    display: inline-flex;
+  }
+
+  .qira-launcher__grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+    padding: 0.5rem 0.65rem 1.15rem;
+    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+  }
+
+  .qira-launcher__tile {
+    min-width: 0;
+    padding: 0.7rem 0.25rem 0.55rem;
+  }
+
+  .qira-launcher__icon {
+    height: 3.5rem;
+    width: 3.5rem;
+    border-radius: 1.15rem;
+  }
+
+  .qira-launcher__name {
+    font-size: 0.75rem;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .qira-launcher__tooltip,
+  .qira-launcher__tooltip--portal {
+    max-width: min(17.5rem, calc(100vw - 1rem));
+    font-size: 0.8125rem;
+  }
+}
+
+/* Very narrow: keep 3 cols if possible; only drop to 2 under 300px */
+@media (max-width: 300px) {
+  .qira-launcher__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qira-launcher__trigger,
+  .qira-launcher__tile,
+  .qira-launcher__close,
+  .qira-launcher__icon {
+    transition: none;
+  }
+
+  .qira-launcher__panel {
+    animation: none;
+  }
+}

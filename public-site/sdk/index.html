@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV SDK — Capture events from your app</title>
+  <meta name="description" content="Integrate QEV capture into Node/TypeScript apps. Point at your gateway, send workflow events, seal evidence.">
+  <link rel="canonical" href="https://secure.imagineqira.com/sdk/">
+  <meta property="og:title" content="QEV SDK">
+  <meta property="og:description" content="Capture workflow events with the QEV JavaScript SDK.">
+  <meta property="og:url" content="https://secure.imagineqira.com/sdk/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">SDK</div>
+    <h1>Capture from your application</h1>
+    <p class="page-desc">Send workflow events to a QEV gateway you control. For one-off secrets without code, use the <a href="/vault">browser vault</a> instead.</p>
+  </div>
+</header>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">When to use this</div>
+        <h3>Team / pilot path</h3>
+        <p>You already run (or will run) a capture gateway. Your app emits events like “work completed” with a case id. QEV seals selected evidence into packages.</p>
+        <ul>
+          <li><a href="/docs/gateway/">Gateway docs</a></li>
+          <li><a href="/docs/sdk/javascript/">JS SDK detail</a></li>
+          <li><a href="/#paths">All three product paths</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Shape of a call</div>
+        <h3>JavaScript / TypeScript</h3>
+        <pre style="margin-top:12px;padding:16px;border-radius:8px;font-size:0.8rem;line-height:1.5;overflow:auto"><code>// Source: packages/sdk-js in qev-platform
+// Point endpoint at YOUR gateway (pilot), not a public plaintext store.
+
+import { QEV } from "@imagineqira/qev-sdk"; // package name may track monorepo
+
+const qev = new QEV({
+  endpoint: process.env.QEV_GATEWAY_URL,
+  token: process.env.QEV_INGEST_TOKEN,
+});
+
+await qev.capture({
+  flow: "field-service",
+  caseId: "JOB-1",
+  type: "work.completed",
+  actor: { id: "tech@example.com" },
+});</code></pre>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--text-secondary)">
+          Source:
+          <a href="https://github.com/TheArtOfSound/qev-platform/tree/main/packages/sdk-js">packages/sdk-js</a>.
+          CLI (published today):
+          <a href="https://www.npmjs.com/package/@bryan237l/qev-cli">@bryan237l/qev-cli</a>.
+        </p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>Next steps</h3>
+      <ol style="margin:12px 0 0 1.2rem;color:var(--text-secondary);font-size:0.9rem;line-height:1.7">
+        <li>Read <a href="/docs/gateway/">Gateway</a> and deploy under your control.</li>
+        <li>Wire the SDK or a <a href="/connectors/">connector</a>.</li>
+        <li>Export an <a href="/docs/evidence-bundle/">evidence bundle</a> and verify it.</li>
+        <li>For pilot support: <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20SDK%20Pilot">email us</a>.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    QEV SDK · <a href="/docs/">Docs</a> · <a href="/pricing/">Pricing</a> · <a href="/">Home</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+</body>
+</html>

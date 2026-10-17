@@ -1,0 +1,10 @@
+{
+  "algorithm": "HMAC-SHA256",
+  "key_fingerprint": "c20f7f7949578025",
+  "key_version": "challenge-v1",
+  "signature_hex": "63eb17a1505c615642c390504ff425d479e0a4933a0a51cf8ce47fdc64c0efdb",
+  "signer_id": "local_hmac",
+  "signer_label": "Local HMAC Signer",
+  "source_description": "inline master key",
+  "target_name": "manifest.json"
+}

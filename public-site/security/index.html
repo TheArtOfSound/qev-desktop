@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QEV Security &amp; Audit Status</title>
+  <meta name="description" content="Honest QEV security status: controlled-use preview, local trust model, no formal third-party audit yet, no KMS/HSM, documented limitations." />
+  <link rel="canonical" href="https://secure.imagineqira.com/security/" />
+  <meta property="og:title" content="QEV Security Status" />
+  <meta property="og:url" content="https://secure.imagineqira.com/security/" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "QEV Security and Audit Status",
+    "dateModified": "2026-07-29",
+    "author": { "@type": "Organization", "name": "Imagine Qira" },
+    "publisher": { "@type": "Organization", "name": "Imagine Qira" }
+  }
+  </script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    .no { color: #a33; } .yes { color: #174; }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+  <nav><a href="/">QEV</a> · Security</nav>
+  <h1>Security &amp; audit status</h1>
+  <p>This page is deliberately plain. Do not invent certifications.</p>
+  <h2>Current public posture</h2>
+  <ul>
+    <li class="yes">Standard AEAD (Vault V2: XChaCha20-Poly1305 + Argon2id)</li>
+    <li class="yes">Documented threat model and limitations on product site</li>
+    <li class="yes">Internal adversarial hardening phases (as published)</li>
+    <li class="no">No formal third-party security audit completed</li>
+    <li class="no">No KMS/HSM integration</li>
+    <li class="no">No formal key rotation or revocation mechanism</li>
+    <li class="no">Local trust model — not multi-tenant hostile</li>
+  </ul>
+  <h2>Trust badges</h2>
+  <p>See <a href="/trust/">Trust program</a>. Stronger badges are not issued until the gateway platform, continuous controls, and independent assessment exist.</p>
+  <h2>Contact</h2>
+  <p><a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Security%20Review">Security review contact</a></p>
+</body>
+</html>

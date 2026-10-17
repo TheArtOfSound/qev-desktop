@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0d0b15">
+  <title>Qira Notify — encrypted notifications only you can read</title>
+  <meta name="description"
+        content="Publish notifications to a topic URL; subscribers unlock them with a phrase. XChaCha20-Poly1305 + Argon2id. Server never sees your plaintext.">
+  <!-- Strict CSP. connect-src allows the origin itself (same host as
+       the /notify API) and nothing else. No inline scripts (crypto
+       code lives in /vault/sodium.js + /notify/notify.js).
+       'wasm-unsafe-eval' is required for libsodium's WebAssembly
+       build to compile in the browser (the sodium.js we load from
+       /vault/ is the same WASM bundle the /vault page uses). No
+       `unsafe-eval` though — WASM-only.
+       Service worker registration is a standard browser API, allowed
+       implicitly by script-src 'self'. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <link rel="manifest" href="/notify/manifest.json?v=0.30.0">
+  <link rel="icon" href="/notify/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/notify/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Qira Notify">
+  <meta name="mobile-web-app-capable" content="yes">
+  <style>
+    /* ---- Dark-theme variable OVERRIDES ----
+       styles.css sets --text to #1a1d23 (dark-gray for light pages).
+       /notify is a dark page, so every `var(--text, ...)` below would
+       resolve to that near-black value and vanish on #0d0b15. We
+       re-declare the palette on :root (and body for safety) with
+       dark-mode-appropriate colors. All notify-local rules reference
+       these explicitly so the rest of the site's theme stays intact. */
+    :root {
+      --bg: #0d0b15;
+      --bg-card: #171427;
+      --text: #ecebf0;
+      --text-muted: #9391a6;
+      --accent: #7b61ff;
+      --border: #2a2740;
+    }
+    /* Page-specific overrides; keep additive, don't duplicate site styles. */
+    body { background: #0d0b15; color: #ecebf0; }
+    .notify-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .notify-hero {
+      margin: 10px 0 24px;
+    }
+    .notify-hero h1 {
+      font-size: 1.9rem;
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .notify-hero p {
+      color: var(--text-muted, #9391a6);
+      line-height: 1.55;
+      margin: 0 0 10px;
+    }
+    .notify-card {
+      border: 1px solid var(--border, #2a2740);
+      border-radius: 12px;
+      padding: 18px 18px 20px;
+      margin: 0 0 20px;
+      background: var(--bg-card, #171427);
+    }
+    .notify-card h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 14px;
+      color: var(--text-muted, #9391a6);
+    }
+    .notify-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .notify-field label {
+      font-size: 0.82rem;
+      color: var(--text-muted, #9391a6);
+    }
+    .notify-field input,
+    .notify-field textarea {
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text, #ecebf0);
+      border: 1px solid var(--border, #2a2740);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      resize: vertical;
+    }
+    .notify-field input:focus,
+    .notify-field textarea:focus {
+      border-color: var(--accent, #7b61ff);
+    }
+    .notify-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .notify-row > * { flex: 0 0 auto; }
+    .notify-primary,
+    .notify-ghost {
+      border: 0;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .notify-primary {
+      background: var(--accent, #7b61ff);
+      color: #fff;
+      font-weight: 600;
+    }
+    .notify-primary:disabled {
+      opacity: 0.5; cursor: wait;
+    }
+    .notify-ghost {
+      background: transparent;
+      color: var(--text, #ecebf0);
+      border: 1px solid var(--border, #2a2740);
+    }
+    .notify-ghost:hover { border-color: var(--accent, #7b61ff); }
+    .notify-status {
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 1.2em;
+    }
+    .notify-status.ok { color: #2fb170; }
+    .notify-status.err { color: #d85151; }
+    .notify-status.warn { color: #e6a23c; }
+    .msg-list {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .msg {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border, #2a2740);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .msg .meta {
+      display: flex; gap: 10px; align-items: center;
+      font-size: 0.72rem; color: var(--text-muted, #9391a6); margin-bottom: 6px;
+    }
+    .msg .locked-pill {
+      background: rgba(230, 162, 60, 0.12); color: #e6a23c;
+      padding: 1px 8px; border-radius: 999px; font-weight: 600;
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .msg .unlocked-pill {
+      background: rgba(47, 177, 112, 0.12); color: #2fb170;
+      padding: 1px 8px; border-radius: 999px; font-weight: 600;
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .msg .body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      /* Explicit bright text so a stale --text from the global
+         stylesheet (set for light pages, #1a1d23) doesn't blend
+         the plaintext into the dark page background. */
+      color: #ecebf0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .msg.unlocked .body {
+      color: #f6f6fb;
+    }
+    .msg.locked .body { color: #9391a6; font-style: italic; }
+    /* ---- Raw-JSON reveal ---- */
+    .msg .raw-toggle {
+      background: transparent; border: 0;
+      color: var(--accent, #7b61ff);
+      font-family: inherit; font-size: 0.75rem;
+      cursor: pointer; padding: 4px 0; margin-top: 4px;
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+    .msg .raw-toggle:hover { color: #9983ff; }
+    .msg .raw-wrap {
+      margin-top: 8px;
+      border: 1px solid #2a2740;
+      border-radius: 8px;
+      background: #0b0912;
+      overflow: hidden;
+    }
+    .msg .raw-wrap-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px;
+      background: rgba(123, 97, 255, 0.06);
+      border-bottom: 1px solid #2a2740;
+      font-size: 0.72rem; color: #9391a6;
+    }
+    .msg .raw-wrap-head code { color: #7b61ff; }
+    .msg .raw-phrase {
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      color: #c9c7dd;
+      background: rgba(47, 177, 112, 0.08);
+      border-bottom: 1px solid #2a2740;
+    }
+    .msg .raw-phrase .rp-label {
+      color: #9391a6;
+    }
+    .msg .raw-phrase .rp-phrase {
+      color: #2fb170;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      background: rgba(47, 177, 112, 0.12);
+      padding: 1px 8px;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .msg .raw-copy {
+      background: transparent; border: 1px solid #2a2740;
+      color: #ecebf0; padding: 2px 10px; border-radius: 6px;
+      font-family: inherit; font-size: 0.72rem; cursor: pointer;
+    }
+    .msg .raw-copy:hover { border-color: #7b61ff; }
+    .msg pre.raw-json {
+      margin: 0; padding: 10px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.72rem; line-height: 1.5;
+      color: #c3bff3;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .msg pre.raw-json .k { color: #7b61ff; }
+    .msg pre.raw-json .s { color: #f6bc6f; }
+    .msg pre.raw-json .n { color: #e06c78; }
+    .msg pre.raw-json .b { color: #4cc38a; }
+    /* ---- Share-invite card ---- */
+    .invite-block {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #0b0912;
+      border: 1px solid #2a2740;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      color: #c9c7dd;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .invite-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .share-row {
+      display: flex; gap: 8px; align-items: center;
+      margin-top: 8px;
+    }
+    .share-row input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text, #ecebf0);
+      border: 1px solid var(--border, #2a2740);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+    }
+    .hint {
+      font-size: 0.78rem; color: var(--text-muted, #9391a6); line-height: 1.5;
+    }
+    .nav-crumb {
+      font-size: 0.78rem; color: var(--text-muted, #9391a6); margin-bottom: 12px;
+    }
+    .nav-crumb a { color: var(--accent, #7b61ff); text-decoration: none; }
+    .section-sep {
+      height: 1px; background: var(--border, #2a2740); margin: 28px 0;
+    }
+    .toggle-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem;
+      margin: 10px 0 0;
+      color: var(--text-muted, #9391a6);
+    }
+    .push-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border, #2a2740);
+    }
+    .push-row button {
+      align-self: flex-start;
+    }
+    .push-row .notify-status { margin-top: 0; }
+    .push-row .hint { padding: 10px 12px; background: rgba(123, 97, 255, 0.08);
+      border-radius: 8px; border-left: 3px solid var(--accent, #7b61ff); }
+    details.explain {
+      margin-top: 14px; font-size: 0.82rem;
+      color: var(--text-muted, #9391a6);
+    }
+    details.explain summary { cursor: pointer; padding: 4px 0; }
+    details.explain p { line-height: 1.55; margin: 4px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="notify-wrap">
+    <div class="nav-crumb">
+      <a href="/">BRY-NFET-SX</a> &nbsp;·&nbsp; Qira Notify
+    </div>
+
+    <header class="notify-hero">
+      <h1>🔒 Encrypted notifications only you can read</h1>
+      <p>
+        Pick a topic URL, share it with a phrase you only tell in person. Post messages to
+        the URL; subscribers decrypt with the phrase. The server stores opaque ciphertext
+        forever &mdash; it never sees a single word of your messages.
+      </p>
+      <p class="hint">
+        XChaCha20-Poly1305 + Argon2id, identical to the QEV vault format. All encryption
+        happens in your browser via libsodium. Zero server-side plaintext. Zero tracking.
+      </p>
+    </header>
+
+    <!-- Populated when the user lands via a shared ?t= link. -->
+    <div class="notify-card" id="invite-welcome" hidden
+         style="border-color:#7b61ff; background:rgba(123,97,255,0.08);">
+      <h2 style="color:#c3bff3;">👋 You were invited to a topic</h2>
+      <p style="margin:0 0 6px;">
+        Someone shared the topic <code id="invite-topic" style="color:#7b61ff;"></code>
+        with you. Enter the phrase they told you in the Subscribe card below and click
+        <strong>Start watching</strong> — messages decrypt in your browser, never on the server.
+      </p>
+    </div>
+
+    <!-- ===== DEMO FEED ===== -->
+    <!-- One-click subscribe to a server-published heartbeat topic so
+         new users can see the push pipeline end-to-end without setting
+         up a second publisher device. The demo topic + phrase are
+         public (posted here in plain text and in the server-side
+         auto-publisher) — this is a LIVE demo, not a secret channel. -->
+    <div class="notify-card" id="demo-card">
+      <h2>🚀 Try the live demo</h2>
+      <p class="hint" style="margin: 0 0 12px;">
+        A server-side auto-publisher encrypts a random message every
+        <strong>2 minutes</strong> and posts it to a public topic. Click
+        below to subscribe and watch messages arrive — decrypted locally
+        by your browser with a public demo phrase. Enable Android push
+        after subscribing to feel a notification every 2 minutes.
+      </p>
+      <div class="notify-row">
+        <button class="notify-primary" id="demo-start" type="button">
+          Subscribe to the demo feed
+        </button>
+      </div>
+      <div class="notify-status" id="demo-status"></div>
+      <details class="explain">
+        <summary>What's "public" about the demo phrase?</summary>
+        <p>
+          The demo topic is <code>qira-demo-feed</code> and the demo
+          phrase is <code>qira demo feed public heartbeat 2026</code>.
+          Both are printed here in plain text on purpose — anyone who
+          loads this page can subscribe. A real topic uses a phrase you
+          tell someone in person; the server still can't read plaintext
+          because the crypto runs in your browser.
+        </p>
+      </details>
+    </div>
+
+    <!-- ===== PUBLISHER ===== -->
+    <div class="notify-card">
+      <h2>Publish</h2>
+      <div class="notify-field">
+        <label for="pub-topic">Topic URL segment</label>
+        <input id="pub-topic" placeholder="e.g. alice-alerts or deploy-prod-42"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <div class="notify-field">
+        <label for="pub-msg">Message</label>
+        <textarea id="pub-msg" rows="4"
+                  placeholder="A short alert. Up to 256 bytes after encryption."></textarea>
+      </div>
+      <div class="notify-field">
+        <label for="pub-phrase">Phrase (shared out-of-band)</label>
+        <input id="pub-phrase" type="password" placeholder="4+ random words; the receiver must know this exactly"
+               autocomplete="new-password">
+      </div>
+      <div class="notify-row">
+        <button class="notify-primary" id="pub-send" type="button">Encrypt &amp; publish</button>
+        <button class="notify-ghost" id="pub-random" type="button" title="Fill with a random topic">Random topic</button>
+      </div>
+      <div class="notify-status" id="pub-status"></div>
+      <details class="explain">
+        <summary>What the server actually sees</summary>
+        <p>
+          The server sees: the topic URL, a timestamp, a random message ID, and an
+          opaque ciphertext blob. It does not see the message content, the phrase, or
+          anything derived from them. Argon2id stretches the phrase with ~100 MiB of
+          memory and 4 rounds before deriving the AEAD key; brute-forcing a
+          single-password-protected vault is prohibitively expensive if your phrase is
+          strong.
+        </p>
+      </details>
+    </div>
+
+    <!-- ===== SUBSCRIBER ===== -->
+    <div class="notify-card">
+      <h2>Subscribe</h2>
+      <div class="notify-field">
+        <label for="sub-topic">Topic URL segment</label>
+        <input id="sub-topic" placeholder="same topic you published to" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="notify-field">
+        <label for="sub-phrase">Phrase (to decrypt)</label>
+        <input id="sub-phrase" type="password" placeholder="the matching phrase" autocomplete="current-password">
+      </div>
+      <div class="notify-row">
+        <button class="notify-primary" id="sub-start" type="button">Start watching</button>
+        <button class="notify-ghost" id="sub-stop" type="button" disabled>Stop</button>
+      </div>
+      <label class="toggle-row">
+        <input type="checkbox" id="sub-remember">
+        Remember phrase on this device (stored in browser localStorage, origin-scoped)
+      </label>
+      <div class="notify-status" id="sub-status"></div>
+      <div class="share-row" id="sub-share" hidden>
+        <span class="hint">Share this URL:</span>
+        <input id="sub-share-url" readonly>
+        <button class="notify-ghost" id="sub-copy-url" type="button" style="padding:6px 12px;">Copy</button>
+      </div>
+
+      <!-- ===== Android/PWA push ===== -->
+      <!-- Hidden until a topic is watched; shown once the user could
+           subscribe meaningfully. Falls back to 'unsupported' text on
+           browsers without Push API (Safari <16.4, older FireFox,
+           private mode, etc.). -->
+      <div class="push-row" id="push-row" hidden>
+        <button class="notify-ghost" id="push-enable" type="button">
+          🔔 Enable Android/phone notifications
+        </button>
+        <button class="notify-ghost" id="push-disable" type="button" hidden>
+          Turn off phone notifications
+        </button>
+        <div class="notify-status" id="push-status"></div>
+        <div class="hint" id="push-install-hint" hidden>
+          💡 For the best experience on Android: open your browser
+          menu and tap <strong>Install app</strong> or
+          <strong>Add to Home screen</strong>. That makes Qira Notify
+          behave like a normal app and wakes the phone even when the
+          browser is closed.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHARE WITH A GROUP ===== -->
+    <!-- Populated dynamically when the user is watching a non-demo
+         topic. Hidden by default. -->
+    <div class="notify-card" id="share-card" hidden>
+      <h2>👥 Share this topic with a group</h2>
+      <p class="hint" style="margin:0 0 10px;">
+        Copy the block below and paste it in your group chat / email / in person.
+        The phrase must be shared <strong>separately</strong> (not in the link)
+        — otherwise anyone who sees the link gets the phrase too.
+      </p>
+      <div class="invite-block" id="share-text"></div>
+      <div class="invite-actions">
+        <button class="notify-ghost" id="share-copy-text" type="button">
+          Copy invite text
+        </button>
+        <button class="notify-ghost" id="share-copy-url-only" type="button">
+          Copy URL only
+        </button>
+      </div>
+      <details class="explain">
+        <summary>Why not put the phrase in the URL?</summary>
+        <p>
+          Anything in the URL shows up in browser history, server logs (if the
+          recipient doesn't open over HTTPS), and screenshot previews. The
+          phrase goes in a separate channel — ideally in person, or over a
+          channel the recipient already trusts. The URL alone lets someone
+          <em>send</em> messages to the topic; only the phrase lets them
+          <em>read</em> messages.
+        </p>
+      </details>
+    </div>
+
+    <!-- ===== INBOX ===== -->
+    <div class="notify-card">
+      <h2>Inbox</h2>
+      <p class="hint" style="margin:0 0 10px;">
+        Tap <strong>Show raw ciphertext ▸</strong> on any message to see the
+        actual JSON envelope the server stored. The bytes you see there are
+        what the relay operator (us) sees — nothing more.
+      </p>
+      <ul class="msg-list" id="inbox"></ul>
+      <div class="hint" id="inbox-empty">
+        Start watching a topic above to see messages here.
+      </div>
+    </div>
+
+    <!-- ===== DECRYPT ANYWHERE ===== -->
+    <div class="notify-card">
+      <h2>🛠️ Decrypt this anywhere (no special tool required)</h2>
+      <p class="hint" style="margin:0 0 10px;">
+        Each message is a self-contained <code>QIRA-NOTIFY-V1</code> envelope:
+        Argon2id-derived wrap key + XChaCha20-Poly1305 for the payload.
+        <strong>Three ways to unlock any envelope you copied above:</strong>
+      </p>
+      <ol class="hint" style="margin:0 0 14px 18px; padding:0;">
+        <li style="margin-bottom:8px;">
+          <strong>In this browser</strong> — already happens above when you
+          watch a topic with the phrase entered.
+        </li>
+        <li style="margin-bottom:8px;">
+          <strong>On the Vault page</strong> —
+          <a href="/vault/" style="color:var(--accent,#7b61ff);">
+          open <code>/vault/</code></a>, scroll to <em>Step 1 — the vault file</em>,
+          paste the JSON into the text box, type the phrase, click
+          <strong>Open it!</strong>. Works for any Notify JSON on any device
+          with a browser.
+        </li>
+        <li style="margin-bottom:8px;">
+          <strong>Offline with Python</strong> — ~30 lines + <code>pynacl</code>,
+          shown below. Same math, same result, no server contact at all.
+        </li>
+      </ol>
+      <pre class="raw-json" style="max-height:none;"><code>#!/usr/bin/env python3
+# pip install pynacl
+import base64, json, sys
+from nacl.pwhash import argon2id
+from nacl.bindings import (
+    crypto_aead_xchacha20poly1305_ietf_decrypt as aead_decrypt,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+)
+
+def b64ud(s):
+    s += "=" * (-len(s) % 4)
+    return base64.urlsafe_b64decode(s)
+
+env = json.load(sys.stdin)
+phrase = input("phrase: ").encode()
+
+salt = b64ud(env["kdf"]["salt"])
+wrap_key = argon2id.kdf(
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES, phrase, salt,
+    opslimit=env["kdf"]["opslimit"], memlimit=env["kdf"]["memlimit"],
+)
+vault_key = aead_decrypt(
+    b64ud(env["wrap"]["wrapped_key"]),
+    env["wrap"]["aad"].encode(),
+    b64ud(env["wrap"]["nonce"]),
+    wrap_key,
+)
+plain = aead_decrypt(
+    b64ud(env["content"]["ciphertext"]),
+    env["content"]["aad"].encode(),
+    b64ud(env["content"]["nonce"]),
+    vault_key,
+)
+print(plain.decode())</code></pre>
+      <p class="hint" style="margin-top:10px;">
+        Run: <code>python decrypt.py &lt; envelope.json</code>, paste the phrase.
+        If you can decrypt offline, you've proven the server is dispensable —
+        the crypto stands on its own.
+      </p>
+    </div>
+
+    <div class="section-sep"></div>
+
+    <details class="explain" open>
+      <summary>Security model in 30 seconds</summary>
+      <p>
+        <strong>Threat you're protected from:</strong> the relay operator (us) reading
+        your notifications; an attacker who breaches the server reading past
+        messages; a nosy coworker who knows your topic URL but not your phrase.
+      </p>
+      <p>
+        <strong>Threats you're NOT protected from:</strong> someone who steals your
+        phrase; a keylogger on your device; a weak phrase (less than ~4 random words
+        &mdash; pick carefully); metadata (the relay sees topic names, timestamps,
+        ciphertext sizes). If any of those matter, use QEV's device-pairing flow
+        instead &mdash; which does give you authenticated sender + forward secrecy.
+      </p>
+    </details>
+
+  </div>
+
+  <!-- libsodium.js — same copy the /vault page uses for its V2 vault format. -->
+  <script src="/vault/sodium.js?v=0.30.0" defer></script>
+  <script src="/notify/notify.js?v=0.30.0" defer></script>
+</body>
+</html>

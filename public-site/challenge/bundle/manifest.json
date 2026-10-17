@@ -1,0 +1,15 @@
+{
+  "artifact_id": "7a2860e23b7fb9e551ca694c43f7402794eaa063bda67aa834fc2b7dfa0a3e71",
+  "artifact_type": "envelopes",
+  "files": [
+    {
+      "name": "artifact.json",
+      "sha256": "c010abc757b758ff7cb62273720d8f01bda45e46ed90e05b85dcf54ad271e2d5"
+    },
+    {
+      "name": "metadata.json",
+      "sha256": "ccc1ff8dbf12719c03313af4d15b9caf3d4a0154b2fa43cc117da938deca0327"
+    }
+  ],
+  "schema": "BRY-NFET-SX-MANIFEST-V1"
+}

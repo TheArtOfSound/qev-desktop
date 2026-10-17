@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evidence Bundle V1 — QEV docs</title>
+  <meta name="description" content="QEV Evidence Bundle V1: structured sealed case package with events, summary, known gaps, and integrity — separate from Vault V2.">
+  <link rel="canonical" href="https://secure.imagineqira.com/docs/evidence-bundle/">
+  <meta property="og:title" content="Evidence Bundle V1 — QEV docs">
+  <meta property="og:description" content="QEV Evidence Bundle V1: structured sealed case package with events, summary, known gaps, and integrity — separate from Vault V2.">
+  <meta property="og:url" content="https://secure.imagineqira.com/docs/evidence-bundle/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    .doc-callout {
+      border: 1px solid var(--border);
+      background: var(--amber-bg);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 0 0 28px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .doc-callout strong { color: var(--text); }
+    pre.doc-pre {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px;
+      padding: 16px 18px !important;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 12px 0 0;
+    }
+    .prose p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 14px; max-width: 680px; }
+    .prose ul, .prose ol { color: var(--text-secondary); font-size: 0.92rem; margin: 0 0 18px 1.2rem; line-height: 1.7; max-width: 680px; }
+    .prose h2 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--text); }
+    .prose h3 { font-size: 1rem; margin: 20px 0 8px; color: var(--text); }
+    .prose a { font-weight: 500; }
+    .mark-yes { color: var(--green-text); font-weight: 700; margin-right: 8px; }
+    .mark-no { color: var(--amber-text); font-weight: 700; margin-right: 8px; }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Documentation · Proof</div>
+    <h1>Evidence Bundle V1</h1>
+    <p class="page-desc">QEV Evidence Bundle V1: structured sealed case package with events, summary, known gaps, and integrity — separate from Vault V2.</p>
+  </div>
+</header>
+<section style="padding-top:0">
+  <div class="wrap prose">
+
+    <div class="doc-callout"><strong>Team / pilot path.</strong> Evidence bundles are how workflow cases become checkable packages. Free one-off secrets use <a href="/docs/vault-format/">Vault V2</a> only.</div>
+    <h2>What it is</h2>
+    <p>Schema <code>QEV-EVIDENCE-BUNDLE-V1</code>: a structured evidence package for a case (job, change, investigation). It records events, a summary with answerable questions, known gaps, artifacts, and integrity fields. A vault envelope can wrap this plaintext when you need at-rest encryption.</p>
+    <h2>Required ideas (from the public schema)</h2>
+    <ul>
+      <li><code>package_id</code>, <code>tenant_id</code>, <code>flow_id</code>, <code>case_id</code>, <code>created_at</code></li>
+      <li><code>events[]</code> — normalized workflow events</li>
+      <li><code>summary</code> — outcome, questions, what evidence can answer</li>
+      <li><code>known_gaps</code> — honesty about missing pieces</li>
+      <li><code>integrity</code> — digests / binding for verification</li>
+    </ul>
+    <h2>What verification establishes</h2>
+    <ul>
+      <li>Package digests match declared integrity</li>
+      <li>Signatures valid when present</li>
+      <li>Required evidence present <em>or</em> listed as gaps</li>
+    </ul>
+    <h2>What it does not establish</h2>
+    <ul>
+      <li>That source systems told the truth</li>
+      <li>Legal outcomes or workmanship quality</li>
+      <li>Company-wide “we are secure” claims</li>
+    </ul>
+    <h2>How you produce one</h2>
+    <ol>
+      <li>Run a <a href="/docs/gateway/">capture gateway</a> (pilot or your deploy).</li>
+      <li>Ingest events via API, SDK, or <a href="/connectors/">connectors</a>.</li>
+      <li>Complete the flow → package sealed.</li>
+      <li>Verify with gateway verify endpoints or offline tooling.</li>
+    </ol>
+    <p>Schema source: <code>schemas/qev.evidence-bundle.v1.schema.json</code> in <a href="https://github.com/TheArtOfSound/qev-platform">qev-platform</a>.</p>
+    <p><a href="/field-service-evidence/">Field service example</a> · <a href="/trust/">Trust program</a> · <a href="/docs/gateway/">Gateway</a></p>
+    
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    QEV — Qira Encryption Vault · product preview<br>
+    <a href="/docs/">Docs</a> ·
+    <a href="/pricing/">Pricing</a> ·
+    <a href="/status/">Status</a> ·
+    <a href="/trust/">Trust</a> ·
+    <a href="/verify">Site Integrity</a> ·
+    <a href="/contact/">Contact</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

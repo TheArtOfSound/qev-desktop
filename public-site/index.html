@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:image" content="https://secure.imagineqira.com/og-image.png">
+  <meta property="og:image:secure_url" content="https://secure.imagineqira.com/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="QEV — Qira Encryption Vault — seal evidence with signed proof">
+  <meta name="twitter:image" content="https://secure.imagineqira.com/og-image.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/og-image.png">
+  <title>QEV by Qira | Encrypt, Sign &amp; Verify Digital Artifacts</title>
+  <meta name="description" content="QEV is the Qira Encryption Vault: seal job records, messages, and handoffs into encrypted packages with signed proof anyone can check. Start free in the browser, or pilot a customer-controlled gateway for teams.">
+  <meta name="author" content="Qira LLC">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://secure.imagineqira.com/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/">
+  <meta property="og:title" content="QEV — Seal work evidence. Open only with your keys.">
+  <meta property="og:description" content="Encrypted evidence packages with signed verification. Free browser vault today. Team pilot with a customer-controlled gateway.">
+  <meta property="og:site_name" content="QEV by Qira">
+  <meta property="og:locale" content="en_US">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QEV — Qira Encryption Vault">
+  <meta name="twitter:description" content="Seal work evidence into packages only your keys can open — with signed proof a third party can verify.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "QEV — Qira Encryption Vault",
+    "alternateName": ["Qira Encryption Vault", "BRY-NFET-SX"],
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Web, macOS, Windows, Linux, Android",
+    "description": "Seal work evidence into encrypted packages with signed verification. Browser vault, desktop apps, CLI, and customer-controlled capture gateway.",
+    "softwareVersion": "0.29.0",
+    "author": {
+      "@type": "Organization",
+      "name": "Qira LLC",
+      "url": "https://imagineqira.com"
+    },
+    "url": "https://secure.imagineqira.com/",
+    "sameAs": [
+      "https://github.com/TheArtOfSound/qev-platform",
+      "https://github.com/TheArtOfSound/qev-desktop",
+      "https://imagineqira.com"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free vault tools; team pilot by request"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is QEV?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "QEV (Qira Encryption Vault) seals work evidence into encrypted packages that open only with your keys, and can export signed proof a third party can verify independently."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I start using QEV?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For a one-off secret, open the free browser vault at /vault. For teams capturing workflow evidence, request a pilot and run a customer-controlled gateway. For reviewers, use /verify and the public challenge."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is QEV a new encryption algorithm?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. QEV uses standard authenticated encryption (XChaCha20-Poly1305 / ChaCha20-Poly1305). The product value is packaging, verification, and workflow capture built on those standards."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is QEV production-ready for enterprise?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "QEV is a controlled-use product preview. Vault tools work offline today. The team gateway is a pilot. There is no formal third-party audit, KMS/HSM, or enterprise multi-tenant hardening yet."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+
+  <style id="qira-apps-nav">
+    nav .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    nav qira-product-launcher { display: inline-flex; align-items: center; flex-shrink: 0; margin-left: auto; }
+  </style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+  {"@type":"WebSite","name":"QEV by Qira","alternateName":["QEV","Qira Encryption Vault"],"url":"https://secure.imagineqira.com/","publisher":{"@id":"https://imagineqira.com/#organization"}},
+  {"@type":"Organization","@id":"https://imagineqira.com/#organization","name":"Qira LLC","url":"https://imagineqira.com/"}
+]}
+</script>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="#paths">Get started</a>
+      <a href="#product">Product</a>
+      <a href="/workspace/">Workspace preview</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+    <a href="https://imagineqira.com/" class="qira-home-link" style="font:600 12.5px/1 Inter,system-ui,sans-serif;color:inherit;opacity:.75;text-decoration:none;margin-right:8px;letter-spacing:.04em" title="Qira company site">Qira</a>
+    <qira-product-launcher current-product="qev" theme="light"></qira-product-launcher>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-label">QEV by Qira &mdash; Encryption &amp; verification preview</div>
+    <h1>Seal work evidence.<br>Open it only with your keys.</h1>
+    <p class="sub">QEV is Qira’s tool for protecting messages and work artifacts. Create an encrypted vault in your browser, keep your unlock phrase, and check the saved file before sharing it.</p>
+    <div class="hero-actions">
+      <a href="/vault" class="btn btn-primary">Start free in browser</a>
+      
+      <a href="#paths" class="btn btn-outline">See how to use it</a>
+      
+    </div>
+    <p class="hero-note">The free browser vault does not require a Qira account. Your unlock phrase is separate from your Qira password; keep it safe.</p>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap">
+    <div class="strip-row">
+      <div class="strip-item"><div class="dot dot-green"></div>Standard AEAD encryption</div>
+      <div class="strip-item"><div class="dot dot-green"></div>Signed packages you can re-verify</div>
+      <div class="strip-item"><div class="dot dot-green"></div>Customer-held keys</div>
+      <div class="strip-item"><div class="dot dot-green"></div>This site is integrity-signed</div>
+      <div class="strip-item"><div class="dot dot-amber"></div>Team gateway in pilot</div>
+    </div>
+  </div>
+</div>
+
+<!-- THREE PATHS — primary client decision -->
+<section id="paths">
+  <div class="wrap">
+    <div class="label">Get started</div>
+    <div class="heading">Three clear ways to use QEV</div>
+    <div class="desc">Pick the path that matches what you need. You do not need to understand the full stack to start.</div>
+    <div class="g3">
+      <div class="card path-card">
+        <div class="path-num">1</div>
+        <div class="card-label">Free · ready now</div>
+        <h3>Send or store one secret</h3>
+        <p>Type a message, choose a phrase, download an encrypted vault file. Send the file one way and the phrase another. No account, no server sees the plaintext.</p>
+        <ul>
+          <li>Browser vault — works offline after load</li>
+          <li>Desktop apps for Mac / Windows</li>
+          <li>CLI for scripts and CI</li>
+        </ul>
+        <a href="/vault" class="btn btn-sm btn-primary">Open browser vault</a>
+        <a href="/downloads" class="btn btn-sm btn-outline" style="margin-left:8px">Download apps</a>
+      </div>
+      <div class="card path-card path-card-featured">
+        <div class="path-num">2</div>
+        <div class="card-label">Teams · pilot</div>
+        <h3>Capture workflow evidence</h3>
+        <p>Connect your tools so job events, photos, and change records seal into packages your org can verify later — gateway runs under your control.</p>
+        <ul>
+          <li>Ingest API + connectors</li>
+          <li>Field-service style flows</li>
+          <li>Evidence bundles for handoff</li>
+        </ul>
+        <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Team%20Pilot" class="btn btn-sm btn-primary">Request pilot access</a>
+        <a href="/docs/gateway/" class="btn btn-sm btn-outline" style="margin-left:8px">Gateway docs</a>
+      </div>
+      <div class="card path-card">
+        <div class="path-num">3</div>
+        <div class="card-label">Reviewers · free</div>
+        <h3>Verify trust yourself</h3>
+        <p>Check that this site was not swapped after signing, inspect the public challenge bundle, and read what we claim — and what we do not.</p>
+        <ul>
+          <li>Site integrity record</li>
+          <li>Public decryption challenge</li>
+          <li>Trust program &amp; audit status</li>
+        </ul>
+        <a href="/verify" class="btn btn-sm btn-primary">Verify this site</a>
+        <a href="/trust/" class="btn btn-sm btn-outline" style="margin-left:8px">Trust program</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCT -->
+<section class="alt-bg" id="product">
+  <div class="wrap">
+    <div class="label">Product</div>
+    <div class="heading">What you get with QEV</div>
+    <div class="desc">One product family: portable vault files first; optional capture and verification for teams.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Core</div>
+        <h3>Encrypted vault packages</h3>
+        <p>Portable Vault V2 files. Phrase-based unlock. Built on standard authenticated encryption — not a custom cipher.</p>
+        <a href="/docs/vault-format/" class="btn btn-sm btn-outline">Vault format</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Proof</div>
+        <h3>Signed evidence bundles</h3>
+        <p>Export a package with hashes and signatures so a third party can check integrity and authenticity without trusting your UI.</p>
+        <a href="/docs/evidence-bundle/" class="btn btn-sm btn-outline">Evidence bundle</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Teams</div>
+        <h3>Capture gateway</h3>
+        <p>Customer-controlled service that seals selected workflow events via API, SDK, or connectors. Pilot, not enterprise-certified.</p>
+        <a href="/docs/gateway/" class="btn btn-sm btn-outline">Gateway docs</a>
+      </div>
+    </div>
+    <div class="g3" style="margin-top:20px">
+      <div class="card">
+        <div class="card-label">Integrate</div>
+        <h3>SDK &amp; CLI</h3>
+        <p>Call capture from your app, or seal/verify from the command line in automation.</p>
+        <a href="/sdk/" class="btn btn-sm btn-outline">JS SDK</a>
+        <a href="/downloads" class="btn btn-sm btn-outline" style="margin-left:8px">CLI / apps</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Honesty</div>
+        <h3>Trust marks that mean something</h3>
+        <p>Badges link to scoped certificates — never “this whole company is secure.” Preview status is stated up front.</p>
+        <a href="/trust/" class="btn btn-sm btn-outline">Trust program</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Site safety</div>
+        <h3>This marketing site is signed</h3>
+        <p>Every protected page is hashed and the manifest is Ed25519-signed. If the page bytes change after signing, you get a red warning.</p>
+        <a href="/verify" class="btn btn-sm btn-outline">How verification works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="wrap">
+    <div class="label">How it works</div>
+    <div class="heading">From plaintext to proof in four steps</div>
+    <div class="desc">Same idea for a one-off secret or a team workflow — only the capture step changes.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">Step 01</div>
+        <h4>Capture</h4>
+        <p>You type a secret, or your systems send a workflow event (job done, photo, change order).</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 02</div>
+        <h4>Seal</h4>
+        <p>QEV encrypts the content into a portable package. Keys stay with you — not with a QEV cloud that can read plaintext.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 03</div>
+        <h4>Share or store</h4>
+        <p>Send the file through normal channels. For team pilots, packages land in your controlled gateway storage.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 04</div>
+        <h4>Verify</h4>
+        <p>Open with the phrase or keys. Export a signed bundle when someone else must independently check that nothing was swapped.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="alt-bg" id="who">
+  <div class="wrap">
+    <div class="label">Who it's for</div>
+    <div class="heading">Built for people who must prove what happened</div>
+    <div class="desc">Not a general chat app. Not a new cipher. A product for sealed records and checkable proof.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">Operations</div>
+        <h3>Field &amp; service teams</h3>
+        <p>Estimates, approvals, job photos, and completion records that need to stay intact for disputes or handoffs.</p>
+        <a href="/field-service-evidence/">Field service evidence →</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Security</div>
+        <h3>Reviewers &amp; auditors</h3>
+        <p>Independent verification, public challenge, and an explicit list of what is hardened vs still limited.</p>
+        <a href="/security">Security posture →</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Engineering</div>
+        <h3>Builders integrating capture</h3>
+        <p>SDK, gateway API, and connectors so evidence sealing is part of the workflow — not a manual afterthought.</p>
+        <a href="/docs/">Documentation →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEE IT — real recorded output, not a mock-up -->
+<section id="see-it">
+  <div class="wrap">
+    <div class="label">See it</div>
+    <div class="heading">Watch it verify. Then watch it refuse.</div>
+    <div class="desc">Both clips are the real verifier run against this site, recorded from actual output &mdash; nothing re-enacted or typed for the camera. The second one matters more: a checker that never fails is not a checker.</div>
+
+    <div class="g2" style="margin-top:22px;">
+      <figure style="margin:0;">
+        <video controls muted playsinline preload="none"
+               width="1280" height="720"
+               poster="/media/verify-pass.jpg"
+               style="width:100%;height:auto;aspect-ratio:16/9;background:#12141a;border:1px solid var(--border);border-radius:8px;display:block;"
+               aria-describedby="cap-pass">
+          <source src="/media/verify-pass.mp4" type="video/mp4">
+          Your browser cannot play this clip. Everything it shows you can run yourself &mdash;
+          see <a href="/verify">/verify</a>.
+        </video>
+        <figcaption id="cap-pass" style="font-size:0.85rem;color:var(--text-secondary);margin-top:10px;">
+          <strong>Signature valid, 78/78 files match.</strong> It ends on what the check does
+          <em>not</em> prove &mdash; that the key belongs to who you think, that the code is
+          bug-free, that we are trustworthy. Run it yourself: <a href="/verify">/verify</a>.
+        </figcaption>
+      </figure>
+
+      <figure style="margin:0;">
+        <video controls muted playsinline preload="none"
+               width="1280" height="720"
+               poster="/media/verify-tamper.jpg"
+               style="width:100%;height:auto;aspect-ratio:16/9;background:#12141a;border:1px solid var(--border);border-radius:8px;display:block;"
+               aria-describedby="cap-tamper">
+          <source src="/media/verify-tamper.mp4" type="video/mp4">
+          Your browser cannot play this clip. Everything it shows you can run yourself &mdash;
+          see <a href="/verify">/verify</a>.
+        </video>
+        <figcaption id="cap-tamper" style="font-size:0.85rem;color:var(--text-secondary);margin-top:10px;">
+          <strong>One hex character changed in one digest &mdash; and it fails.</strong> The
+          signature check refuses, and it will not go on to hash files against a manifest it
+          could not authenticate. Exit code 3.
+        </figcaption>
+      </figure>
+    </div>
+
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-top:16px;max-width:70ch;">
+      No audio, no narration, no third-party player &mdash; these load from this server like
+      everything else here. Prefer text? The same output is on
+      <a href="/verify">/verify</a>, and the verifier is in the
+      <a href="https://github.com/TheArtOfSound/qev-platform">public repository</a>.
+    </p>
+  </div>
+</section>
+
+<!-- SECURITY — honest, shorter -->
+<section id="security">
+  <div class="wrap">
+    <div class="label">Security posture</div>
+    <div class="heading">What is solid today — and what is not</div>
+    <div class="desc">We document limits in public. That is part of the product.</div>
+    <div class="sec-grid">
+      <div class="sec-col">
+        <h3>Ready for evaluation</h3>
+        <ul>
+          <li><span class="mark-done">Done</span>Standard AEAD (ChaCha family) — not a home-rolled cipher</li>
+          <li><span class="mark-done">Done</span>Portable vault packages with integrity binding</li>
+          <li><span class="mark-done">Done</span>Signed bundle verification with explicit trust verdicts</li>
+          <li><span class="mark-done">Done</span>This site signed end-to-end (Ed25519 + per-file SHA-256)</li>
+          <li><span class="mark-done">Done</span>Multiple internal adversarial hardening passes</li>
+        </ul>
+      </div>
+      <div class="sec-col">
+        <h3>Not claimed yet</h3>
+        <ul>
+          <li><span class="mark-open">Open</span>No formal third-party security audit</li>
+          <li><span class="mark-open">Open</span>No KMS / HSM integration</li>
+          <li><span class="mark-open">Open</span>No enterprise multi-tenant hardening</li>
+          <li><span class="mark-open">Open</span>No formal key rotation / revocation product</li>
+          <li><span class="mark-open">Open</span>Team gateway is pilot-grade, not certified</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:28px;font-size:0.9rem;color:var(--text-secondary)">
+      <a href="/trust/">Trust program</a> ·
+      <a href="/audit-status/">Audit status</a> ·
+      <a href="/threat-model/">Threat model</a> ·
+      <a href="/status/">Status &amp; tests</a>
+    </p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="alt-bg" id="faq">
+  <div class="wrap">
+    <div class="label">FAQ</div>
+    <div class="heading">Common questions</div>
+    <div class="faq">
+
+      <div class="faq-row">
+        <div class="faq-q">What should I do first?</div>
+        <div class="faq-a">If you need a one-off sealed message: open the <a href="/vault">browser vault</a>. If your team needs automated capture: <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Team%20Pilot">request a pilot</a>. If you are reviewing security: start at <a href="/verify">/verify</a>.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">Is this a new cryptographic algorithm?</div>
+        <div class="faq-a">No. QEV uses standard authenticated encryption. The product is packaging, verification semantics, and optional workflow capture — not a novel cipher.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">Do I need an account?</div>
+        <div class="faq-a">No account for the free browser vault, desktop apps, or CLI. Team pilot uses your gateway and your access control — we are not a required cloud that holds your plaintext.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">Is QEV ready for full production enterprise use?</div>
+        <div class="faq-a">It is a controlled-use product preview. Vault tools are usable today for evaluation and controlled workflows. The capture gateway is pilot. There is no third-party audit certificate yet. See <a href="/trust/">Trust</a> and <a href="/pricing/">Pricing</a>.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">What does verification actually prove?</div>
+        <div class="faq-a">For packages: file integrity (hashes match), signature validity, and metadata consistency — reported as separate checks, not a vague “secure” badge. For this website: every signed page’s bytes must match the Ed25519-signed manifest or you see a tamper warning.</div>
+      </div>
+
+      <div class="faq-row">
+        <div class="faq-q">How do I contact sales or security?</div>
+        <div class="faq-a">Email <a href="mailto:bryanleonard@imagineqira.com">bryanleonard@imagineqira.com</a>. Use subject “Team Pilot” or “Security Review” so we route it correctly. Or use <a href="/contact">/contact</a>.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CHALLENGE — demoted, still available -->
+<section id="public-challenge">
+  <div class="wrap">
+    <div class="label">Optional · for crypto reviewers</div>
+    <div class="heading">Public decryption challenge</div>
+    <div class="desc">Not required to use the product. Posted so specialists can attack a real signed bundle on their own terms.</div>
+    <div class="card" style="max-width:880px;border:1px solid var(--border)">
+      <p style="margin-bottom:16px;color:var(--text-secondary);font-size:0.92rem">A real encrypted bundle is live on this site. Verify the manifest with standard tools. Master-key reveal follows a published commit-reveal schedule so plaintext cannot be swapped after the fact.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="/challenge" class="btn btn-sm btn-outline">See the challenge</a>
+        <a href="/challenge/bry-nfet-sx-challenge-bundle.zip" class="btn btn-sm btn-outline" download>Download bundle</a>
+        <a href="/verify" class="btn btn-sm btn-outline">Site integrity</a>
+      </div>
+      <div id="challenge-callout-countdown" style="margin-top:16px;font-size:0.8rem;color:var(--text-dim)">Loading challenge metadata…</div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  function fmtRemaining(ms){
+    if (ms <= 0) return 'Reveal window open';
+    var s = Math.floor(ms/1000);
+    var d = Math.floor(s/86400); s -= d*86400;
+    var h = Math.floor(s/3600);  s -= h*3600;
+    var m = Math.floor(s/60);
+    return 'Master key reveal in ' + d + 'd ' + h + 'h ' + m + 'm';
+  }
+  fetch('/challenge/challenge-meta.json')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(meta){
+      if (!meta) return;
+      var el = document.getElementById('challenge-callout-countdown');
+      function tick(){
+        var ms = new Date(meta.reveal_at).getTime() - Date.now();
+        if (el) el.textContent = fmtRemaining(ms);
+      }
+      tick(); setInterval(tick, 1000);
+    })
+    .catch(function(){});
+})();
+</script>
+
+<!-- FINAL CTA -->
+<div class="cta-block" id="contact">
+  <div class="wrap">
+    <h2>Ready to use QEV?</h2>
+    <p>Start free in the browser, download desktop tools, or talk to us about a team pilot.</p>
+    <div class="cta-actions">
+      <a href="/vault" class="btn btn-primary">Start free</a>
+      <a href="/workspace/" class="btn btn-outline">Open Workspace</a>
+      <a href="/downloads" class="btn btn-outline">Download</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Team%20Pilot" class="btn btn-outline">Team pilot</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <strong>QEV</strong> — Qira Encryption Vault · product preview v0.29<br>
+    Seal evidence with standard authenticated encryption. Customer-held keys. Signed proof when you need it.<br>
+    Formerly referred to as BRY-NFET-SX in research materials.<br>
+    &copy; 2026 <a href="https://imagineqira.com" rel="noopener">Qira LLC</a>. All rights reserved.<br>
+    <span style="display:inline-block;margin-top:10px">
+      <a href="/docs/">Docs</a> &middot;
+      <a href="/workspace/">Workspace</a> &middot;
+      <a href="/pricing/">Pricing</a> &middot;
+      <a href="/downloads">Download</a> &middot;
+      <a href="/trust/">Trust</a> &middot;
+      <a href="/verify">Site Integrity</a> &middot;
+      <a href="/status/">Status</a> &middot;
+      <a href="https://github.com/TheArtOfSound/qev-platform" rel="noopener">GitHub</a> &middot;
+      <a href="https://www.npmjs.com/package/@bryan237l/qev-cli" rel="noopener">CLI on npm</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.faq-q').forEach(function(el){
+  el.addEventListener('click', function(){
+    this.parentElement.classList.toggle('open');
+  });
+});
+</script>
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+  <!-- Qira Apps launcher — navigation only; no QEV private state -->
+  <script src="/assets/qira-apps/qira-product-launcher.js?v=20260807portal" defer></script>
+</body>
+</html>

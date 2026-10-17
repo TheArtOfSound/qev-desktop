@@ -1,0 +1,24 @@
+# secure.imagineqira.com — robots
+# Robots rules are not security controls.
+
+User-agent: *
+Allow: /
+Allow: /vault
+Allow: /downloads
+Allow: /trust/
+Allow: /field-service-evidence/
+Allow: /tools/
+Allow: /audit-status/
+Allow: /platform/
+
+Disallow: /app/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /session/
+Disallow: /case/
+Disallow: /package/
+Disallow: /v1/
+Disallow: /platform/v1/
+
+Sitemap: https://secure.imagineqira.com/sitemap.xml
+Sitemap: https://secure.imagineqira.com/sitemap-index.xml

@@ -1,0 +1,115 @@
+{
+  "envelope_id": "7a2860e23b7fb9e551ca694c43f7402794eaa063bda67aa834fc2b7dfa0a3e71",
+  "header": {
+    "context": "challenge-public-v1",
+    "created_at_ms": 1700479805959,
+    "family_mode": "manual",
+    "message_count": 3,
+    "mode": "audit",
+    "requested_family_id": "ring_shift_v1",
+    "session_id": "6d5ffbf47bfca5a6",
+    "version": 1
+  },
+  "messages": [
+    {
+      "message_index": 0,
+      "packet": {
+        "ciphertext_b64": "auOiLxYz51Xqc80X3ZslAJp5Uo8kTjiZDEGsegVkhzbuwz3xZNDpO5Yb9btqxT/MMuUJe8mfvc517ps+t3FFb9c8M5Babts8KOC1jVNmXjLG+0ZYG47XI/FYKz1UHztKmQ==",
+        "header": {
+          "alg": "ChaCha20-Poly1305",
+          "bry_mode": "token_ids_v1",
+          "context": "challenge-public-v1",
+          "created_at_ms": 1701507802077,
+          "packet_nonce": "env-0000-4da861b98623b68a1b4fe2eb",
+          "session_id": "6d5ffbf47bfca5a6",
+          "token_count": 81,
+          "transform_family_id": "ring_shift_v1",
+          "version": 3
+        },
+        "packet_id": "958408f74c4e2f33a3ac95c2f7005e66c4436af3ed74bd71b96d16ec98b6796a",
+        "schema": "BRY-NFET-SX-PACKET-V3"
+      },
+      "packet_id": "958408f74c4e2f33a3ac95c2f7005e66c4436af3ed74bd71b96d16ec98b6796a",
+      "packet_nonce": "env-0000-4da861b98623b68a1b4fe2eb",
+      "transform_family_id": "ring_shift_v1"
+    },
+    {
+      "message_index": 1,
+      "packet": {
+        "ciphertext_b64": "1rR1PdUwyYEwwE7DKZHcmb9+Dcu0QwsyF2Pllo8tChLQH83c04/2HA2DN7/bDd3iLLCQqiWLjg47sHX+0/5mfO+QeJF3F5mfClEb5F7uD10lpHMOVGqexSXLqzQhMMyIk+WC5FMbj3iSX7dxuhpqxmlZv4QndmpI47y0rZTbv1tPh4M77Ofud5lECvvWaglbnL8AsbSrRFgYFAVdyXdwBITDcsshQFalv2P0AQ==",
+        "header": {
+          "alg": "ChaCha20-Poly1305",
+          "bry_mode": "token_ids_v1",
+          "context": "challenge-public-v1",
+          "created_at_ms": 1700619412327,
+          "packet_nonce": "env-0001-197a2c0381a8532ded8ea362",
+          "session_id": "6d5ffbf47bfca5a6",
+          "token_count": 156,
+          "transform_family_id": "ring_shift_v1",
+          "version": 3
+        },
+        "packet_id": "fcfdbe7c92b31720f67500ea3c1a46b8952555aa1d6d605e96dbb5dbaa0fb583",
+        "schema": "BRY-NFET-SX-PACKET-V3"
+      },
+      "packet_id": "fcfdbe7c92b31720f67500ea3c1a46b8952555aa1d6d605e96dbb5dbaa0fb583",
+      "packet_nonce": "env-0001-197a2c0381a8532ded8ea362",
+      "transform_family_id": "ring_shift_v1"
+    },
+    {
+      "message_index": 2,
+      "packet": {
+        "ciphertext_b64": "R6f7sCF2zegJFuZ6Xih5ZxurZiTSGq2ONL9MQkDnwWEtM9pXhnujS9OdgxXCvnzn9LTKN4bjQjI6w6LA0A==",
+        "header": {
+          "alg": "ChaCha20-Poly1305",
+          "bry_mode": "token_ids_v1",
+          "context": "challenge-public-v1",
+          "created_at_ms": 1707272766321,
+          "packet_nonce": "env-0002-63abc54dbd0b913737ea5059",
+          "session_id": "6d5ffbf47bfca5a6",
+          "token_count": 45,
+          "transform_family_id": "ring_shift_v1",
+          "version": 3
+        },
+        "packet_id": "8367e48dbd145c63ffc3512ba97e9425459837884a4616beca2dab1094b36a76",
+        "schema": "BRY-NFET-SX-PACKET-V3"
+      },
+      "packet_id": "8367e48dbd145c63ffc3512ba97e9425459837884a4616beca2dab1094b36a76",
+      "packet_nonce": "env-0002-63abc54dbd0b913737ea5059",
+      "transform_family_id": "ring_shift_v1"
+    }
+  ],
+  "provenance": {
+    "app_version": "0.27.0",
+    "audit_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/audit.py",
+    "bundles_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/bundles.py",
+    "corpus_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/corpus.py",
+    "cwd": "/Users/bry/dev/bry_nfet_sx",
+    "deterministic_evaluation": true,
+    "envelope_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/envelope.py",
+    "family_mode": "manual",
+    "fuzz_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/fuzz.py",
+    "key_version": "challenge-v1",
+    "keys_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/keys.py",
+    "label": "envelope_build",
+    "message_count": 3,
+    "mode": "audit",
+    "packet_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/packet.py",
+    "platform": "macOS-26.3.1-arm64-arm-64bit",
+    "provider_id": "local",
+    "provider_label": "Challenge Inline Key",
+    "python_executable": "/Users/bry/dev/bry_nfet_sx/.venv/bin/python3",
+    "python_version": "3.12.13 (main, Apr  7 2026, 21:09:58) [Clang 22.1.1 ]",
+    "requested_family_id": "ring_shift_v1",
+    "routed_family_ids": [
+      "ring_shift_v1",
+      "ring_shift_v1",
+      "ring_shift_v1"
+    ],
+    "run_id": "9b36c4d28b5962f8",
+    "schema": "BRY-NFET-SX-RUNTIME-V1",
+    "signing_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/signing.py",
+    "timestamp_ms": 1776207465344,
+    "transforms_module_file": "/Users/bry/dev/bry_nfet_sx/src/bry_nfet_sx/protocol/transforms.py"
+  },
+  "schema": "BRY-NFET-SX-ENVELOPE-V1"
+}

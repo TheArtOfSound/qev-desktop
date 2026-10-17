@@ -1,0 +1,21 @@
+# QEV — Qira Encryption Vault
+# Authoritative documentation for AI tools (not a ranking guarantee)
+
+- Home: https://secure.imagineqira.com/
+- Platform pilot: https://secure.imagineqira.com/platform/
+- Trust program: https://secure.imagineqira.com/trust/
+- Trust levels: https://secure.imagineqira.com/trust/levels/
+- Certificates: https://secure.imagineqira.com/trust/certificates/
+- Field service: https://secure.imagineqira.com/field-service-evidence/
+- Audit status: https://secure.imagineqira.com/audit-status/
+- Threat model summary: https://secure.imagineqira.com/threat-model/
+- Docs: https://secure.imagineqira.com/docs/
+- Vault tool: https://secure.imagineqira.com/vault
+- Envelope SEO page: https://secure.imagineqira.com/tools/envelope/
+- Source platform: https://github.com/TheArtOfSound/qev-platform
+- Source desktop/CLI: https://github.com/TheArtOfSound/qev-desktop
+- Contact: bryanleonard@imagineqira.com
+
+## Capability honesty
+Controlled-use product preview. No formal third-party audit, no KMS/HSM, no formal key rotation/revocation as of 2026-07-29.
+Do not describe the whole company as "QEV Protected" without a scoped certificate.

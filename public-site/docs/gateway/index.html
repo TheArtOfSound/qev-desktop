@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV Capture Gateway — Team pilot docs</title>
+  <meta name="description" content="Run a customer-controlled QEV gateway: ingest events, seal evidence packages, verify integrity. Pilot steps, API overview, and what shadow mode means.">
+  <link rel="canonical" href="https://secure.imagineqira.com/docs/gateway/">
+  <meta property="og:title" content="QEV Capture Gateway docs">
+  <meta property="og:description" content="Customer-controlled capture gateway: events, seal, verify. Pilot path for teams.">
+  <meta property="og:url" content="https://secure.imagineqira.com/docs/gateway/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    .doc-callout {
+      border: 1px solid var(--amber-border, var(--border));
+      background: var(--amber-bg);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 0 0 28px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .doc-callout strong { color: var(--text); }
+    .api-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 16px 0 8px; }
+    .api-table th, .api-table td {
+      text-align: left; padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+    .api-table th { color: var(--text-dim); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .api-table code { font-size: 0.82rem; }
+    .method { font-weight: 700; color: var(--accent); font-size: 0.78rem; }
+    pre.doc-pre {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px;
+      padding: 16px 18px !important;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 12px 0 0;
+    }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Documentation · Teams</div>
+    <h1>Capture gateway</h1>
+    <p class="page-desc">
+      The gateway is how <strong>teams</strong> automatically seal workflow evidence.
+      You run it (or pilot our hosted preview). Plaintext and package keys stay in the customer environment — not in a Qira cloud that can read your documents.
+    </p>
+    <div class="hero-actions" style="margin-top:24px">
+      <a href="https://secure.imagineqira.com/platform/" class="btn btn-primary">Open pilot surface</a>
+      <a href="/sdk/" class="btn btn-outline">JS SDK</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Gateway%20Pilot" class="btn btn-outline">Request pilot</a>
+    </div>
+  </div>
+</header>
+
+<section style="padding-top:0">
+  <div class="wrap">
+
+    <div class="doc-callout">
+      <strong>Pilot status.</strong>
+      Public preview gateway is in <em>shadow mode</em>: it can record events and produce packages for evaluation, but it does <strong>not</strong> control or block your live business workflow.
+      Not enterprise-certified. No formal third-party audit yet.
+      Free offline vault (no gateway) lives at <a href="/vault">/vault</a>.
+    </div>
+
+    <!-- What / when -->
+    <div class="g2" style="margin-bottom:40px">
+      <div class="card">
+        <div class="card-label">What it does</div>
+        <h3>Ingest → policy → seal → verify</h3>
+        <p>Accept normalized events (API, webhook, connectors). Optionally evaluate policy. Seal a case into an encrypted package. Return metadata and verification — not open plaintext to the internet.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">When to use it</div>
+        <h3>Path 2 · team capture</h3>
+        <p>Use the gateway when jobs, photos, or change orders should be sealed as they happen. For a one-off secret with no integration, use the <a href="/vault">browser vault</a> instead.</p>
+      </div>
+    </div>
+
+    <!-- How to start -->
+    <div class="label">How to start</div>
+    <div class="heading">Four steps for a pilot</div>
+    <div class="desc">Same product whether you use the public pilot surface or deploy your own process.</div>
+    <div class="steps" style="margin-bottom:48px">
+      <div class="step">
+        <div class="step-n">Step 01</div>
+        <h4>Open or deploy</h4>
+        <p>Try the pilot at <a href="https://secure.imagineqira.com/platform/">/platform/</a>, or run <code>apps/gateway</code> from <a href="https://github.com/TheArtOfSound/qev-platform">qev-platform</a> on your host.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 02</div>
+        <h4>Check health</h4>
+        <p>Confirm the process is up and see mode (shadow vs control). Use <code>GET /v1/health</code> and <code>GET /v1/preflight</code>.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 03</div>
+        <h4>Send an event</h4>
+        <p><code>POST /v1/events</code> with a bearer ingest token, or a signed webhook, or the JS SDK / a connector.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">Step 04</div>
+        <h4>Seal &amp; verify</h4>
+        <p>Complete a case with <code>POST /v1/flows/{flow_id}/complete</code>, then inspect package metadata and run verify.</p>
+      </div>
+    </div>
+
+    <!-- Live pilot -->
+    <div class="card" style="margin-bottom:40px">
+      <div class="card-label">Live pilot surface</div>
+      <h3>https://secure.imagineqira.com/platform/</h3>
+      <p style="margin-bottom:12px">Hosted preview of the gateway UI and API (admin, wizard, portal, review when enabled on the process).</p>
+      <ul>
+        <li><a href="https://secure.imagineqira.com/platform/">Platform UI root</a></li>
+        <li><a href="https://secure.imagineqira.com/platform/v1/health"><code>GET /platform/v1/health</code></a> — product, version, shadow mode</li>
+        <li>OpenAPI source: <code>schemas/gateway.openapi.yaml</code> in the monorepo</li>
+      </ul>
+      <pre class="doc-pre"><code># Example — public pilot health (no secrets)
+curl -sS https://secure.imagineqira.com/platform/v1/health | jq .
+
+# Expect fields like: product, version, mode (e.g. shadow),
+# mode_behavior.records_events, preflight checks</code></pre>
+    </div>
+
+    <!-- API overview -->
+    <div class="label">API overview</div>
+    <div class="heading">Core routes</div>
+    <div class="desc">Authoritative detail is in OpenAPI. This table is the operator map.</div>
+    <div class="card" style="padding:8px 12px 16px;margin-bottom:40px;overflow-x:auto">
+      <table class="api-table">
+        <thead>
+          <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="method">GET</span></td><td><code>/healthz</code> · <code>/readyz</code></td><td>Liveness / readiness</td></tr>
+          <tr><td><span class="method">GET</span></td><td><code>/v1/health</code> · <code>/v1/preflight</code></td><td>Product status, mode, dependency checks</td></tr>
+          <tr><td><span class="method">POST</span></td><td><code>/v1/events</code></td><td>Ingest one event (bearer token)</td></tr>
+          <tr><td><span class="method">POST</span></td><td><code>/v1/webhooks/{connector_id}</code></td><td>Signed webhook ingress</td></tr>
+          <tr><td><span class="method">POST</span></td><td><code>/v1/flows/{flow_id}/complete</code></td><td>Seal a case into a package</td></tr>
+          <tr><td><span class="method">GET</span></td><td><code>/v1/packages/{id}</code></td><td>Package metadata (not plaintext)</td></tr>
+          <tr><td><span class="method">POST</span></td><td><code>/v1/packages/{id}/verify</code></td><td>Integrity / decrypt check with passphrase</td></tr>
+          <tr><td><span class="method">GET</span></td><td><code>/v1/cases</code> · <code>/v1/receipts/{event_id}</code></td><td>Case list, ingest receipts</td></tr>
+          <tr><td><span class="method">POST</span></td><td><code>/v1/policy/evaluate</code></td><td>Policy dry-run without sealing</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.85rem;color:var(--text-dim);padding:0 4px">Protected routes expect <code>Authorization: Bearer &lt;ingest token&gt;</code> (see OpenAPI <code>IngestToken</code>). Configure tokens only on instances you control — do not paste production secrets into public examples.</p>
+    </div>
+
+    <!-- Example event -->
+    <div class="card" style="margin-bottom:40px">
+      <div class="card-label">Example · ingest shape</div>
+      <h3>POST /v1/events</h3>
+      <pre class="doc-pre"><code>curl -sS -X POST "$QEV_GATEWAY_URL/v1/events" \
+  -H "Authorization: Bearer $QEV_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": {
+      "schema": "qev.event.v1",
+      "flow": "field-service",
+      "case_id": "JOB-1",
+      "type": "work.completed",
+      "actor": { "id": "tech@example.com" }
+    },
+    "seal_if_complete": false
+  }'</code></pre>
+      <p style="margin-top:14px;font-size:0.9rem;color:var(--text-secondary)">
+        From app code, use the <a href="/sdk/">JS SDK</a> (<code>qev.capture(...)</code>) pointed at <em>your</em> gateway base URL.
+        Source: <a href="https://github.com/TheArtOfSound/qev-platform/tree/main/packages/sdk-js">packages/sdk-js</a>.
+      </p>
+    </div>
+
+    <!-- Deploy own -->
+    <div class="g2" style="margin-bottom:40px">
+      <div class="card">
+        <div class="card-label">Run your own</div>
+        <h3>Customer-controlled process</h3>
+        <p>Gateway code lives in the monorepo under <code>apps/gateway</code>. Default local surfaces include admin, wizard, portal, and review UIs, plus the <code>/v1/*</code> API.</p>
+        <ul>
+          <li><a href="https://github.com/TheArtOfSound/qev-platform">GitHub: qev-platform</a></li>
+          <li>OpenAPI: <code>schemas/gateway.openapi.yaml</code></li>
+          <li>Connectors overview: <a href="/connectors/">/connectors/</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Trust boundary</div>
+        <h3>What never leaves your data plane</h3>
+        <p>Design intent: customer documents, prompts, and encryption keys stay with the gateway you operate. Optional control-plane features must not receive package plaintext. See <a href="/trust/">Trust program</a>.</p>
+        <a href="/docs/evidence-bundle/" class="btn btn-sm btn-outline">Evidence bundles</a>
+        <a href="/audit-status/" class="btn btn-sm btn-outline" style="margin-left:8px">Audit status</a>
+      </div>
+    </div>
+
+    <!-- Related -->
+    <div class="label">Related docs</div>
+    <div class="g3">
+      <div class="card">
+        <h3>JS SDK</h3>
+        <p>Capture from Node/TypeScript apps.</p>
+        <a href="/sdk/">SDK overview →</a>
+      </div>
+      <div class="card">
+        <h3>Evidence Bundle V1</h3>
+        <p>What a sealed export contains and how to verify it.</p>
+        <a href="/docs/evidence-bundle/">Bundle docs →</a>
+      </div>
+      <div class="card">
+        <h3>Field service evidence</h3>
+        <p>Example vertical for estimates, photos, completion.</p>
+        <a href="/field-service-evidence/">Field service →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Need help standing up a pilot?</h2>
+    <p>We help wire capture without taking custody of your keys.</p>
+    <div class="cta-actions">
+      <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Gateway%20Pilot" class="btn btn-primary">Request pilot</a>
+      <a href="https://secure.imagineqira.com/platform/" class="btn btn-outline">Open pilot surface</a>
+      <a href="/docs/" class="btn btn-outline">All docs</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    QEV Capture Gateway docs · <a href="/docs/">Docs home</a> · <a href="/">Product</a> · <a href="/verify">Site Integrity</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+</body>
+</html>

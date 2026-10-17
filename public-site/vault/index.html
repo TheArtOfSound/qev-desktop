@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault | QEV (Qira Encryption Vault)</title>
+  <meta name="description" content="Encrypt a message in your browser. The plaintext never leaves this tab. Save the vault file. Share the password on a different channel. The simplest secure messaging tool you can verify yourself.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://secure.imagineqira.com/vault">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://secure.imagineqira.com/vault">
+  <meta property="og:title" content="Vault | QEV (Qira Encryption Vault)">
+  <meta property="og:description" content="Encrypt a message in your browser. Plaintext never leaves the tab. XChaCha20-Poly1305 + Argon2id, all running locally.">
+  <meta property="og:site_name" content="QEV">
+
+  <link rel="stylesheet" href="/styles.css?v=0.29.0">
+
+  <style>
+    /* Vault-specific styles, scoped to .vault-* class names so they don't
+       affect anything else on the site. */
+    .vault-load-banner {
+      max-width: 880px; margin: 0 auto 24px auto;
+      padding: 12px 18px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.85rem; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .vault-load-banner .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
+    .vault-status { font-size: 0.82rem; padding: 8px 12px; border-radius: 4px; margin-top: 12px; }
+    .vault-status-info { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); }
+    .vault-status-ok { background: var(--green-bg); color: var(--green-text); border: 1px solid rgba(13,122,79,0.2); }
+    .vault-status-err { background: rgba(220,38,38,0.06); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
+
+    .vault-mode-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .vault-mode-btn {
+      flex: 1 1 240px; min-width: 0; padding: 18px 22px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; text-align: left; transition: border-color 0.12s, box-shadow 0.12s;
+      font-family: inherit;
+    }
+    .vault-mode-btn:hover { border-color: var(--accent-border); }
+    .vault-mode-btn.vault-mode-active {
+      border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    /* Was an <h4> inside a <button> — invalid content model, and it broke
+       the heading outline. Now a styled span; the visual result is the same. */
+    .vault-mode-btn .vault-mode-btn-title {
+      display: block; font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    }
+    .vault-mode-btn p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+
+    .vault-form-group { margin-bottom: 18px; }
+    .vault-form-group label {
+      display: block; font-size: 0.82rem; font-weight: 600; color: var(--text);
+      margin-bottom: 6px;
+    }
+    .vault-form-group .vault-helper {
+      font-size: 0.78rem; color: var(--text-dim); margin-top: 4px;
+    }
+    .vault-form-group textarea, .vault-form-group input[type="password"], .vault-form-group input[type="text"] {
+      width: 100%; padding: 10px 14px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg);
+      font-family: inherit; font-size: 0.9rem; color: var(--text);
+      box-sizing: border-box;
+    }
+    .vault-form-group textarea {
+      min-height: 130px; resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+    }
+    .vault-form-group input:focus, .vault-form-group textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    .vault-pw-row { display: flex; gap: 8px; align-items: center; }
+    .vault-pw-row input { flex: 1; }
+    .vault-pw-toggle {
+      padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); cursor: pointer; font-family: inherit;
+      font-size: 0.78rem; color: var(--text-secondary);
+    }
+    .vault-pw-toggle:hover { border-color: var(--text-dim); }
+
+    .vault-dropzone {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 24px; text-align: center; color: var(--text-dim);
+      font-size: 0.85rem; margin-bottom: 12px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .vault-dropzone-hover { border-color: var(--accent); background: var(--accent-bg); }
+    .vault-dropzone input[type="file"] { display: none; }
+    .vault-dropzone label {
+      display: inline-block; padding: 8px 16px; border-radius: 6px;
+      background: var(--text); color: #fff; cursor: pointer;
+      font-size: 0.8rem; font-weight: 600; margin-top: 8px;
+    }
+    .vault-hidden { display: none !important; }
+
+    .vault-result {
+      margin-top: 24px; padding: 18px; border-radius: 8px;
+      border: 1px solid var(--accent-border); background: var(--accent-bg);
+    }
+    .vault-result h3 { font-size: 0.92rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .vault-result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; margin-bottom: 14px; }
+    .vault-result pre {
+      background: var(--bg); border: 1px solid var(--border-subtle);
+      border-radius: 4px; padding: 12px; font-size: 0.78rem;
+      color: var(--text-secondary); overflow-x: auto; max-height: 240px;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .vault-result-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 8px; }
+    .vault-result-warn {
+      margin-top: 14px; padding: 10px 14px; border-radius: 4px;
+      background: var(--amber-bg); color: var(--amber-text);
+      font-size: 0.8rem; border: 1px solid rgba(154,103,0,0.2);
+    }
+
+    .vault-divider {
+      border: none; border-top: 1px solid var(--border); margin: 64px 0;
+    }
+    .vault-decrypt-helper {
+      font-size: 0.8rem; color: var(--amber-text);
+      background: var(--amber-bg); border: 1px solid rgba(154,103,0,0.2);
+      border-radius: 4px; padding: 8px 12px; margin-bottom: 14px;
+    }
+    .vault-card-tight { padding: 24px; }
+    @media (max-width: 600px) {
+      .vault-card-tight { padding: 18px; }
+      .vault-knob-row {
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 12px;
+        padding: 18px 0;
+      }
+      .vault-knob-num { width: 28px; height: 28px; font-size: 0.85rem; }
+      .vault-knob-body label.vault-knob-label { font-size: 0.98rem; }
+      .vault-knob-body textarea, .vault-knob-body input[type="password"], .vault-knob-body input[type="text"] {
+        font-size: 0.95rem;
+      }
+    }
+
+    /* ---- v2: numbered knob rows ---- */
+    .vault-knob-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 16px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .vault-knob-row:last-child { border-bottom: none; }
+    .vault-knob-body { min-width: 0; }
+    .vault-knob-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 0.95rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .vault-knob-body label.vault-knob-label {
+      display: block; font-size: 1.05rem; font-weight: 700;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .vault-knob-body .vault-knob-tip-toggle {
+      font-size: 0.78rem; color: var(--accent); cursor: pointer;
+      background: none; border: none; padding: 0; font-family: inherit;
+      text-decoration: underline;
+    }
+    .vault-knob-body .vault-knob-tip {
+      display: none; margin-top: 8px;
+      padding: 10px 14px; border-radius: 6px;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;
+    }
+    .vault-knob-body .vault-knob-tip.vault-tooltip-open { display: block; }
+    .vault-knob-body textarea, .vault-knob-body input[type="password"], .vault-knob-body input[type="text"] {
+      width: 100%; padding: 12px 14px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg);
+      font-family: inherit; font-size: 1rem; color: var(--text);
+      box-sizing: border-box; margin-top: 8px;
+    }
+    .vault-knob-body textarea {
+      min-height: 130px; resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    .vault-knob-body input:focus, .vault-knob-body textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    .vault-knob-value-box {
+      margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .vault-knob-value-box code {
+      flex: 1 1 220px; min-width: 0;
+      padding: 10px 14px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.82rem; color: var(--text-secondary);
+      word-break: break-all; overflow-wrap: anywhere;
+      box-sizing: border-box; max-width: 100%;
+    }
+    .vault-knob-regen-btn {
+      padding: 9px 16px; border-radius: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; font-family: inherit; font-size: 0.82rem;
+      font-weight: 600; color: var(--text-secondary); flex-shrink: 0;
+    }
+    .vault-knob-regen-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .vault-knob-locked-pill {
+      display: inline-block; padding: 4px 10px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.75rem; color: var(--text-dim); margin-top: 6px;
+    }
+
+    /* Lock strength preset buttons. At narrow widths the 3-column grid
+       crushes the labels, so we drop to a single column under 480px. */
+    .vault-preset-row {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px;
+    }
+    @media (max-width: 480px) {
+      .vault-preset-row { grid-template-columns: 1fr; }
+    }
+    .vault-preset-btn {
+      padding: 14px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; text-align: left; font-family: inherit;
+      transition: border-color 0.12s, box-shadow 0.12s;
+      min-width: 0;
+    }
+    .vault-preset-btn:hover { border-color: var(--accent-border); }
+    .vault-preset-btn.vault-preset-active {
+      border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    .vault-preset-btn .vault-preset-name {
+      display: block; font-size: 0.9rem; font-weight: 700; color: var(--text);
+    }
+    .vault-preset-btn .vault-preset-hint {
+      display: block; font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;
+    }
+
+    /* Password strength meter */
+    .vault-pw-strength {
+      margin-top: 8px; display: flex; gap: 10px; align-items: center;
+    }
+    .vault-pw-strength-bar {
+      flex: 1; height: 6px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .vault-pw-strength-fill {
+      height: 100%; width: 0%; background: #dc2626; transition: width 0.18s, background 0.18s;
+    }
+    .vault-pw-strength-label {
+      font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+      min-width: 80px; text-align: right;
+    }
+    .vault-pw-helper {
+      margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .vault-pw-helper button {
+      padding: 10px 16px; border-radius: 6px;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      cursor: pointer; font-family: inherit; font-size: 0.84rem;
+      font-weight: 600; color: var(--accent);
+    }
+    .vault-pw-helper button:hover {
+      border-color: var(--accent);
+      background: rgba(26, 86, 219, 0.1);
+    }
+    /* Live per-field strength hint. Red when the phrase would be rejected
+       by MIN_STRENGTH_SCORE, amber/green otherwise. */
+    .vault-pw-hint {
+      font-size: 0.78rem; line-height: 1.45; margin-top: 6px; min-height: 1em;
+    }
+    .vault-pw-hint-weak { color: #b91c1c; }
+    .vault-pw-hint-ok { color: var(--text-dim); }
+
+    /* Lock it / Open it big buttons */
+    .vault-bigbtn {
+      display: block; width: 100%;
+      padding: 18px; border-radius: 8px;
+      background: var(--text); color: #fff;
+      font-size: 1.1rem; font-weight: 700;
+      border: none; cursor: pointer;
+      margin-top: 24px;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .vault-bigbtn:hover { background: #2d3340; }
+    .vault-bigbtn:disabled { background: var(--text-dim); cursor: not-allowed; }
+
+    /* Result envelope ID display */
+    .vault-result-envelope {
+      margin-top: 12px; padding: 10px 14px; border-radius: 6px;
+      background: var(--bg); border: 1px solid var(--border-subtle);
+      font-size: 0.78rem; color: var(--text-secondary);
+      word-break: break-all;
+    }
+    .vault-result-envelope strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    /* ---- Clear button (wipes decrypted output + inputs) ----
+       Starts hidden and is un-hidden by the small script at the end of
+       this page. A Clear button that cannot actually clear anything
+       would be worse than none at all, so it only appears once its
+       handler is attached. */
+    .vault-clearbtn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px; padding: 11px 18px; margin-top: 14px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; text-align: center;
+    }
+    .vault-clearbtn:hover { border-color: var(--text-dim); background: var(--surface); }
+    .vault-clearbtn[hidden] { display: none !important; }
+    .vault-clear-note, .vault-fineprint {
+      font-size: 0.78rem; color: var(--text-dim); margin-top: 6px; line-height: 1.5;
+    }
+
+    /* ---- Accessibility: target size (WCAG 2.2 AA, 2.5.8) ----
+       Every control below was measured under 24x24 CSS px at 375px wide.
+       They are raised to 44px where the control already owns its line,
+       so nothing moves horizontally and no layout is redesigned. */
+    main { display: block; }
+    nav { padding: 4px 0; }   /* offsets the taller links: nav height ~unchanged */
+    .logo, .nav-links a {
+      display: inline-flex; align-items: center; min-height: 44px;
+    }
+    .vault-knob-body .vault-knob-tip-toggle {
+      display: inline-flex; align-items: center;
+      min-height: 44px; padding: 4px 6px; margin-left: -6px;
+    }
+    .vault-pw-toggle, .vault-knob-regen-btn { min-height: 44px; }
+    .vault-dropzone label {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px;
+    }
+    /* Inline links in body copy (e.g. /verify) were 13-17px tall.
+       Vertical padding on an inline element enlarges the clickable box
+       without changing line height, so the text does not move. */
+    main p a, main li a, main .desc a { padding: 5px 2px; }
+
+    /* Keyboard focus was only visible on inputs. Every control needs it. */
+    .vault-knob-tip-toggle:focus-visible, .vault-pw-toggle:focus-visible,
+    .vault-knob-regen-btn:focus-visible, .vault-mode-btn:focus-visible,
+    .vault-preset-btn:focus-visible, .vault-bigbtn:focus-visible,
+    .vault-clearbtn:focus-visible, .vault-dropzone label:focus-visible,
+    main a:focus-visible, nav a:focus-visible, footer a:focus-visible,
+    .btn:focus-visible {
+      outline: 3px solid var(--accent); outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --text-secondary: #2f3540;
+        --text-dim: #414852;      /* #8590a2 was under 4.5:1 on white */
+        --border: #6b7480;
+        --border-subtle: #8d95a1;
+      }
+      main a, footer a, .nav-links a { text-decoration: underline; }
+      .vault-knob-locked-pill, .vault-status-info { color: var(--text); }
+    }
+
+    @media (forced-colors: active) {
+      /* box-shadow is dropped in forced-colors mode, so the selected
+         state of the mode and preset buttons needs a real outline. */
+      .vault-mode-btn, .vault-preset-btn, .vault-knob-regen-btn,
+      .vault-pw-toggle, .vault-bigbtn, .vault-clearbtn, .vault-dropzone label {
+        border: 1px solid ButtonText;
+      }
+      .vault-mode-btn.vault-mode-active, .vault-preset-btn.vault-preset-active {
+        outline: 3px solid Highlight; outline-offset: 2px;
+      }
+      .vault-status, .vault-result, .vault-result-warn, .vault-knob-tip,
+      .vault-load-banner, .vault-knob-locked-pill, .vault-result-envelope {
+        border: 1px solid CanvasText;
+      }
+      .vault-knob-num { border: 1px solid CanvasText; }
+      .vault-pw-strength-fill { forced-color-adjust: none; background: Highlight; }
+    }
+  </style>
+  <style id="qira-apps-nav">
+    nav .wrap { display: flex; align-items: center; gap: 12px; }
+    nav qira-product-launcher { display: inline-flex; margin-left: auto; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- Gate removed — vault is free and open -->
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/">Product</a>
+      <a href="/security">Security</a>
+      <a href="/vault" aria-current="page">Vault</a>
+      <a href="/downloads">Download</a>
+      <a href="/platform/">Platform</a>
+      <a href="/trust/">Trust</a>
+      <a href="/contact/">Contact</a>
+    </div>
+    <a href="https://imagineqira.com/" class="qira-home-link" style="font:600 12.5px/1 Inter,system-ui,sans-serif;color:inherit;opacity:.75;text-decoration:none;margin-right:8px;letter-spacing:.04em" title="Qira company site">Qira</a>
+    <qira-product-launcher current-product="qev" theme="light"></qira-product-launcher>
+  </div>
+</nav>
+
+<main>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-label">Browser-only encrypted envelope</div>
+    <h1>A one-off secret,<br>sent without a server.</h1>
+    <p class="sub">Type a message, type a secret phrase, get an encrypted vault file. Send the file through one channel and the phrase through another. No account. No server. Plaintext never leaves this tab &mdash; open DevTools and watch: after this page loads, there are zero network requests. XChaCha20-Poly1305 + Argon2id, running in your browser via libsodium.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="vault-load-banner">
+      <div class="dot"></div>
+      <div id="vault-load-status" class="vault-status">Loading crypto module...</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO THIS IS FOR — the wedge. Concrete, non-abstract. -->
+<section>
+  <div class="wrap">
+    <div class="label">Who this is for</div>
+    <h2 class="heading">If any of these are you, this is built for you</h2>
+    <div class="desc">Not everyone needs browser-only secret sharing. These are the specific cases where everything else is worse.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>You need to send one secret, once</h3>
+        <p>A credential during offboarding. A recovery phrase to a new employee. A document access token to a contractor for a single job. You do not want to create an account anywhere, invite anyone to a platform, or leave a copy sitting on a vendor's server. You want to hand over one thing and be done.</p>
+      </div>
+      <div class="card">
+        <h3>You want to verify nothing leaks</h3>
+        <p>Signal requires trusting Signal. Email with a passphrase leaks metadata. Cloud password managers put ciphertext on someone else's hardware. Here you can open DevTools, perform an encrypt, perform a decrypt, and see zero network requests. That is not just a promise about our code: this page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'self'</code>, so the browser refuses any connection to a host other than this one &mdash; no third-party <code>fetch</code>, <code>XMLHttpRequest</code>, WebSocket or beacon can leave this page. Same-origin requests are still permitted, and are needed: libsodium loads its WebAssembly module that way, and blocking it stops the cryptography working at all. Check both yourself in DevTools: after load you should see no request to any other host, and this page's own entry shows the policy under Response Headers. What that header cannot do is stop a compromised server from serving you a different page in the first place &mdash; for that, see the integrity check below.</p>
+      </div>
+      <div class="card">
+        <h3>You share the receiving end with someone non-technical</h3>
+        <p>They need to open the box on their phone, on a laptop they borrowed, on a machine with no software installed. This page runs in any modern browser. Drop the file, type the phrase, read the message. No install. No signup. No QR scan with a second device.</p>
+      </div>
+      <div class="card">
+        <h3>You want to verify the page itself wasn't tampered with</h3>
+        <p>The JavaScript is SRI-locked inside this HTML, so the browser will not run a script whose bytes don't match the hash written here. That check cannot cover the HTML itself &mdash; a server that rewrote this page would rewrite the hashes with it. The HTML is covered separately: its SHA-256 hash is listed in a manifest that is signed with Ed25519, published at <a href="/verify">/verify</a>. Compare the manifest hash for <code>vault/index.html</code> against the bytes your browser loaded. If they match, the page you just ran is the published, signed version.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENCRYPT -->
+<section>
+  <div class="wrap">
+    <div class="label">Encrypt</div>
+    <h2 class="heading" id="vault-mode-headline">Encrypt a note for yourself</h2>
+    <div class="desc" id="vault-mode-helper">Type a message and a password. Save the vault file. Remember the password. You can decrypt it later on any device.</div>
+
+    <div class="vault-mode-row">
+      <button type="button" id="vault-mode-self" class="vault-mode-btn vault-mode-active">
+        <span class="vault-mode-btn-title">Encrypt a note for yourself</span>
+        <p>For private notes, secrets, or anything you want to keep but not in the clear. You alone need the password.</p>
+      </button>
+      <button type="button" id="vault-mode-share" class="vault-mode-btn">
+        <span class="vault-mode-btn-title">Send a secret to someone</span>
+        <p>For one-off secrets shared with a person you can talk to on a separate channel. You both need the password.</p>
+      </button>
+    </div>
+
+    <div class="card vault-card-tight" style="max-width: 880px;">
+      <form id="vault-encrypt-form" autocomplete="off">
+
+        <!-- Knob 1 — message -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">1</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label" for="vault-encrypt-message">What you want to keep safe</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-message">what is this?</button>
+            <div class="vault-knob-tip" id="tip-message">
+              The text you want to lock up. Anything you type. Up to 256 KiB. The text only exists in this browser tab. It is never sent to a server.
+            </div>
+            <textarea id="vault-encrypt-message" placeholder="Type or paste anything you want to keep safe..." required></textarea>
+          </div>
+        </div>
+
+        <!-- Knob 2 — secret phrase -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">2</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label" for="vault-encrypt-password">Your secret phrase</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-password">what is this?</button>
+            <div class="vault-knob-tip" id="tip-password">
+              This phrase is the only thing that opens the box. It is never sent anywhere &mdash; it stays in your head. You need the <em>exact</em> same phrase to open the box later.
+              <br><br>
+              <strong>Pick a phrase, not a word.</strong> A 6-character password is crackable in hours on a single GPU. The generator below does better: it picks 4 words at random from the standard EFF long wordlist (7,776 words) and appends 2 random digits, which is about 58 bits of entropy (7776<sup>4</sup> &times; 100 &asymp; 2<sup>58.3</sup>). An attacker who could test a million Argon2id guesses per second &mdash; far more than a single GPU manages against the Strong lock setting &mdash; would still average thousands of years. That figure is arithmetic about the generator, not a guarantee about hardware you can't see, and it drops as attack hardware improves. A phrase you invented yourself has no such number: it is only as strong as it is unpredictable.
+              <br><br>
+              If you forget the phrase, the box CANNOT be opened. There is no reset, no recovery, no backdoor.
+            </div>
+            <!-- Generator button promoted ABOVE the input: it is the path
+                 of least resistance for non-technical users. -->
+            <div class="vault-pw-helper" style="margin-bottom: 10px; margin-top: 8px;">
+              <button type="button" id="vault-pw-generate">Can't think of one? Pick 4 random words + 2 digits for me</button>
+            </div>
+            <div class="vault-pw-row">
+              <input type="password" id="vault-encrypt-password" autocomplete="new-password" spellcheck="false" autocapitalize="off" required placeholder="Type a phrase, or use the generator above">
+              <button type="button" class="vault-pw-toggle" data-vault-reveal-target="vault-encrypt-password">Show</button>
+            </div>
+            <div class="vault-pw-strength" id="vault-pw-strength">
+              <div class="vault-pw-strength-bar"><div class="vault-pw-strength-fill"></div></div>
+              <div class="vault-pw-strength-label">(empty)</div>
+            </div>
+            <div id="vault-pw-hint" class="vault-pw-hint"></div>
+            <p class="vault-fineprint">What the bar measures: length, character variety, and how many words you typed. It cannot tell whether you picked those words at random, so read it as a floor, not a score. The only phrase here with a known strength is a generated one &mdash; about 58 bits.</p>
+          </div>
+        </div>
+
+        <!-- Knob 3 — lock strength -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">3</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Lock strength</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-lockstrength">what is this?</button>
+            <div class="vault-knob-tip" id="tip-lockstrength">
+              How hard the box is to break open. Stronger locks take longer to lock and unlock but are harder for a thief to break. The math is called Argon2id. The numbers it uses are stored inside the box so you don't need to remember them.
+            </div>
+            <div class="vault-preset-row">
+              <button type="button" id="vault-lock-preset-quick" class="vault-preset-btn">
+                <span class="vault-preset-name">Quick lock</span>
+                <span class="vault-preset-hint">about 1 second</span>
+              </button>
+              <button type="button" id="vault-lock-preset-strong" class="vault-preset-btn vault-preset-active">
+                <span class="vault-preset-name">Strong lock</span>
+                <span class="vault-preset-hint">about 4 seconds</span>
+              </button>
+              <button type="button" id="vault-lock-preset-vault" class="vault-preset-btn">
+                <span class="vault-preset-name">Vault lock</span>
+                <span class="vault-preset-hint">about 7 seconds</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knob 4 — mode -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">4</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Just for you, or to share?</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-mode">what is this?</button>
+            <div class="vault-knob-tip" id="tip-mode">
+              "Just for me" means you are saving a private note. "Share with someone" means you will send the box to a friend and tell them the secret phrase a different way (call them, text them). The math is the same; the label tells future-you what kind of box this was.
+            </div>
+            <div class="vault-mode-row" style="margin-top: 8px;">
+              <button type="button" id="vault-mode-self" class="vault-mode-btn vault-mode-active">
+                <span class="vault-mode-btn-title">Just for me</span>
+                <p>A private note. Only you need the secret phrase.</p>
+              </button>
+              <button type="button" id="vault-mode-share" class="vault-mode-btn">
+                <span class="vault-mode-btn-title">Share with someone</span>
+                <p>For a friend. Tell them the secret phrase over a different channel.</p>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knob 5 — secret number (nonce) -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">5</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Your secret number (auto-picked)</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-nonce">what is this?</button>
+            <div class="vault-knob-tip" id="tip-nonce">
+              A random 24-byte number we pick for every box. It makes every lock unique even if you use the same secret phrase twice. You don't need to remember it &mdash; it's stored inside the box. Crypto people call this a "nonce" (number used once).
+            </div>
+            <div class="vault-knob-value-box">
+              <code id="vault-knob-nonce-value">(generating...)</code>
+              <button type="button" id="vault-regen-nonce" class="vault-knob-regen-btn">Pick a new one</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knob 6 — scramble code (salt) -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">6</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Your scramble code (auto-picked)</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-salt">what is this?</button>
+            <div class="vault-knob-tip" id="tip-salt">
+              Another random number that mixes with your secret phrase to make the lock harder to pick. Different from the secret number above. Also stored inside the box. Crypto people call this a "salt".
+            </div>
+            <div class="vault-knob-value-box">
+              <code id="vault-knob-salt-value">(generating...)</code>
+              <button type="button" id="vault-regen-salt" class="vault-knob-regen-btn">Pick a new one</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Knob 7 — lock recipe (algorithm) -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">7</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Lock recipe</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-recipe">what is this?</button>
+            <div class="vault-knob-tip" id="tip-recipe">
+              The kind of math we use to lock the box. We use XChaCha20-Poly1305 (encryption) and Argon2id (password mixing). These are the same math used by Signal and other security tools. We don't change them.
+            </div>
+            <div class="vault-knob-locked-pill">XChaCha20-Poly1305 + Argon2id (cannot be changed)</div>
+          </div>
+        </div>
+
+        <!-- Knob 8 — box style (schema/version) -->
+        <div class="vault-knob-row">
+          <div class="vault-knob-num">8</div>
+          <div class="vault-knob-body">
+            <label class="vault-knob-label">Box style</label>
+            <button type="button" class="vault-knob-tip-toggle" data-vault-tooltip-toggle="tip-schema">what is this?</button>
+            <div class="vault-knob-tip" id="tip-schema">
+              The version of the locked box format. Version 2 is what we make today &mdash; it uses a random data key that is itself locked by your phrase. Older Version 1 boxes still open on this page. If we ever change the format again, future versions will get a new number.
+            </div>
+            <div class="vault-knob-locked-pill">Vault format V2 &mdash; schema BRY-NFET-SX-VAULT-V2 (cannot be changed)</div>
+            <p class="vault-fineprint">The build that made a box is recorded inside the box itself, in its <code>version</code> field &mdash; read it in the box JSON after you lock one, or on the details line when you open one. This page does not print a build number here, because the number would only be a copy that can drift out of step with the code actually running.</p>
+          </div>
+        </div>
+
+        <button type="submit" id="vault-encrypt-submit" class="vault-bigbtn" disabled>Lock it!</button>
+        <div id="vault-encrypt-status" class="vault-status"></div>
+      </form>
+
+      <div id="vault-encrypt-result" class="vault-result vault-hidden">
+        <h3>Locked! Save the box file and remember your secret phrase.</h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 8px;">To open this box later you need <strong>two things</strong>: the box file (download below) and the secret phrase you typed (only in your head).</p>
+        <div class="vault-result-actions">
+          <button type="button" id="vault-download-btn" class="btn btn-sm btn-primary">Download box file</button>
+          <button type="button" id="vault-recovery-btn" class="btn btn-sm btn-primary">Download recovery sheet</button>
+          <button type="button" id="vault-copy-btn" class="btn btn-sm btn-outline">Copy box as text</button>
+        </div>
+        <div class="vault-result-envelope">
+          <strong>Box name (envelope ID):</strong>
+          <span id="vault-encrypt-result-envelope-id">(computing...)</span>
+        </div>
+        <pre id="vault-encrypt-result-json"></pre>
+        <div class="vault-result-warn">
+          <strong>Important:</strong> If you are sharing this box with someone, send the box file and the secret phrase through <em>different</em> channels. Email the file, text the password. Never send both in the same place.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="vault-divider">
+
+<!-- DECRYPT -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">Decrypt</div>
+    <h2 class="heading">Open a vault</h2>
+    <div class="desc">Drop or paste a vault file, type the password, get the message back.</div>
+
+    <div class="card vault-card-tight" style="max-width: 880px;">
+      <form id="vault-decrypt-form" autocomplete="off">
+        <div class="vault-form-group">
+          <label for="vault-decrypt-input">Step 1 &mdash; the vault file</label>
+          <div id="vault-decrypt-dropzone" class="vault-dropzone">
+            <div>Drop the <code>.vault.json</code> file <strong>or</strong> the <code>vault-recovery-...txt</code> recovery sheet here</div>
+            <label for="vault-decrypt-file">or choose a file</label>
+            <input type="file" id="vault-decrypt-file" accept=".json,.vault,.txt,text/plain,application/json">
+          </div>
+          <textarea id="vault-decrypt-input" placeholder='Or paste the vault JSON here, the entire recovery sheet text, or a "BRY-VAULT-V1.&lt;...&gt;" string.' required></textarea>
+        </div>
+        <div class="vault-decrypt-helper">
+          <strong>Step 2 &mdash; the password.</strong> Type it in the field below. Do not paste it from the same place as the vault. Do not paste it from a chat window where the vault was sent.
+        </div>
+        <div class="vault-form-group">
+          <label for="vault-decrypt-password">The password</label>
+          <div class="vault-pw-row">
+            <input type="password" id="vault-decrypt-password" autocomplete="off" spellcheck="false" autocapitalize="off" required>
+            <button type="button" class="vault-pw-toggle" data-vault-reveal-target="vault-decrypt-password">Show</button>
+          </div>
+        </div>
+        <button type="submit" id="vault-decrypt-submit" class="vault-bigbtn" disabled>Open it!</button>
+        <div id="vault-decrypt-status" class="vault-status"></div>
+        <button type="button" class="vault-clearbtn" data-vault-clear hidden>Clear &mdash; wipe the message, the vault text and the password</button>
+        <p class="vault-clear-note">Nothing here was ever sent anywhere, but a decrypted message stays on screen until you clear it or close the tab. On a borrowed or shared computer, clear it before you walk away.</p>
+      </form>
+
+      <div id="vault-decrypt-result" class="vault-result vault-hidden">
+        <h3>Decrypted message</h3>
+        <pre id="vault-decrypt-result-text"></pre>
+        <div class="vault-result-meta" id="vault-decrypt-result-meta"></div>
+        <button type="button" class="vault-clearbtn" data-vault-clear hidden>Clear &mdash; wipe the message, the vault text and the password</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT IT PROTECTS / WHAT IT DOES NOT -->
+<section>
+  <div class="wrap">
+    <div class="label">Honest Threat Model</div>
+    <h2 class="heading">What this protects, and what it does not</h2>
+    <div class="desc">Every security tool needs honest framing. Here is the one for this one.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>What this does protect</h3>
+        <ul>
+          <li>Confidentiality of your message against anyone without the secret phrase</li>
+          <li>Integrity of every byte of the vault &mdash; flipping any bit breaks decryption with a clear error</li>
+          <li>Every byte of metadata (salt, both nonces, KDF parameters, schema, version, mode, created_at, both AEAD algorithms) is bound into the authentication tag</li>
+          <li>A random data key encrypts your message; the secret phrase only unwraps that data key. The phrase is never the sole root of secrecy</li>
+          <li>The JavaScript on this page is integrity-protected via Subresource Integrity &mdash; the browser refuses to execute a script whose bytes don't match the SHA-384 hash written in this HTML. That binds the scripts to this page; it does not prove this page is the published one (see the column on the right)</li>
+          <li>Plaintext exists only in this browser tab. Zero network requests after page load, enforced by a <code>connect-src 'self'</code> Content-Security-Policy header, not just by our code &mdash; no third-party host is reachable from this page. Verify both in DevTools. Nothing is cached for offline use &mdash; there is no service worker &mdash; so the page keeps working while this tab stays open, and reloading it needs the network again</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What this does not protect</h3>
+        <ul>
+          <li>Against anyone who has the secret phrase &mdash; protect it like you would a house key</li>
+          <li>Against weak phrases &mdash; Argon2id raises the cost but does not make a one-word phrase strong. The generator gives you 4 random words from a 7,776-word list plus 2 digits, about 58 bits; a phrase you invent yourself has no measurable number attached to it</li>
+          <li>Against a compromised host server that ships a malicious page at serve time &mdash; SRI cannot catch this, because SRI hashes live in the HTML and a rewritten page carries rewritten hashes. The <code>connect-src 'self'</code> header cannot catch it either, since a substituted page would come with its own headers. Only the separately signed integrity manifest covers the HTML. This is the real weakest link; if it matters, verify the signed integrity record on <a href="/verify">/verify</a></li>
+          <li>Against someone who walks up to the screen after you decrypt &mdash; the message stays visible in this tab until you press Clear or close it</li>
+          <li>Against endpoint compromise &mdash; keyloggers, malware, screen recorders, shoulder-surfers</li>
+          <li>Against forgetting the phrase &mdash; if you lose it, the vault is permanently unrecoverable. There is no backdoor, no reset, no recovery. There is also no recovery keyslot (today)</li>
+          <li>This is not end-to-end messaging like Signal &mdash; there is no key exchange, no forward secrecy, no identity verification. It is a vault you share the phrase to</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="label">How It Works</div>
+    <h2 class="heading">Standard primitives. Standard library. No magic.</h2>
+    <div class="desc">If you know cryptography, you can read the source. If you don't, here is the short version.</div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-label">KDF</div>
+        <h3>Argon2id</h3>
+        <p>Your phrase is stretched by Argon2id. Strong lock (the default) uses opslimit 4 and memlimit 96 MiB &mdash; about 4 seconds per guess on modern hardware, so offline brute-force is expensive. The 16-byte salt is generated fresh per vault and stored alongside the ciphertext. Quick lock and Vault lock presets are also available.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">AEAD</div>
+        <h3>XChaCha20-Poly1305</h3>
+        <p>A fresh random 32-byte <em>vault key</em> encrypts the message with XChaCha20-Poly1305 (24-byte content nonce, 16-byte Poly1305 tag). The vault key is then wrapped a second time with XChaCha20-Poly1305 under the Argon2id output (24-byte wrap nonce, 16-byte tag). Tampering with any byte of either ciphertext, either nonce, the salt, or the metadata breaks at least one of the two authentication tags on decrypt.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Library</div>
+        <h3>libsodium.js</h3>
+        <p>All cryptographic operations are delegated to libsodium.js, the same audited library used by Signal and many other security products. The page loads it once, runs a self-test, and refuses to enable encryption if the self-test fails.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VERIFY THE PAGE ITSELF -->
+<section>
+  <div class="wrap">
+    <div class="label">Verify This Page</div>
+    <h2 class="heading">Don't trust us. Check the page yourself.</h2>
+    <div class="desc">The integrity story is layered, and each layer covers something the others can't: Subresource Integrity binds the scripts to this HTML, and the HTML itself is covered by a separately signed integrity manifest.</div>
+    <div class="card" style="max-width: 880px;">
+      <h3>Three things to check</h3>
+      <ol style="margin-top: 12px; color: var(--text-secondary); font-size: 0.88rem;">
+        <li style="margin-bottom: 10px;"><strong>SRI &mdash; and what it can't tell you.</strong> View the source of this page and look at the <code>integrity</code> attribute on the three <code>&lt;script&gt;</code> tags: <code>/vault/sodium.js</code>, <code>/vault/chat.js</code>, and <code>/site-verify.js</code>. The browser refuses to execute any script whose bytes don't match its SHA-384 hash, so if the page rendered and the form is enabled, all three scripts match the hashes written in this HTML. That is the whole of what SRI proves. It binds the scripts to this HTML file and nothing more &mdash; it cannot detect a rewritten HTML page, because a server that rewrote the page would rewrite the hashes in the same edit. Step 2 is the layer that covers the HTML.</li>
+        <li style="margin-bottom: 10px;"><strong>Site integrity &mdash; this is the one that covers the page.</strong> Visit <a href="/verify">/verify</a> and download the integrity record. <code>vault/index.html</code>, <code>vault/chat.js</code>, and <code>vault/sodium.js</code> are listed there with their SHA-256 hashes, and the record itself is signed with Ed25519. Hash the bytes your browser actually loaded and compare. Cross-checking here is what turns "the scripts match this page" into "this page is the published one".</li>
+        <li style="margin-bottom: 10px;"><strong>Network silence.</strong> Open DevTools, switch to the Network tab, perform an encrypt and a decrypt, and confirm there are no requests after the initial page load. That silence is enforced, not merely observed: this page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'self'</code>, so the browser blocks any call to a third-party host. Same-origin requests are still allowed, which is what lets libsodium load its WebAssembly. Read it for yourself in the same tab &mdash; click this page's own entry in the Network list, open Headers, and look under Response Headers for <code>content-security-policy</code>. If that header is not there, nothing is being enforced, so check rather than take our word for it. And note the limit: the policy stops this page from calling out; it cannot stop a compromised server from serving you a different page with different headers. That is what step 2 is for.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="cta-block">
+  <div class="wrap">
+    <h2>One phrase. One vault. No accounts. No servers.</h2>
+    <p>Encryption that fits on one page. Verifiable. Deletable. Yours.</p>
+    <div class="cta-actions">
+      <a href="/challenge" class="btn btn-outline">See the Decryption Challenge</a>
+      <a href="/verify" class="btn btn-outline">Verify This Page</a>
+      <a href="/" class="btn btn-outline">About BRY-NFET-SX</a>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    BRY-NFET-SX v0.29.0 &mdash; Policy-aware encrypted envelope workflow platform.<br>
+    Built on standard authenticated encryption (ChaCha20-Poly1305 / XChaCha20-Poly1305). Not a new cryptographic primitive.<br>
+    &copy; 2026 Qira LLC. All rights reserved.
+  </div>
+</footer>
+
+
+<!-- Gate removed — vault is free and open, no access code required. -->
+
+<script src="/vault/sodium.js?v=0.29.0"
+        integrity="sha384-xE+e4s598d4A0BKvbnkYaqRYutiZTg3KzqnWK51WA6h0yoCZ3uuV52KsntFIWScg"
+        crossorigin="anonymous"></script>
+<script src="/vault/chat.js?v=0.30.0"
+        integrity="sha384-zBUatVdsBBTkwpUTbCYuHNR/cQmGM/fR4jX9FFkabO32HOnH62cfGLEsHJ9K4r74"
+        crossorigin="anonymous"></script>
+
+
+<!-- Tamper-evidence: verifies this page against the signed
+     manifest at /site-integrity.json. If the page was modified
+     after signing, the script renders a red "tampered" banner. -->
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+  <script src="/assets/qira-apps/qira-product-launcher.js?v=20260807portal" defer></script>
+</body>
+</html>

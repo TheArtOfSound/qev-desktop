@@ -1,0 +1,2 @@
+# Preserve exact signed bytes on every OS and in git archives.
+public-site/** -text

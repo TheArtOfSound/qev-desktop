@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser envelope tool — QEV docs</title>
+  <meta name="description" content="Use the QEV browser vault: seal a message in-tab with no account. Offline after load; phrase never sent to our servers for the free vault path.">
+  <link rel="canonical" href="https://secure.imagineqira.com/docs/browser-tool/">
+  <meta property="og:title" content="Browser envelope tool — QEV docs">
+  <meta property="og:description" content="Use the QEV browser vault: seal a message in-tab with no account. Offline after load; phrase never sent to our servers for the free vault path.">
+  <meta property="og:url" content="https://secure.imagineqira.com/docs/browser-tool/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    .doc-callout {
+      border: 1px solid var(--border);
+      background: var(--amber-bg);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 0 0 28px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .doc-callout strong { color: var(--text); }
+    pre.doc-pre {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px;
+      padding: 16px 18px !important;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 12px 0 0;
+    }
+    .prose p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 14px; max-width: 680px; }
+    .prose ul, .prose ol { color: var(--text-secondary); font-size: 0.92rem; margin: 0 0 18px 1.2rem; line-height: 1.7; max-width: 680px; }
+    .prose h2 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--text); }
+    .prose h3 { font-size: 1rem; margin: 20px 0 8px; color: var(--text); }
+    .prose a { font-weight: 500; }
+    .mark-yes { color: var(--green-text); font-weight: 700; margin-right: 8px; }
+    .mark-no { color: var(--amber-text); font-weight: 700; margin-right: 8px; }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Documentation · Free path</div>
+    <h1>Browser envelope tool</h1>
+    <p class="page-desc">Use the QEV browser vault: seal a message in-tab with no account. Offline after load; phrase never sent to our servers for the free vault path.</p>
+  </div>
+</header>
+<section style="padding-top:0">
+  <div class="wrap prose">
+
+    <div class="doc-callout"><strong>Fastest start.</strong> No account. No install. Best first evaluation of QEV.</div>
+    <h2>What to do</h2>
+    <ol>
+      <li>Open <a href="/vault">https://secure.imagineqira.com/vault</a>.</li>
+      <li>Type your message and a strong passphrase.</li>
+      <li>Export the vault file.</li>
+      <li>Send the file one way; share the phrase another way.</li>
+      <li>Recipient opens the same vault page (or desktop/CLI) and unlocks.</li>
+    </ol>
+    <h2>Trust properties of this path</h2>
+    <ul>
+      <li>Plaintext is sealed in the browser for the free vault tool.</li>
+      <li>After load, the tool is designed so sealing does not require calling home with your secret.</li>
+      <li>This marketing site itself is <a href="/verify">integrity-signed</a> — if HTML is swapped after signing, you should see a tamper warning.</li>
+    </ul>
+    <h2>When to leave the browser tool</h2>
+    <ul>
+      <li>Need desktop convenience → <a href="/downloads">Download</a></li>
+      <li>Need automation → CLI on npm (<code>@bryan237l/qev-cli</code>)</li>
+      <li>Need workflow capture for a team → <a href="/docs/gateway/">Gateway pilot</a></li>
+    </ul>
+    <p><a href="/docs/vault-format/">Vault format</a> · <a href="/security">Security</a></p>
+    
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    QEV — Qira Encryption Vault · product preview<br>
+    <a href="/docs/">Docs</a> ·
+    <a href="/pricing/">Pricing</a> ·
+    <a href="/status/">Status</a> ·
+    <a href="/trust/">Trust</a> ·
+    <a href="/verify">Site Integrity</a> ·
+    <a href="/contact/">Contact</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

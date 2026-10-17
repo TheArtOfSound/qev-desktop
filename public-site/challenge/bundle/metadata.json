@@ -1,0 +1,14 @@
+{
+  "artifact_id": "7a2860e23b7fb9e551ca694c43f7402794eaa063bda67aa834fc2b7dfa0a3e71",
+  "bundle_dir": "data/bundles/envelopes__7a2860e23b7fb9e551ca694c43f7402794eaa063bda67aa834fc2b7dfa0a3e71",
+  "category": "envelopes",
+  "encryption_key_version": "challenge-v1",
+  "encryption_provider_id": "local",
+  "encryption_provider_label": "Challenge Inline Key",
+  "extra_metadata": {
+    "published_at": "2026-04-14T22:57:45.281114+00:00",
+    "purpose": "public-challenge",
+    "reveal_at": "2026-04-21T22:57:45.281114+00:00"
+  },
+  "provenance_source": "artifact_payload"
+}

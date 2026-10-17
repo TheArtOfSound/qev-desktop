@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault V2 format — QEV docs</title>
+  <meta name="description" content="QEV Vault V2 portable encrypted files: XChaCha20-Poly1305, Argon2id, wrapped content key. Interop across browser, desktop, and CLI.">
+  <link rel="canonical" href="https://secure.imagineqira.com/docs/vault-format/">
+  <meta property="og:title" content="Vault V2 format — QEV docs">
+  <meta property="og:description" content="QEV Vault V2 portable encrypted files: XChaCha20-Poly1305, Argon2id, wrapped content key. Interop across browser, desktop, and CLI.">
+  <meta property="og:url" content="https://secure.imagineqira.com/docs/vault-format/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    .doc-callout {
+      border: 1px solid var(--border);
+      background: var(--amber-bg);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 0 0 28px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .doc-callout strong { color: var(--text); }
+    pre.doc-pre {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px;
+      padding: 16px 18px !important;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 12px 0 0;
+    }
+    .prose p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 14px; max-width: 680px; }
+    .prose ul, .prose ol { color: var(--text-secondary); font-size: 0.92rem; margin: 0 0 18px 1.2rem; line-height: 1.7; max-width: 680px; }
+    .prose h2 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--text); }
+    .prose h3 { font-size: 1rem; margin: 20px 0 8px; color: var(--text); }
+    .prose a { font-weight: 500; }
+    .mark-yes { color: var(--green-text); font-weight: 700; margin-right: 8px; }
+    .mark-no { color: var(--amber-text); font-weight: 700; margin-right: 8px; }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Documentation · Core</div>
+    <h1>Vault V2 format</h1>
+    <p class="page-desc">QEV Vault V2 portable encrypted files: XChaCha20-Poly1305, Argon2id, wrapped content key. Interop across browser, desktop, and CLI.</p>
+  </div>
+</header>
+<section style="padding-top:0">
+  <div class="wrap prose">
+
+    <div class="doc-callout"><strong>What this is.</strong> The portable file format for one sealed secret or document. Separate from team <a href="/docs/evidence-bundle/">evidence bundles</a> and the <a href="/docs/gateway/">capture gateway</a>.</div>
+    <h2>In plain English</h2>
+    <p>You create a vault file (JSON). Unlock needs your passphrase (or keys). The file can move through email, chat, or disk. The server that hosts this website does not need your passphrase to serve the tool.</p>
+    <h2>Crypto (standard algorithms)</h2>
+    <ul>
+      <li><strong>Schema:</strong> <code>BRY-NFET-SX-VAULT-V2</code> (QEV Vault V2 compatible)</li>
+      <li><strong>KDF:</strong> Argon2id (memory-hard passphrase → key material)</li>
+      <li><strong>AEAD:</strong> XChaCha20-Poly1305</li>
+      <li><strong>Key wrap:</strong> a random content key is wrapped under the passphrase-derived key so the phrase unlocks without being the only root of ciphertext entropy</li>
+    </ul>
+    <h2>What you do with it</h2>
+    <ol>
+      <li>Open the <a href="/vault">browser vault</a> (or desktop / CLI).</li>
+      <li>Enter plaintext + passphrase → download/export the vault file.</li>
+      <li>Send the file on one channel; share the phrase out of band.</li>
+      <li>Recipient opens with the same tool family (browser, desktop, CLI).</li>
+    </ol>
+    <h2>Modes</h2>
+    <ul>
+      <li><code>self</code> — personal vault / archive</li>
+      <li><code>share</code> — handoff-oriented packaging</li>
+    </ul>
+    <h2>Related</h2>
+    <p><a href="/docs/browser-tool/">Browser tool</a> · <a href="/downloads">Download apps / CLI</a> · <a href="/docs/evidence-bundle/">Evidence Bundle V1</a> · <a href="/security">Security posture</a></p>
+    
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    QEV — Qira Encryption Vault · product preview<br>
+    <a href="/docs/">Docs</a> ·
+    <a href="/pricing/">Pricing</a> ·
+    <a href="/status/">Status</a> ·
+    <a href="/trust/">Trust</a> ·
+    <a href="/verify">Site Integrity</a> ·
+    <a href="/contact/">Contact</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

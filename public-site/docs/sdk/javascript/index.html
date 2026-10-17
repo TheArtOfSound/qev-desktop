@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript SDK — QEV docs</title>
+  <meta name="description" content="Integrate QEV capture in Node/TypeScript: point at your gateway, send workflow events, seal evidence.">
+  <link rel="canonical" href="https://secure.imagineqira.com/docs/sdk/javascript/">
+  <meta property="og:title" content="JavaScript SDK — QEV docs">
+  <meta property="og:description" content="Integrate QEV capture in Node/TypeScript: point at your gateway, send workflow events, seal evidence.">
+  <meta property="og:url" content="https://secure.imagineqira.com/docs/sdk/javascript/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+  <style>
+    .doc-callout {
+      border: 1px solid var(--border);
+      background: var(--amber-bg);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 0 0 28px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .doc-callout strong { color: var(--text); }
+    pre.doc-pre {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px;
+      padding: 16px 18px !important;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin: 12px 0 0;
+    }
+    .prose p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 14px; max-width: 680px; }
+    .prose ul, .prose ol { color: var(--text-secondary); font-size: 0.92rem; margin: 0 0 18px 1.2rem; line-height: 1.7; max-width: 680px; }
+    .prose h2 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--text); }
+    .prose h3 { font-size: 1rem; margin: 20px 0 8px; color: var(--text); }
+    .prose a { font-weight: 500; }
+    .mark-yes { color: var(--green-text); font-weight: 700; margin-right: 8px; }
+    .mark-no { color: var(--amber-text); font-weight: 700; margin-right: 8px; }
+  </style>
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Documentation · Integrate</div>
+    <h1>JavaScript SDK</h1>
+    <p class="page-desc">Integrate QEV capture in Node/TypeScript: point at your gateway, send workflow events, seal evidence.</p>
+  </div>
+</header>
+<section style="padding-top:0">
+  <div class="wrap prose">
+
+    <div class="doc-callout"><strong>Requires a gateway.</strong> The SDK talks to a capture gateway you control (or the pilot surface). For a one-off secret with no code, use the <a href="/vault">browser vault</a>.</div>
+    <h2>Install / source</h2>
+    <p>SDK source lives in the monorepo: <a href="https://github.com/TheArtOfSound/qev-platform/tree/main/packages/sdk-js">packages/sdk-js</a>. CLI published today: <a href="https://www.npmjs.com/package/@bryan237l/qev-cli">@bryan237l/qev-cli</a>. Brand package names may track as they publish.</p>
+    <h2>Minimal shape</h2>
+    <pre class="doc-pre"><code>import { QEV } from "@imagineqira/qev-sdk"; // monorepo package name may vary
+
+const qev = new QEV({
+  endpoint: process.env.QEV_GATEWAY_URL, // YOUR gateway base URL
+  token: process.env.QEV_INGEST_TOKEN,
+});
+
+await qev.capture({
+  flow: "field-service",
+  caseId: "JOB-1",
+  type: "work.completed",
+  actor: { id: "tech@example.com" },
+});</code></pre>
+    <h2>Steps</h2>
+    <ol>
+      <li>Deploy or open a gateway — see <a href="/docs/gateway/">Gateway docs</a>.</li>
+      <li>Create an ingest token on that instance.</li>
+      <li>Point <code>endpoint</code> at that base URL (not a public plaintext dump).</li>
+      <li>Emit events from your app; complete flows to seal packages.</li>
+      <li>Verify packages via gateway or offline tools.</li>
+    </ol>
+    <p><a href="/sdk/">SDK overview</a> · <a href="/connectors/">Connectors</a> · <a href="/docs/evidence-bundle/">Evidence bundles</a></p>
+    
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    QEV — Qira Encryption Vault · product preview<br>
+    <a href="/docs/">Docs</a> ·
+    <a href="/pricing/">Pricing</a> ·
+    <a href="/status/">Status</a> ·
+    <a href="/trust/">Trust</a> ·
+    <a href="/verify">Site Integrity</a> ·
+    <a href="/contact/">Contact</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

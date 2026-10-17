@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QEV Pricing — Free vault tools &amp; team pilot</title>
+  <meta name="description" content="Free offline vault tools. Team pilot for the capture gateway. Commercial list pricing not yet published. You keep your keys and packages.">
+  <link rel="canonical" href="https://secure.imagineqira.com/pricing/">
+  <meta property="og:title" content="QEV pricing">
+  <meta property="og:description" content="Free vault tools. Team pilot available. Packages remain customer-owned.">
+  <meta property="og:url" content="https://secure.imagineqira.com/pricing/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css?v=0.30.0">
+<link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
+</head>
+<body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
+<nav>
+  <div class="wrap">
+    <a href="/" class="logo">QEV</a>
+    <div class="nav-links">
+      <a href="/#paths">Get started</a>
+      <a href="/docs/">Docs</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/downloads">Download</a>
+      <a href="/trust/">Trust</a>
+      <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="label">Pricing</div>
+    <h1>You pay when capture runs your business &mdash; never to read your own evidence.</h1>
+    <p class="page-desc">Sealing a secret is free. Verifying evidence is free forever, for anyone, with no account &mdash; including people who have never heard of us. Running the capture gateway is free while you evaluate, and free during a pilot. Money only enters when automated capture becomes part of how your company works.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="heading">The guarantee, and why you need not take it on faith</div>
+    <div class="desc">Most vendors promise you will not be held hostage. Here is ours, plus the reason it is checkable.</div>
+    <div class="card" style="max-width:820px;">
+      <h3>An entitlement can pause new capture. It cannot touch evidence you already hold.</h3>
+      <p style="margin-top:10px;">Opening, verifying, listing, exporting and downloading packages are <strong>not gateable</strong> &mdash; not merely "not currently gated". The only enforcement function in the gateway accepts a capture action, and no read equivalent exists to call, so a lapsed licence has no code path through which to strand your records. A test asserts that reads can never be added to the gated set.</p>
+      <p style="margin-top:10px;">Read it yourself: <code>apps/gateway/src/license.ts</code> and <code>license.test.ts</code> in the <a href="https://github.com/TheArtOfSound/qev-platform">public repository</a>. If we ever break this, the diff is public and the test goes red.</p>
+      <p style="margin-top:10px;">Packages are sealed with <strong>your</strong> keys. We hold no copy, so we could not unlock or withhold them even if a contract ended badly.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="heading">What things cost</div>
+    <div class="desc">Four of these five are free. Verification being free is not a funnel trick &mdash; it is what makes a sealed package worth anything to the person receiving it.</div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-label">Free forever</div>
+        <h3>Vault tools</h3>
+        <p>Browser vault, desktop apps, CLI. Seal and open packages on your own devices. No account, no server that can read your plaintext, no feature held back.</p>
+        <p style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);">MIT licensed. Nothing here becomes paid later.</p>
+        <a href="/vault" class="btn btn-sm btn-primary">Open the vault</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Free forever &mdash; permanently</div>
+        <h3>Verification</h3>
+        <p>Anyone handed a QEV package can verify it: signature, per-file digests, and a verdict per check rather than one green badge. No account, no licence, no relationship with us, no expiry.</p>
+        <p style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);">This stays free even if the sender stops paying us. A proof only a paying customer can check is not a proof.</p>
+        <a href="/verify" class="btn btn-sm btn-outline">Verify this site</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Free &mdash; no licence, no clock</div>
+        <h3>Gateway evaluation</h3>
+        <p>Run the capture gateway on your own infrastructure and put real work through it. Capped by volume &mdash; 250 packages, 50 cases &mdash; and <strong>never by time</strong>, so an evaluation cannot expire in the middle of a job.</p>
+        <p style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);">Reaching the cap pauses new capture only. Everything already sealed stays fully readable.</p>
+        <a href="/docs/gateway/" class="btn btn-sm btn-outline">Gateway docs</a>
+      </div>
+      <div class="card">
+        <div class="card-label">Free &mdash; time-boxed</div>
+        <h3>Pilot</h3>
+        <p>For a company that actually wants to use this. A signed 90-day licence, volume limits lifted, and help getting your connectors and flows right. Staged deliberately: synthetic &rarr; redacted historical &rarr; shadow alongside your real process &rarr; live.</p>
+        <p style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);">Free because this needs evidence from real workflows more than it needs pilot revenue. Ask, and say what you would use it for.</p>
+        <a href="mailto:bryanleonard@imagineqira.com?subject=Pilot%20licence" class="btn btn-sm btn-primary">Request a pilot licence</a>
+      </div>
+      <div class="card" style="grid-column:1/-1;">
+        <div class="card-label">Paid</div>
+        <h3>Team</h3>
+        <p>For when capture is part of how the business runs: a self-hosted gateway under your control, connectors, evidence bundles for handoff, and a support commitment. Priced per conversation &mdash; list rates are unpublished because we have not run enough pilots to price honestly, and inventing a number would be the same species of claim this product exists to avoid.</p>
+        <p style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);">Perpetual by default. If you stop paying, capture stops; your evidence does not.</p>
+        <a href="mailto:bryanleonard@imagineqira.com?subject=QEV%20Team" class="btn btn-sm btn-primary">Talk about a team deployment</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="heading">What you are not buying</div>
+    <div class="desc">Stated here rather than discovered during procurement.</div>
+    <div class="g2">
+      <div class="card">
+        <h3>No third-party security audit</h3>
+        <p>No external firm has assessed this. Internal adversarial passes and an independent product audit have been done and published, which is not the same thing. If procurement requires a pentest report, QEV has none yet. See <a href="/audit-status/">audit status</a>.</p>
+      </div>
+      <div class="card">
+        <h3>Installers are not signed</h3>
+        <p>Desktop builds are not Apple-notarized or Authenticode-signed, so the OS warns you and is right to. Every binary&rsquo;s SHA-256 sits inside the Ed25519-signed site manifest so you can verify what you downloaded &mdash; that proves the bytes, not the publisher. See <a href="/downloads">downloads</a>.</p>
+      </div>
+      <div class="card">
+        <h3>The gateway is pilot-grade</h3>
+        <p>It works end to end &mdash; the full field-service suite passes and seals packages carrying independently verifiable Ed25519 signatures. It is not multi-tenant-hardened, has no KMS/HSM integration, and no formal key rotation or revocation product.</p>
+      </div>
+      <div class="card">
+        <h3>No hosted plaintext</h3>
+        <p>There is no QEV cloud holding your content, which also means there is no SaaS tier to buy. The gateway runs on your infrastructure. A deliberate design limit, not a roadmap gap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-block">
+  <div class="wrap">
+    <h2>Start without asking anyone</h2>
+    <p>The vault needs no account. The gateway needs no licence to evaluate. Ask for a pilot when you want it in front of real work.</p>
+    <div class="cta-actions">
+      <a href="/vault" class="btn btn-primary">Open the vault</a>
+      <a href="mailto:bryanleonard@imagineqira.com?subject=Pilot%20licence" class="btn btn-outline">Request a pilot licence</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    QEV pricing · <a href="/">Home</a> · <a href="/docs/">Docs</a> · <a href="/contact">Contact</a><br>
+    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+  </div>
+</footer>
+
+<script src="/site-verify.js?v=2026-04-19"
+        integrity="sha384-3AA67P2oDMQQaBrEdD4TXYvAc14qOjYjWfmr4OKQNiBsTYxZyGC3WfGwAO5mWIGi"
+        crossorigin="anonymous"></script>
+</body>
+</html>
