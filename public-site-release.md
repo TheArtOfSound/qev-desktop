@@ -2,7 +2,9 @@
 
 `public-site/` is the complete, signature-verified public release recovered from the active `secure-qev-dr` Pages deployment. It includes the browser vault, downloads, verification code, and public keys. `landing/` is older and must not overwrite this deployment without reconciliation.
 
-This update adds Qira orientation to marketing pages and simplifies first use. It does not change the vault, installers, hosted API, or pinned signing key.
+This update adds Qira orientation to marketing pages and simplifies first use. A follow-up restores the vault's documented HTTP Content Security Policy: scripts and connections are limited to the same origin, WebAssembly is allowed, and the external analytics script is blocked. The vault copy explains that same-origin verification remains permitted. Encryption algorithms, installers, the hosted API, and the pinned signing key are unchanged.
+
+The vault release check encrypts a synthetic note, rejects a wrong password, reopens the note with the correct phrase, and confirms that these actions generate no network writes. Validate both `/vault` and `/vault/` response headers after deployment. `_headers` is deployment configuration, excluded from the content-signature manifest; HTML changes must still be signed.
 
 1. Edit only intended public files. Never add private keys or environment files.
 2. Set `BRY_SITE_SIGNER_KEY_PATH` to the existing production key in the operator environment. Run `node scripts/sign-public-site.cjs`. It refuses a mismatched key and validates local SRI.
