@@ -1,7 +1,7 @@
 {
   "schema": "BRY-NFET-SX-SITE-INTEGRITY-V2",
   "site": "secure.imagineqira.com",
-  "signed_at": "2026-10-21T09:30:45.820Z",
+  "signed_at": "2026-10-21T09:36:57.544Z",
   "file_count": 92,
   "files": {
     ".well-known/security.txt": "b48dae39cf3e9df14ce92b3b117dc792023af22cd93f9f9f665054f20c9f8ca6",
@@ -63,7 +63,7 @@
     "og-image.png": "d086d3962a895d1f02269d3bf111da80c5d2bee7688a27142689efef4b1290a5",
     "platform/index.html": "d7a8236be576aed999cf55d46184ae3a21c84f50f423e5213278ae7d24ed83da",
     "pricing/index.html": "f04bdbcf5eb4beb084a2e9628ffdcc1f62defe5c781c8e61f6859b5dbec8fc39",
-    "privacy.html": "5ae9bc2ec64a5ca52a0009e82ca019713db2f06138f664a236ad4f244b6edbf9",
+    "privacy.html": "86b42ebed98a76a15c3898553b881c3d16cda4237bbb9b9ba26ced45992f5d8d",
     "qira-product-bar.css": "248b42b696ca8fcc289a58a5bdbeee657386a181ca9928cbce4f64846a2732dd",
     "review.html": "a760bacb53362d9ab2f8ec01f466454a644d1257ff583c3d9671e1f85c56f86d",
     "robots.txt": "f7ff91db0f5035bbff62c18ac2989be142cb6f238f590118a9a5fcd4632b5aff",
@@ -107,7 +107,7 @@
     "algorithm": "ed25519",
     "domain": "BRY-NFET-SX|SITE-INTEGRITY|V2",
     "public_key_hex": "881de4e7616992f92013b84ba1bbd08280a007b491bde28a46d8a15612d1d326",
-    "signature_hex": "6b92e73c1261bef82b9d3168288b5a9076c9e65ff2e1c2908c626e8043253f6e45aed4a94e0baa3782bd241871f92e27978ce283818412d74fa67314d5187107",
+    "signature_hex": "5e13409a0fec0b372d3766e3e4743d0fcd0c96ef98050cab0ae13becf15a882fe08a75ff10abd3f2f608c44d1e2797561bfd5a24eb9dbe80e06ca5445829d40c",
     "canonical_json_note": "Domain separator followed by recursively key-sorted compact JSON of the manifest without signature."
   }
 }
