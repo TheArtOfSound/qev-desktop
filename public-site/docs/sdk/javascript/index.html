@@ -68,7 +68,7 @@
 <section style="padding-top:0">
   <div class="wrap prose">
 
-    <div class="doc-callout"><strong>Requires a gateway.</strong> The SDK talks to a capture gateway you control (or the pilot surface). For a one-off secret with no code, use the <a href="/vault">browser vault</a>.</div>
+    <div class="doc-callout"><strong>Requires a gateway.</strong> The SDK talks to a capture gateway you control. The hosted operator evaluation accepts synthetic records only and requires a gateway token; do not send confidential records. For a one-off secret with no code, use the <a href="/vault">browser vault</a>.</div>
     <h2>Install / source</h2>
     <p>SDK source lives in the monorepo: <a href="https://github.com/TheArtOfSound/qev-platform/tree/main/packages/sdk-js">packages/sdk-js</a>. CLI published today: <a href="https://www.npmjs.com/package/@bryan237l/qev-cli">@bryan237l/qev-cli</a>. Brand package names may track as they publish.</p>
     <h2>Minimal shape</h2>
@@ -107,7 +107,7 @@ await qev.capture({
     <a href="/trust/">Trust</a> ·
     <a href="/verify">Site Integrity</a> ·
     <a href="/contact/">Contact</a><br>
-    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+    &copy; 2026 <a href="https://imagineqira.com">Qira</a>
   </div>
 </footer>
 <script src="/site-verify.js?v=2026-04-19"

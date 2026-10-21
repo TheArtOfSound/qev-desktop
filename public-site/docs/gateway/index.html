@@ -58,7 +58,7 @@
       <a href="/vault" class="btn btn-sm btn-primary">Start free</a>
     </div>
   </div>
-</nav>
+</nav><aside class="wrap" style="margin-top:20px;margin-bottom:20px;padding:16px;border:1px solid var(--border);border-radius:8px"><strong>Gateway evaluation:</strong> an authenticated synthetic operator preview is available. It is not an open customer workspace; do not submit confidential records. <a href="/platform/">Read scope and first steps</a> · <a href="/platform/v1/health">Live health</a>.</aside>
 
 <header class="page-header">
   <div class="wrap">
@@ -66,7 +66,7 @@
     <h1>Capture gateway</h1>
     <p class="page-desc">
       The gateway is how <strong>teams</strong> automatically seal workflow evidence.
-      You run it (or pilot our hosted preview). Plaintext and package keys stay in the customer environment — not in a Qira cloud that can read your documents.
+      For real data, run it in your environment so plaintext and package keys stay on your host. The hosted operator preview accepts synthetic evaluation only; it processes that test data on Qira’s host.
     </p>
     <div class="hero-actions" style="margin-top:24px">
       <a href="https://secure.imagineqira.com/platform/" class="btn btn-primary">Open pilot surface</a>
@@ -81,7 +81,7 @@
 
     <div class="doc-callout">
       <strong>Pilot status.</strong>
-      Public preview gateway is in <em>shadow mode</em>: it can record events and produce packages for evaluation, but it does <strong>not</strong> control or block your live business workflow.
+      The authenticated operator preview is in <em>shadow mode</em>. It records synthetic events and produces packages for evaluation. Private routes require a gateway token or configured webhook signature. It does <strong>not</strong> control or block a customer workflow.
       Not enterprise-certified. No formal third-party audit yet.
       Free offline vault (no gateway) lives at <a href="/vault">/vault</a>.
     </div>
@@ -250,7 +250,7 @@ curl -sS https://secure.imagineqira.com/platform/v1/health | jq .
 <footer>
   <div class="wrap">
     QEV Capture Gateway docs · <a href="/docs/">Docs home</a> · <a href="/">Product</a> · <a href="/verify">Site Integrity</a><br>
-    &copy; 2026 <a href="https://imagineqira.com">Qira LLC</a>
+    &copy; 2026 <a href="https://imagineqira.com">Qira</a>
   </div>
 </footer>
 

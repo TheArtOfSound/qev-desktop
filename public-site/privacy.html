@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy | QEV — Qira Encryption Vault</title>
-  <meta name="description" content="QEV privacy policy. We cannot read your vaults. There is no account, no analytics, and no server-side storage of your content. The one exception — relay connection metadata — is disclosed in full.">
+  <meta name="description" content="QEV data handling: local browser vaults, synthetic hosted gateway evaluation, customer-controlled deployments, operational metadata, and privacy contact.">
   <link rel="stylesheet" href="/styles.css">  <link rel="canonical" href="https://secure.imagineqira.com/privacy">
 <link rel="stylesheet" href="/qira-product-bar.css?v=20261016">
-</head>
+<style>.prose a{text-decoration:underline;text-underline-offset:3px}</style></head>
 <body><div class="qira-product-bar" role="navigation" aria-label="Qira ecosystem"><div class="qira-product-bar__inner"><div class="qira-product-bar__brand"><a href="https://imagineqira.com/" aria-label="Qira home">QIRA</a><span aria-hidden="true">/</span><span>QEV</span></div><div class="qira-product-bar__links"><a href="https://imagineqira.com/products/">All products</a><a href="https://imagineqira.com/start/?goal=qev">Getting started</a><a href="https://imagineqira.com/plans/?product=qev#offer-qev">Plans &amp; help</a><a href="https://imagineqira.com/account/">Qira account</a></div></div></div>
 <nav>
   <div class="wrap" style="display:flex;align-items:center;gap:18px;padding:16px 24px;">
@@ -21,65 +21,9 @@
   </div>
 </nav>
 
-<div style="max-width:680px;margin:0 auto;padding:60px 24px;">
-  <h1 style="font-size:1.8rem;margin:0 0 24px;">Privacy Policy</h1>
-  <p style="color:var(--text-dim);margin-bottom:32px;">Last updated: July 29, 2026</p>
-
-  <h2>The short version</h2>
-  <p>We cannot read your vaults. Encryption and decryption happen on your device, your phrase never reaches us, and there is no account and no server-side storage of your vault content. This site runs no analytics of any kind and sets no cookies. There is exactly one place where anything about you is observable, and it is spelled out below rather than buried: the optional relay server necessarily sees your IP address.</p>
-
-  <h2>What QEV does</h2>
-  <p>QEV encrypts messages on your device using a phrase you choose. The encrypted output (a <code>.vault.json</code> file) never leaves your device unless you explicitly send it somewhere. The phrase never leaves your head (or your keyboard, briefly).</p>
-
-  <h2>What we collect</h2>
-  <p><strong>Nothing from inside your vaults, and nothing that identifies you to us.</strong> One exception exists — the optional relay server, described below. It never touches your content.</p>
-  <ul>
-    <li>No account creation — there are no usernames, passwords, or email addresses.</li>
-    <li>No analytics — no Google Analytics, no Mixpanel, no Plausible, and no server-side analysis of page views. Every page on this site is served from our own server with no third-party scripts, no tag manager, and no measurement IDs. You can confirm this without trusting us: open DevTools, load any page, and check the Network tab — every request goes to <code>secure.imagineqira.com</code> and nowhere else. The list of files we serve is itself covered by the Ed25519-signed manifest at <a href="/verify">/verify</a>.</li>
-    <li>No cookies — we set zero cookies anywhere on this site, and there is no access gate and no login. The <code>/vault</code> page additionally writes nothing to <code>localStorage</code>, <code>sessionStorage</code>, or <code>IndexedDB</code>.</li>
-    <li>No telemetry from the web vault — the <code>/vault</code> page is served with a <code>Content-Security-Policy</code> HTTP response header that includes <code>connect-src 'self'</code>, so the browser refuses any connection to a third-party host. Same-origin requests remain possible — libsodium fetches its WebAssembly module that way — but nothing can reach an outside server. Do not take our word for it — read the header yourself: <code>curl -sI https://secure.imagineqira.com/vault/ | grep -i content-security-policy</code>. That header is scoped to the vault page; it is not a claim about every page on this site.</li>
-    <li>No telemetry in the apps — with one precision that matters: no telemetry is not the same as no network. The CLI (<code>@bryan237l/qev-cli</code>) contains no networking code whatsoever; its only dependency is libsodium, and the published package has no HTTP, socket, or <code>fetch</code> call in it. The desktop app <em>does</em> open network connections, but only for features you deliberately invoke — device pairing, encrypted chat, and relay delivery, described in the next section — and its source contains no analytics, crash-reporting, or update-check code. The Android build's source is not in the public repository, so you cannot check it the same way; treat "no telemetry" there as our stated design intent rather than as something you or we have measured. No independent auditor has certified any of this.</li>
-    <li>No crash reporting — the desktop app and the CLI contain no crash-reporting or error-telemetry component. If they crash, the crash stays on your machine.</li>
-  </ul>
-
-  <h2>The relay server</h2>
-  <p>QEV's Phase 3 relay at <code>secure.imagineqira.com:7892</code> is a store-and-forward courier. When you send a vault to a paired peer via the relay, the server sees:</p>
-  <ul>
-    <li>The <strong>recipient's static public key</strong> (used as a routing address)</li>
-    <li>The <strong>sender's static public key</strong> (learned during the Noise XK handshake)</li>
-    <li>The <strong>opaque encrypted envelope</strong> (ciphertext — we cannot read it)</li>
-    <li>A <strong>timestamp</strong> and the envelope's <strong>size</strong></li>
-    <li>The <strong>source IP address and port</strong> of your connection — see below, because this one deserves more than a bullet</li>
-  </ul>
-  <p>The server does <strong>NOT</strong> see: your name, device label, message content, vault phrase, or any metadata inside the envelope.</p>
-
-  <p><strong>On IP addresses.</strong> An earlier version of this page listed your IP address as something the relay does not see, "beyond what TCP requires." That was self-negating and we have removed it. Stated plainly: <strong>the relay sees the source IP address of every connection</strong>, because TCP cannot return a response without one. It also writes that address down — on every completed Noise XK handshake the server logs a line containing the remote IP address and port next to the sender's static public key (<code>tauri-app/src-tauri/relay/src/service.rs</code>, in <code>handle_connection</code>, at the default <code>info</code> log level). The operator can therefore correlate an IP address with a public key and a time.</p>
-  <p>We do not currently publish a retention or rotation policy for those server logs, so do not assume they are discarded. If IP-level unlinkability matters to you, do not rely on the relay for it: route the connection over Tor or a VPN, or skip the relay entirely and move the <code>.vault.json</code> file by hand through any channel you like. The vault file is self-contained — the relay is a convenience, never a requirement.</p>
-  <p>Envelopes are deleted from the relay once the recipient fetches them, and unfetched envelopes are evicted after 30 days (the relay's default <code>retention_hours</code> is 720; see <code>relay/src/config.rs</code>). The relay's deployed configuration file is not published, so treat that number as an operator commitment rather than something you can verify from outside.</p>
-
-  <h2>Third parties</h2>
-  <p>Nothing you put into a vault is processed by a third party. At the site level there is exactly one, and it only applies if you install the CLI:</p>
-  <ul>
-    <li><strong>npm</strong> — the CLI package (<code>@bryan237l/qev-cli</code>) is distributed via npmjs.com, and npm's own privacy policy applies to the download transaction. The CLI itself makes zero network calls once installed.</li>
-  </ul>
-  <p>Beyond that: no analytics provider, no ad networks, no tag manager, no payment processor (the software is free), and no CDN. Every asset on this site is served directly from our own server. Ten pages here did previously carry a Google Analytics tag; it was removed on 2026-07-29, and the site's Content-Security-Policy now permits no third-party host at all, so the browser would block one even if it were reintroduced by mistake.</p>
-
-  <h2>Open source</h2>
-  <p>The source code is available at <a href="https://github.com/TheArtOfSound/qev-desktop" style="color:var(--accent);">github.com/TheArtOfSound/qev-desktop</a>. The license that actually governs it is whatever the <a href="https://github.com/TheArtOfSound/qev-desktop/blob/main/LICENSE" style="color:var(--accent);">LICENSE file in that repository</a> says — read it there rather than trusting a license name typed onto a marketing page.</p>
-  <p>Most of this page is checkable against that source: the vault page, the CLI, the desktop app, and the relay server code are all in it. Three things are not. The <code>Content-Security-Policy</code> header on <code>/vault</code> is server configuration, so read it off the live HTTP response instead. The relay's deployed config file and the retention of its server logs are operator-side, so they rest on the disclosure above. And the Android build is not in that repository at all.</p>
-
-  <h2>Children</h2>
-  <p>QEV is not directed at children under 13. We do not knowingly collect personal data from anyone, child or adult. The one exception is the site analytics disclosed above, which we do not use to identify any visitor and which gives us no way to determine a visitor's age.</p>
-
-  <h2>Changes</h2>
-  <p>If this policy ever changes, the update will be committed to the repository with a clear diff. The <code>Last updated</code> date at the top of this page will reflect the change.</p>
-
-  <h2>Contact</h2>
-  <p>Questions about this policy: <a href="mailto:bryanleonard@imagineqira.com" style="color:var(--accent);">bryanleonard@imagineqira.com</a></p>
-</div>
-
+<main class="prose" style="max-width:760px;margin:0 auto;padding:48px 24px"><h1>QEV privacy and data handling</h1><p>Updated October 21, 2026. Bryan Leonard personally operates Qira under TREND. This policy distinguishes the local vault from the separately hosted gateway evaluation.</p><h2>Local browser vault</h2><p>The browser vault encrypts and decrypts selected content on your device. It requires no account. Your vault file and unlock phrase are not submitted to the gateway by that workflow. You choose whether to download and share the encrypted file. Keep its phrase separately; Qira cannot recover it.</p><h2>Hosted gateway evaluation</h2><p>The authenticated <a href="/platform/">operator evaluation</a> is for synthetic records only. Do not submit confidential customer data. Qira’s host processes submitted test plaintext before sealing and stores captured events, package metadata, encrypted packages and operational configuration. Authorized operator requests can decrypt a package with the correct phrase; this service is not a zero-access vault.</p><p>Private routes require a gateway bearer token and configured webhooks require a signature. Test data and backups remain while needed for evaluation and recovery checks; no automatic deletion period is promised. Contact Qira to discuss removal of an evaluation record. Never put tokens or phrases in public inquiries or URLs.</p><h2>Customer-controlled deployments</h2><p>Real-data pilots require a separately agreed deployment, data scope, key ownership, access and retention plan. On a customer-controlled host, that host processes plaintext and manages package keys. The operator evaluation does not establish security certification or an enterprise service commitment.</p><h2>Hosting and operational metadata</h2><p>Cloudflare delivers this website and routes gateway requests to Qira’s supervised host. Hosting and network operators can process IP addresses, request paths, times, status codes and other connection metadata needed to deliver and protect the service. Operational logs and backups can persist; no site-wide zero-collection claim is made.</p><h2>Other QEV surfaces</h2><p>The older chat/voice workspace is unavailable. Desktop, relay and mobile behavior depends on the installed version and deployment; this page does not assert that those services are currently operating. A relay operator can observe connection metadata and routing keys even when message envelopes are encrypted. Review the relevant source and deployment policy before using sensitive data.</p><h2>Inquiries and purchases</h2><p>Qira’s <a href="https://imagineqira.com/plans/#inquiry-privacy">project inquiry privacy notice</a> explains information submitted there. The local browser vault is free. Any paid pilot requires a separate written scope, price and terms.</p><h2>Source and verification</h2><p>The <a href="https://github.com/TheArtOfSound/qev-desktop">public repository</a> and <a href="/verify/">signed site manifest</a> support inspection. A valid signature checks integrity and the signer; it does not independently establish source truth, legal compliance or security certification.</p><h2>Contact</h2><p>For privacy, correction, deletion or data-handling questions, email <a href="mailto:bryanleonard@imagineqira.com">bryanleonard@imagineqira.com</a>. Include a nonsecret reference and the surface involved. Do not email unlock phrases, tokens or confidential records.</p></main>
 <footer style="text-align:center;padding:32px 24px;font-size:0.76rem;color:var(--text-dim);border-top:1px solid var(--border);">
-  QEV v0.29.0 &middot; &copy; 2026 Qira LLC &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
+  QEV v0.29.0 &middot; &copy; 2026 Qira &middot; <a href="/privacy" style="color:var(--accent);">Privacy</a>
 </footer>
 
 <!-- Tamper-evidence: verifies this page against the signed
